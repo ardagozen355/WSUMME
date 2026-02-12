@@ -86,9 +86,65 @@ Purpose: Navigation hub and admin guard.
 +--------------------------------------------------------------------------------+
 ```
 
-### Controls
-- `App.OnStart` sets `varIsAdmin` from `AdminUsers` list.
-- Each nav button `DisplayMode` can be:
+### Controls (exact types + variable bindings)
+- **Header container**: Insert > **Horizontal container** (`conHeaderAdmin`)
+  - Child label `lblHeaderTitle.Text`:
+  ```powerfx
+  "Assessment Admin"
+  ```
+  - Child label `lblAdminName.Text`:
+  ```powerfx
+  "Admin: " & User().FullName
+  ```
+- **Navigation controls**: Insert > **Button**
+  - `btnCourses`, `btnQuestions`, `btnSemesterDashboard`, `btnImports`
+- **Info card**: easiest approach is Insert > **Container** (`conRoleCard`) with two labels inside:
+  - `lblRoleTitle.Text`:
+  ```powerfx
+  "Role Status"
+  ```
+  - `lblRoleValue.Text`:
+  ```powerfx
+  If(varIsAdmin, "Admin access granted", "No admin access")
+  ```
+  - Optional color cue (`lblRoleValue.Color`):
+  ```powerfx
+  If(varIsAdmin, Color.DarkGreen, Color.DarkRed)
+  ```
+
+### Calling variables on this screen
+- `App.OnStart` (or combined OnStart) initializes:
+  - `varUserEmail`
+  - `varIsAdmin`
+- Any label/button can reference these directly, e.g.:
+  - `lblWhoAmI.Text`:
+  ```powerfx
+  "Signed in as: " & varUserEmail
+  ```
+
+### Navigation formulas for Admin Home buttons (`OnSelect`)
+```powerfx
+// btnCourses
+Navigate(scrCourses, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnQuestions
+Navigate(scrQuestions, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnSemesterDashboard
+Navigate(scrSemesterDashboard, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnImports (if you create this screen)
+Navigate(scrImports, ScreenTransition.Fade)
+```
+
+### Guarding buttons for non-admin users
+Set each admin button `DisplayMode` to:
 ```powerfx
 If(varIsAdmin, DisplayMode.Edit, DisplayMode.Disabled)
 ```

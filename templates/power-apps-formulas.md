@@ -201,6 +201,42 @@ If(
 )
 ```
 
+### A1b) Admin Home labels and navigation buttons
+```powerfx
+// lblAdminName.Text
+"Admin: " & User().FullName
+```
+
+```powerfx
+// lblRoleValue.Text
+If(varIsAdmin, "Admin access granted", "No admin access")
+```
+
+```powerfx
+// btnCourses.OnSelect
+Navigate(scrCourses, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnQuestions.OnSelect
+Navigate(scrQuestions, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnSemesterDashboard.OnSelect
+Navigate(scrSemesterDashboard, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnImports.OnSelect (optional screen)
+Navigate(scrImports, ScreenTransition.Fade)
+```
+
+```powerfx
+// Any admin nav button DisplayMode
+If(varIsAdmin, DisplayMode.Edit, DisplayMode.Disabled)
+```
+
 ### A2) Courses gallery `Items`
 ```powerfx
 SortByColumns(
