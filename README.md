@@ -202,7 +202,7 @@ Yes — even though Power Apps is low-code, you can still use a practical, imple
 This repository now includes starter artifacts you can apply directly:
 
 - SharePoint list schema template: `templates/sharepoint-lists-schema.csv`
-- Power Apps formula snippets for dynamic forms and submission logic: `templates/power-apps-formulas.md`
+- Power Apps formula snippets for both instructor and admin apps (dynamic forms, CRUD, ordering, dashboard actions): `templates/power-apps-formulas.md`
 - Power Automate flow blueprints for import, solicitation, reminders, and Excel export: `templates/power-automate-flow-outline.md`
 
 ### Quick start (first 2 hours)
