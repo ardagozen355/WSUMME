@@ -21,6 +21,7 @@ You have two valid implementation patterns:
 ### Combined `App.OnStart` (single-app pattern)
 ```powerfx
 Set(varUserEmail, Lower(User().Email));
+Set(varDisplayName, Coalesce(User().FullName, User().Email));
 
 // Determine admin membership
 Set(
@@ -66,6 +67,7 @@ ClearCollect(
 ### 1) Load instructor's pending assignments (App OnStart)
 ```powerfx
 Set(varUserEmail, Lower(User().Email));
+Set(varDisplayName, Coalesce(User().FullName, User().Email));
 ClearCollect(
     colMyAssignments,
     Filter(
@@ -190,6 +192,7 @@ If(
 
 ```powerfx
 Set(varUserEmail, Lower(User().Email));
+Set(varDisplayName, Coalesce(User().FullName, User().Email));
 Set(
     varIsAdmin,
     CountRows(Filter(AdminUsers, Lower(Email) = varUserEmail)) > 0
@@ -202,9 +205,11 @@ If(
 ```
 
 ### A1b) Admin Home labels and navigation buttons
+> Note: `varDisplayName` is used instead of directly calling `User().FullName` to avoid blank-name tenant/profile edge cases.
+
 ```powerfx
 // lblAdminName.Text
-"Admin: " & User().FullName
+"Admin: " & varDisplayName
 ```
 
 ```powerfx

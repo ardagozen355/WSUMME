@@ -78,7 +78,7 @@ Purpose: Navigation hub and admin guard.
 ```text
 +--------------------------------------------------------------------------------+
 | Header: "Assessment Admin"                                                    |
-| Admin: <User().FullName>                                                       |
+| Admin: <varDisplayName>                                                         |
 +--------------------------------------------------------------------------------+
 | [btnCourses] [btnQuestions] [btnSemesterDashboard] [btnImports]               |
 +--------------------------------------------------------------------------------+
@@ -94,7 +94,7 @@ Purpose: Navigation hub and admin guard.
   ```
   - Child label `lblAdminName.Text`:
   ```powerfx
-  "Admin: " & User().FullName
+  "Admin: " & varDisplayName
   ```
 - **Navigation controls**: Insert > **Button**
   - `btnCourses`, `btnQuestions`, `btnSemesterDashboard`, `btnImports`
@@ -115,6 +115,7 @@ Purpose: Navigation hub and admin guard.
 ### Calling variables on this screen
 - `App.OnStart` (or combined OnStart) initializes:
   - `varUserEmail`
+  - `varDisplayName`
   - `varIsAdmin`
 - Any label/button can reference these directly, e.g.:
   - `lblWhoAmI.Text`:
