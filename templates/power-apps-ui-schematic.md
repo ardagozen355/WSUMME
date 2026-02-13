@@ -4,6 +4,14 @@ This schematic aligns directly with control/variable names used in `templates/po
 
 Implementation note: if you build a **single combined app**, use the merged `App.OnStart` from `templates/power-apps-formulas.md` and route to `scrAdminHome` or `scrMyAssignments` by `varIsAdmin`. If you build **two separate apps**, each app uses only its own `OnStart` section.
 
+Startup behavior note:
+- Set **App.StartScreen** for routing (recommended):
+```powerfx
+If(varIsAdmin, scrAdminHome, scrMyAssignments)
+```
+- In Studio preview, use **App -> Run OnStart** to refresh startup variables.
+
+
 ---
 
 ## 1) Instructor App UI (Canvas)

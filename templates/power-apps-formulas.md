@@ -38,12 +38,34 @@ ClearCollect(
     )
 );
 
-// Route user
+// Do not Navigate() from OnStart; use App.StartScreen for routing.
+```
+
+### Preview note: why `OnStart` may look like it is not running
+In Power Apps Studio preview, `App.OnStart` is not always re-executed automatically.
+Use this checklist:
+
+1. In Studio, run **App -> Run OnStart** after editing startup formulas.
+2. Add a temporary debug label with:
+```powerfx
+"user=" & Coalesce(varUserEmail, "<blank>") &
+" | role=" & If(varIsAdmin, "admin", "non-admin")
+```
+3. Prefer **`App.StartScreen`** for first-screen routing (instead of `Navigate()` in `OnStart`).
+
+### `App.StartScreen` formula (recommended)
+Set the app's `StartScreen` property to:
+```powerfx
+If(varIsAdmin, scrAdminHome, scrMyAssignments)
+```
+
+> If `varIsAdmin` is blank on first load in your tenant, use this deterministic StartScreen formula that does not depend on `OnStart` timing:
+```powerfx
 If(
-    varIsAdmin,
-    Navigate(scrAdminHome, ScreenTransition.None),
-    Navigate(scrMyAssignments, ScreenTransition.None)
-);
+    CountRows(Filter(AdminUsers, Lower(Email) = Lower(User().Email))) > 0,
+    scrAdminHome,
+    scrMyAssignments
+)
 ```
 
 ### Optional: refresh on screen visibility
