@@ -2,7 +2,7 @@
 
 This file includes both:
 - **Instructor App formulas** (assessment completion)
-- **Admin App formulas** (courses, indices, questions, ordering, semester monitoring)
+- **Admin App formulas** (courses, student outcomes, performance indicators, questions, ordering, semester monitoring)
 
 ---
 
@@ -333,32 +333,60 @@ Patch(
 Notify("Course deactivated.", NotificationType.Information)
 ```
 
-### A5) Link performance indices to a course (multi-select combo + save)
-> Combo box `cmbIndices.Items`:
+### A5) Link performance indicators to a course (with Student Outcome visibility)
+> Gallery `galIndicatorsByOutcome.Items` (shows indicator grouped under its outcome):
 ```powerfx
-SortByColumns(PerformanceIndices, "IndexCode", Ascending)
+SortByColumns(
+    AddColumns(
+        PerformanceIndicators,
+        "OutcomeCodeLocal",
+        StudentOutcome.OutcomeCode
+    ),
+    "OutcomeCodeLocal",
+    Ascending,
+    "IndicatorCode",
+    Ascending
+)
 ```
 
-> Save button `OnSelect`:
+> Indicator row label `lblIndicatorPath.Text`:
 ```powerfx
-// Remove existing links
-RemoveIf(CoursePerformanceIndices, Course.Id = varSelectedCourse.ID);
+ThisItem.StudentOutcome.OutcomeCode & " - " & ThisItem.IndicatorCode
+```
 
-// Add selected links
-ForAll(
-    cmbIndices.SelectedItems,
-    Patch(
-        CoursePerformanceIndices,
-        Defaults(CoursePerformanceIndices),
-        {
-            Course: varSelectedCourse,
-            PerformanceIndex: ThisRecord
-        }
+> Checkbox `chkIncludeIndicator.Default`:
+```powerfx
+CountRows(
+    Filter(
+        CoursePerformanceIndicators,
+        Course.Id = varSelectedCourse.ID &&
+        PerformanceIndicator.Id = ThisItem.ID
     )
-);
-
-Notify("Performance indices updated.", NotificationType.Success)
+) > 0
 ```
+
+> Checkbox `chkIncludeIndicator.OnCheck`:
+```powerfx
+Patch(
+    CoursePerformanceIndicators,
+    Defaults(CoursePerformanceIndicators),
+    {
+        Course: varSelectedCourse,
+        PerformanceIndicator: ThisItem
+    }
+)
+```
+
+> Checkbox `chkIncludeIndicator.OnUncheck`:
+```powerfx
+RemoveIf(
+    CoursePerformanceIndicators,
+    Course.Id = varSelectedCourse.ID &&
+    PerformanceIndicator.Id = ThisItem.ID
+)
+```
+
+This interaction makes it explicit which indicator belongs to which student outcome while admins add/remove course mappings.
 
 ### A6) Questions gallery `Items` (filtered by course + global)
 ```powerfx

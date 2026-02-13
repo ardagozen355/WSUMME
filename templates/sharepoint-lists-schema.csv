@@ -2,10 +2,13 @@ ListName,ColumnName,Type,Required,Notes
 Courses,CourseNumber,Single line of text,Yes,Enforce unique values
 Courses,CourseTitle,Single line of text,Yes,
 Courses,IsActive,Yes/No,Yes,Default Yes
-PerformanceIndices,IndexCode,Single line of text,Yes,Enforce unique values
-PerformanceIndices,IndexDescription,Multiple lines of text,No,
-CoursePerformanceIndices,Course,Lookup (Courses),Yes,
-CoursePerformanceIndices,PerformanceIndex,Lookup (PerformanceIndices),Yes,
+StudentOutcomes,OutcomeCode,Single line of text,Yes,Enforce unique values
+StudentOutcomes,OutcomeDescription,Multiple lines of text,No,
+PerformanceIndicators,IndicatorCode,Single line of text,Yes,Enforce unique values
+PerformanceIndicators,IndicatorDescription,Multiple lines of text,No,
+PerformanceIndicators,StudentOutcome,Lookup (StudentOutcomes),Yes,Each indicator must belong to exactly one outcome
+CoursePerformanceIndicators,Course,Lookup (Courses),Yes,
+CoursePerformanceIndicators,PerformanceIndicator,Lookup (PerformanceIndicators),Yes,
 Semesters,TermName,Single line of text,Yes,Example: Fall 2026
 Semesters,StartDate,Date and Time,Yes,
 Semesters,EndDate,Date and Time,Yes,

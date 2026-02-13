@@ -15,13 +15,13 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
 
 ## Feature Mapping to Your Requirements
 
-1. **Course catalog + performance indices**
+1. **Course catalog + student outcomes + performance indicators**
    - Store courses in a SharePoint list with fields such as:
      - Course Number
      - Course Title
      - Active/Inactive
-     - Associated General Performance Indices (multi-select lookup)
-   - Build an **Admin screen in Power Apps** to add/remove/edit courses and indices.
+     - Associated Performance Indicators (each indicator explicitly tied to a Student Outcome)
+   - Build an **Admin screen in Power Apps** to add/remove/edit courses and course-indicator mappings with outcome context.
 
 2. **Semester spreadsheet import (course → instructor assignment)**
    - Admin uploads an Excel file (template-controlled) to a SharePoint document library.
@@ -59,28 +59,36 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
 
 Use SharePoint lists as the primary source of truth:
 
+> Indicator hierarchy: each **PerformanceIndicator** must reference one **StudentOutcome**, and course mappings must be made at the indicator level so outcome ownership is always visible.
+
 1. **Courses**
    - `CourseId` (ID)
    - `CourseNumber` (Text, unique)
    - `CourseTitle` (Text)
    - `IsActive` (Yes/No)
 
-2. **PerformanceIndices**
-   - `IndexId` (ID)
-   - `IndexCode` (Text)
-   - `IndexDescription` (Text)
+2. **StudentOutcomes**
+   - `OutcomeId` (ID)
+   - `OutcomeCode` (Text, unique)
+   - `OutcomeDescription` (Text)
 
-3. **CoursePerformanceIndices** (junction list)
+3. **PerformanceIndicators**
+   - `IndicatorId` (ID)
+   - `IndicatorCode` (Text, unique)
+   - `IndicatorDescription` (Text)
+   - `StudentOutcome` (Lookup → StudentOutcomes)
+
+4. **CoursePerformanceIndicators** (junction list)
    - `Course` (Lookup → Courses)
-   - `PerformanceIndex` (Lookup → PerformanceIndices)
+   - `PerformanceIndicator` (Lookup → PerformanceIndicators)
 
-4. **Semesters**
+5. **Semesters**
    - `SemesterId` (ID)
    - `TermName` (e.g., Fall 2026)
    - `StartDate`, `EndDate`
    - `Status` (Draft / Active / Closed)
 
-5. **TeachingAssignments**
+6. **TeachingAssignments**
    - `AssignmentId` (ID)
    - `Semester` (Lookup)
    - `Course` (Lookup)
@@ -89,7 +97,7 @@ Use SharePoint lists as the primary source of truth:
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
    - `FormToken` (GUID)
 
-6. **Questions**
+7. **Questions**
    - `QuestionId` (ID)
    - `QuestionText` (Multiple lines)
    - `QuestionType` (Choice: LongText, SingleChoice)
@@ -98,14 +106,14 @@ Use SharePoint lists as the primary source of truth:
    - `DisplayOrder` (Number)
    - `IsActive` (Yes/No)
 
-7. **QuestionChoices**
+8. **QuestionChoices**
    - `ChoiceId` (ID)
    - `Question` (Lookup)
    - `ChoiceLabel` (Text)
    - `ChoiceValue` (Text)
    - `DisplayOrder` (Number)
 
-8. **Responses**
+9. **Responses**
    - `ResponseId` (ID)
    - `Assignment` (Lookup)
    - `Question` (Lookup)
@@ -118,7 +126,7 @@ Use SharePoint lists as the primary source of truth:
 ## App Modules
 
 ### 1) Admin App (Power Apps)
-- Manage courses and performance indices
+- Manage courses, student outcomes, and performance indicators
 - Configure questions and order
 - Upload semester assignment file
 - Monitor completion status dashboard
@@ -151,7 +159,7 @@ Use SharePoint lists as the primary source of truth:
 
 ### Phase 1 (1–2 weeks): Foundation
 - Create SharePoint lists and Excel template
-- Build admin CRUD screens for courses/indices
+- Build admin CRUD screens for courses/outcomes/indicators
 - Implement semester import flow
 
 ### Phase 2 (1–2 weeks): Assessment workflow
@@ -231,7 +239,7 @@ No.
 Recommended minimum permissions:
 
 - **Admins**: Edit/Contribute on configuration + operational lists they manage
-  - `Courses`, `PerformanceIndices`, `CoursePerformanceIndices`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`
+  - `Courses`, `StudentOutcomes`, `PerformanceIndicators`, `CoursePerformanceIndicators`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`
 - **Instructors**: Limited permissions
   - Read assigned `TeachingAssignments`
   - Create/Edit their own `Responses` rows only

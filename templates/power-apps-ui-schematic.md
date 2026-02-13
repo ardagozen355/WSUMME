@@ -170,7 +170,7 @@ If(varIsAdmin, DisplayMode.Edit, DisplayMode.Disabled)
 ---
 
 ## Screen AD-2: `scrCourses`
-Purpose: Course CRUD + index mapping.
+Purpose: Course CRUD + performance-indicator mapping (explicit by Student Outcome).
 
 ### Layout (wireframe)
 ```text
@@ -184,8 +184,9 @@ Purpose: Course CRUD + index mapping.
 |  - CourseTitle               | Active       [tglCourseActive]                  |
 |                              | [btnSaveCourse] [btnDeactivateCourse]           |
 |                              |--------------------------------------------------|
-|                              | Performance Indices [cmbIndices multi-select]   |
-|                              | [btnSaveIndices]                                 |
+|                              | Indicators by outcome [galIndicatorsByOutcome]   |
+|                              |  - Label [lblIndicatorPath]                      |
+|                              |  - Checkbox [chkIncludeIndicator]                |
 +------------------------------+-------------------------------------------------+
 ```
 
@@ -197,8 +198,9 @@ Set(varSelectedCourse, ThisItem)
 ```
 - `btnSaveCourse.OnSelect` -> formula **A3**
 - `btnDeactivateCourse.OnSelect` -> formula **A4**
-- `cmbIndices.Items` -> formula **A5** (items)
-- `btnSaveIndices.OnSelect` -> formula **A5** (save)
+- `galIndicatorsByOutcome.Items` -> formula **A5** (items)
+- `lblIndicatorPath.Text` -> formula **A5** (indicator/outcome label)
+- `chkIncludeIndicator.Default/OnCheck/OnUncheck` -> formula **A5** (add/remove mappings)
 
 ---
 
@@ -278,7 +280,7 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
 - Dropdowns: `drpQuestionScope`, `drpQuestionType`, `drpAppliesTo`, `drpCourseForQuestion`, `drpSemester`
-- Combobox: `cmbIndices`
+- Gallery/Checkbox controls for indicator mapping: `galIndicatorsByOutcome`, `chkIncludeIndicator`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
