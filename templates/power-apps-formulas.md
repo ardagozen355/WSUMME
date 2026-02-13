@@ -204,6 +204,34 @@ If(
 )
 ```
 
+### A1a) How AdminUsers is recognized by the app (setup checklist)
+1. Add SharePoint list **AdminUsers** as a data source in the app:
+   - Power Apps Studio -> Data -> Add data -> SharePoint -> select site -> choose `AdminUsers`.
+2. Ensure list has a text column named exactly **Email**.
+3. Store admin emails in lowercase (recommended), e.g. `jane.doe@university.edu`.
+4. Grant app users at least **Read** permission to `AdminUsers` list.
+5. On app load, `User().Email` is captured into `varUserEmail`, then matched by:
+
+```powerfx
+CountRows(Filter(AdminUsers, Lower(Email) = varUserEmail)) > 0
+```
+
+If that expression returns `true`, `varIsAdmin` becomes `true` and admin buttons/screens are enabled.
+
+### A1a-Troubleshooting quick checks
+```powerfx
+// Put in a temporary debug label (Text)
+"user=" & varUserEmail &
+" | matches=" & Text(CountRows(Filter(AdminUsers, Lower(Email) = varUserEmail))) &
+" | isAdmin=" & Text(varIsAdmin)
+```
+
+Common causes when admins are not recognized:
+- `AdminUsers` list was not added as a data source in the app.
+- Column name is not exactly `Email`.
+- Email value has trailing spaces or different account alias than `User().Email`.
+- User lacks read permission to `AdminUsers`.
+
 ### A1b) Admin Home labels and navigation buttons
 > Note: `varDisplayName` is used instead of directly calling `User().FullName` to avoid blank-name tenant/profile edge cases.
 

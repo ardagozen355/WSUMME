@@ -112,6 +112,13 @@ Purpose: Navigation hub and admin guard.
   If(varIsAdmin, Color.DarkGreen, Color.DarkRed)
   ```
 
+### How `AdminUsers` drives access on this screen
+- Add `AdminUsers` as a data source to the app (SharePoint connector).
+- In `App.OnStart`, the app evaluates whether signed-in email exists in that list and sets `varIsAdmin`.
+- UI behavior depends on `varIsAdmin`:
+  - Admin buttons enabled when `true`
+  - Admin buttons disabled when `false`
+
 ### Calling variables on this screen
 - `App.OnStart` (or combined OnStart) initializes:
   - `varUserEmail`
