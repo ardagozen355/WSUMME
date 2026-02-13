@@ -220,3 +220,48 @@ This repository now includes starter artifacts you can apply directly:
   - Submission persistence and export-ready response rows
 
 If you want, the next step can be a **tenant-ready deployment checklist** (environment variables, naming conventions, security roles, and go-live validation script).
+
+---
+
+## FAQ: Permissions and SharePoint Lists vs Excel
+
+### 1) Do admins and instructors both need edit permissions to all data lists?
+No.
+
+Recommended minimum permissions:
+
+- **Admins**: Edit/Contribute on configuration + operational lists they manage
+  - `Courses`, `PerformanceIndices`, `CoursePerformanceIndices`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`
+- **Instructors**: Limited permissions
+  - Read assigned `TeachingAssignments`
+  - Create/Edit their own `Responses` rows only
+  - No edit access to configuration lists (`Courses`, `Questions`, etc.)
+- **Power Automate service account**: Contribute on lists/files touched by flows (imports, assignment updates, response export)
+
+Implementation note:
+- If you keep one SharePoint site for all data, use list-level permissions and/or item-level settings (especially for `Responses`).
+- Prefer separate security groups (e.g., `DeptAssessmentAdmins`, `DeptAssessmentInstructors`) and assign app sharing + list rights to groups rather than individuals.
+
+### 2) Can shared Excel sheets be used instead of SharePoint Lists for data?
+Possible, but **not recommended** for core transactional data.
+
+Use this pattern instead:
+- **SharePoint Lists = system of record** (apps + workflows)
+- **Excel = reporting/export layer** (PivotTables, charts, ad-hoc analysis)
+
+Why Lists are better for app data:
+- Better row-level CRUD behavior for multi-user apps
+- More reliable for concurrent edits than a single workbook lock model
+- Cleaner security model (list/item permissions)
+- Better trigger semantics for Power Automate
+- Better for relational structures (`Questions` ↔ `QuestionChoices`, assignments ↔ responses)
+
+When Excel is okay:
+- Semester import file (staging input)
+- Final flattened response table for analysts
+- Dashboard workbook for pivots/charts
+
+If you must use Excel as primary storage, expect extra effort for:
+- Concurrency conflict handling
+- Validation and referential integrity checks
+- More brittle flow/app behavior under high parallel usage
