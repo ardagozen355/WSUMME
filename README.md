@@ -16,12 +16,10 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
 ## Feature Mapping to Your Requirements
 
 1. **Course catalog + student outcomes + performance indicators**
-   - Store courses in a SharePoint list with fields such as:
-     - Course Number
-     - Course Title
-     - Active/Inactive
-     - Associated Performance Indicators (each indicator explicitly tied to a Student Outcome)
-   - Build an **Admin screen in Power Apps** to add/remove/edit courses and course-indicator mappings with outcome context.
+   - Store general Student Outcomes (`SO1`, `SO2`, ...) and Performance Indicators (`PI1.1`, `PI2.3`, ...) where each PI is tied to one SO.
+   - Each course stores supported PIs directly (e.g., `ME 123` supports `PI1.1`, `PI2.3`, `PI4.6`; `ME 456` supports `PI2.3`, `PI4.3`).
+   - Each course also maintains its own Course-Specific Outcomes (CSOs).
+   - Build an **Admin screen in Power Apps** so admins can edit supported PIs and CSOs with clear SO -> PI labeling.
 
 2. **Semester spreadsheet import (course → instructor assignment)**
    - Admin uploads an Excel file (template-controlled) to a SharePoint document library.
@@ -59,13 +57,14 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
 
 Use SharePoint lists as the primary source of truth:
 
-> Indicator hierarchy: each **PerformanceIndicator** must reference one **StudentOutcome**, and course mappings must be made at the indicator level so outcome ownership is always visible.
+> Indicator hierarchy: each **PerformanceIndicator** must reference one **StudentOutcome**; each course stores a set of supported PIs; and each course can define additional **Course-Specific Outcomes (CSOs)**.
 
 1. **Courses**
    - `CourseId` (ID)
    - `CourseNumber` (Text, unique)
    - `CourseTitle` (Text)
    - `IsActive` (Yes/No)
+   - `SupportedPIs` (Multi-lookup → PerformanceIndicators)
 
 2. **StudentOutcomes**
    - `OutcomeId` (ID)
@@ -74,13 +73,16 @@ Use SharePoint lists as the primary source of truth:
 
 3. **PerformanceIndicators**
    - `IndicatorId` (ID)
-   - `IndicatorCode` (Text, unique)
+   - `IndicatorCode` (Text, unique; e.g., `PI2.3`)
    - `IndicatorDescription` (Text)
    - `StudentOutcome` (Lookup → StudentOutcomes)
 
-4. **CoursePerformanceIndicators** (junction list)
+4. **CourseSpecificOutcomes**
+   - `CSOId` (ID)
    - `Course` (Lookup → Courses)
-   - `PerformanceIndicator` (Lookup → PerformanceIndicators)
+   - `CSOCode` (Text)
+   - `CSODescription` (Text)
+   - `IsActive` (Yes/No)
 
 5. **Semesters**
    - `SemesterId` (ID)
@@ -121,12 +123,21 @@ Use SharePoint lists as the primary source of truth:
    - `AnswerChoice` (Text)
    - `SubmittedAt` (DateTime)
 
+10. **OutcomeEvaluations**
+   - `EvaluationId` (ID)
+   - `Assignment` (Lookup → TeachingAssignments)
+   - `EvaluationType` (Choice: `PI`, `CSO`)
+   - `ReferenceId` (Number)
+   - `ReferenceCode` (Text)
+   - `Score` (Number: 1–5)
+   - `SubmittedAt` (DateTime)
+
 ---
 
 ## App Modules
 
 ### 1) Admin App (Power Apps)
-- Manage courses, student outcomes, and performance indicators
+- Manage courses, student outcomes, supported PIs, and course-specific outcomes
 - Configure questions and order
 - Upload semester assignment file
 - Monitor completion status dashboard
@@ -135,6 +146,7 @@ Use SharePoint lists as the primary source of truth:
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms
 - Dynamic question rendering by assignment/course
+- Rate PI/CSO performance on a 1-5 scale
 - Save draft + final submit
 
 ### 3) Automations (Power Automate)
@@ -239,7 +251,7 @@ No.
 Recommended minimum permissions:
 
 - **Admins**: Edit/Contribute on configuration + operational lists they manage
-  - `Courses`, `StudentOutcomes`, `PerformanceIndicators`, `CoursePerformanceIndicators`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`
+  - `Courses`, `StudentOutcomes`, `PerformanceIndicators`, `CourseSpecificOutcomes`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`, `OutcomeEvaluations`
 - **Instructors**: Limited permissions
   - Read assigned `TeachingAssignments`
   - Create/Edit their own `Responses` rows only

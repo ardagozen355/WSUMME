@@ -47,7 +47,7 @@ Purpose: Instructor sees pending forms.
 ---
 
 ## Screen IA-2: `scrAssessmentForm`
-Purpose: Instructor answers dynamic questions.
+Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 1-5 scale.
 
 ### Layout (wireframe)
 ```text
@@ -61,6 +61,7 @@ Purpose: Instructor answers dynamic questions.
 |--------------------------------------------------------------------------------|
 |  Q2. <QuestionText> ...                                                        |
 +--------------------------------------------------------------------------------+
+| Ratings [galEvalItems]: [lblEvalCode] [drpScore (1-5)]                         |
 | [btnSubmitAssessment]                                                          |
 +--------------------------------------------------------------------------------+
 ```
@@ -71,9 +72,12 @@ Purpose: Instructor answers dynamic questions.
 - `drpSingleChoice.Visible` -> `ThisItem.QuestionType.Value = "SingleChoice"`
 - `drpSingleChoice.Items` -> `Filter(QuestionChoices, Question.Id = ThisItem.ID)` sorted by `DisplayOrder`
 - `txtLongAnswer.OnChange` and `drpSingleChoice.OnChange` patch `colResponses`
-- `btnSubmitAssessment.OnSelect` uses submit formula.
+- `galEvalItems.Items` -> `colEvalItems` (PI + CSO items)
+- `drpScore.Items` -> `[1,2,3,4,5]`
+- `drpScore.OnChange` patches `colEvalItems.ScoreLocal`
+- `btnSubmitAssessment.OnSelect` uses submit formula + saves `OutcomeEvaluations`.
 
-(Uses formulas from section **Instructor 3–6**.)
+(Uses formulas from section **Instructor 3–7**.)
 
 ---
 
@@ -170,7 +174,7 @@ If(varIsAdmin, DisplayMode.Edit, DisplayMode.Disabled)
 ---
 
 ## Screen AD-2: `scrCourses`
-Purpose: Course CRUD + performance-indicator mapping (explicit by Student Outcome).
+Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 
 ### Layout (wireframe)
 ```text
@@ -184,9 +188,12 @@ Purpose: Course CRUD + performance-indicator mapping (explicit by Student Outcom
 |  - CourseTitle               | Active       [tglCourseActive]                  |
 |                              | [btnSaveCourse] [btnDeactivateCourse]           |
 |                              |--------------------------------------------------|
-|                              | Indicators by outcome [galIndicatorsByOutcome]   |
-|                              |  - Label [lblIndicatorPath]                      |
-|                              |  - Checkbox [chkIncludeIndicator]                |
+|                              | Supported PIs [cmbSupportedPIs multi-select]      |
+|                              |  - label uses SO->PI path                         |
+|                              | [btnSaveSupportedPIs]                             |
+|                              |--------------------------------------------------|
+|                              | Course-specific outcomes [galCSOs]                |
+|                              | [txtCSOCode] [txtCSODescription] [btnAddCSO]      |
 +------------------------------+-------------------------------------------------+
 ```
 
@@ -198,9 +205,11 @@ Set(varSelectedCourse, ThisItem)
 ```
 - `btnSaveCourse.OnSelect` -> formula **A3**
 - `btnDeactivateCourse.OnSelect` -> formula **A4**
-- `galIndicatorsByOutcome.Items` -> formula **A5** (items)
-- `lblIndicatorPath.Text` -> formula **A5** (indicator/outcome label)
-- `chkIncludeIndicator.Default/OnCheck/OnUncheck` -> formula **A5** (add/remove mappings)
+- `cmbSupportedPIs.Items` -> formula **A5** (SO->PI visible items)
+- `btnSaveSupportedPIs.OnSelect` -> formula **A5** (save selected PIs on course)
+- `galCSOs.Items` -> formula **A5b**
+- `btnAddCSO.OnSelect` -> formula **A5b** (add CSO)
+- `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove CSO)
 
 ---
 
@@ -280,7 +289,7 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
 - Dropdowns: `drpQuestionScope`, `drpQuestionType`, `drpAppliesTo`, `drpCourseForQuestion`, `drpSemester`
-- Gallery/Checkbox controls for indicator mapping: `galIndicatorsByOutcome`, `chkIncludeIndicator`
+- PI/CSO controls: `cmbSupportedPIs`, `btnSaveSupportedPIs`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 

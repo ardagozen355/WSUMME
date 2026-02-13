@@ -2,13 +2,16 @@ ListName,ColumnName,Type,Required,Notes
 Courses,CourseNumber,Single line of text,Yes,Enforce unique values
 Courses,CourseTitle,Single line of text,Yes,
 Courses,IsActive,Yes/No,Yes,Default Yes
-StudentOutcomes,OutcomeCode,Single line of text,Yes,Enforce unique values
+Courses,SupportedPIs,Lookup (PerformanceIndicators, multi-select),No,Course supports selected PIs from multiple SOs
+StudentOutcomes,OutcomeCode,Single line of text,Yes,Enforce unique values (e.g. SO1)
 StudentOutcomes,OutcomeDescription,Multiple lines of text,No,
-PerformanceIndicators,IndicatorCode,Single line of text,Yes,Enforce unique values
+PerformanceIndicators,IndicatorCode,Single line of text,Yes,Enforce unique values (e.g. PI2.3)
 PerformanceIndicators,IndicatorDescription,Multiple lines of text,No,
-PerformanceIndicators,StudentOutcome,Lookup (StudentOutcomes),Yes,Each indicator must belong to exactly one outcome
-CoursePerformanceIndicators,Course,Lookup (Courses),Yes,
-CoursePerformanceIndicators,PerformanceIndicator,Lookup (PerformanceIndicators),Yes,
+PerformanceIndicators,StudentOutcome,Lookup (StudentOutcomes),Yes,Each PI must belong to exactly one SO
+CourseSpecificOutcomes,Course,Lookup (Courses),Yes,
+CourseSpecificOutcomes,CSOCode,Single line of text,Yes,Example: CSO-1
+CourseSpecificOutcomes,CSODescription,Multiple lines of text,Yes,
+CourseSpecificOutcomes,IsActive,Yes/No,Yes,Default Yes
 Semesters,TermName,Single line of text,Yes,Example: Fall 2026
 Semesters,StartDate,Date and Time,Yes,
 Semesters,EndDate,Date and Time,Yes,
@@ -34,3 +37,9 @@ Responses,Question,Lookup (Questions),Yes,
 Responses,AnswerText,Multiple lines of text,No,Used for LongText
 Responses,AnswerChoice,Single line of text,No,Used for SingleChoice
 Responses,SubmittedAt,Date and Time,Yes,
+OutcomeEvaluations,Assignment,Lookup (TeachingAssignments),Yes,
+OutcomeEvaluations,EvaluationType,Choice,Yes,Choices: PI|CSO
+OutcomeEvaluations,ReferenceId,Number,Yes,ID from PI or CSO source row
+OutcomeEvaluations,ReferenceCode,Single line of text,Yes,PI code or CSO code
+OutcomeEvaluations,Score,Number,Yes,1 to 5 scale
+OutcomeEvaluations,SubmittedAt,Date and Time,Yes,

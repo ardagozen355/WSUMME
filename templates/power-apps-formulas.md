@@ -205,6 +205,70 @@ If(
 )
 ```
 
+### 7) Instructor ratings for PIs and CSOs (1-5 scale)
+> Add list `OutcomeEvaluations` with fields:
+- `Assignment` (Lookup -> TeachingAssignments)
+- `EvaluationType` (Choice: PI, CSO)
+- `ReferenceId` (Number)
+- `ReferenceCode` (Text)
+- `Score` (Number)
+- `SubmittedAt` (DateTime)
+
+> Build evaluation items when opening an assignment:
+```powerfx
+ClearCollect(
+    colEvalItems,
+    AddColumns(
+        LookUp(Courses, ID = varCourseId).SupportedPIs,
+        "EvalType", "PI",
+        "EvalCode", StudentOutcome.OutcomeCode & "-" & IndicatorCode,
+        "ScoreLocal", Blank()
+    )
+);
+Collect(
+    colEvalItems,
+    AddColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true),
+        "EvalType", "CSO",
+        "EvalCode", CSOCode,
+        "ScoreLocal", Blank()
+    )
+)
+```
+
+> Rating dropdown `drpScore.Items`:
+```powerfx
+[1,2,3,4,5]
+```
+
+> Rating dropdown `OnChange`:
+```powerfx
+Patch(
+    colEvalItems,
+    ThisItem,
+    { ScoreLocal: Value(Self.Selected.Value) }
+)
+```
+
+> Save ratings on submit (append to existing submit logic):
+```powerfx
+ForAll(
+    colEvalItems,
+    Patch(
+        OutcomeEvaluations,
+        Defaults(OutcomeEvaluations),
+        {
+            Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+            EvaluationType: { Value: EvalType },
+            ReferenceId: ID,
+            ReferenceCode: EvalCode,
+            Score: ScoreLocal,
+            SubmittedAt: Now()
+        }
+    )
+)
+```
+
 ---
 
 ## Admin App Formulas
@@ -333,60 +397,78 @@ Patch(
 Notify("Course deactivated.", NotificationType.Information)
 ```
 
-### A5) Link performance indicators to a course (with Student Outcome visibility)
-> Gallery `galIndicatorsByOutcome.Items` (shows indicator grouped under its outcome):
+### A5) Map supported PIs on a course (no separate CoursePerformanceIndicators list)
+> Assumption: `Courses` has a **multi-lookup column** `SupportedPIs` -> `PerformanceIndicators`.
+
+> Combo box `cmbSupportedPIs.Items` (explicit SO -> PI display):
 ```powerfx
 SortByColumns(
     AddColumns(
         PerformanceIndicators,
-        "OutcomeCodeLocal",
-        StudentOutcome.OutcomeCode
+        "SO_PI_Label",
+        StudentOutcome.OutcomeCode & " - " & IndicatorCode
     ),
-    "OutcomeCodeLocal",
-    Ascending,
-    "IndicatorCode",
+    "SO_PI_Label",
     Ascending
 )
 ```
 
-> Indicator row label `lblIndicatorPath.Text`:
+> Optional label inside combo template (`lblPILink.Text`):
 ```powerfx
 ThisItem.StudentOutcome.OutcomeCode & " - " & ThisItem.IndicatorCode
 ```
 
-> Checkbox `chkIncludeIndicator.Default`:
-```powerfx
-CountRows(
-    Filter(
-        CoursePerformanceIndicators,
-        Course.Id = varSelectedCourse.ID &&
-        PerformanceIndicator.Id = ThisItem.ID
-    )
-) > 0
-```
-
-> Checkbox `chkIncludeIndicator.OnCheck`:
+> Save button `OnSelect`:
 ```powerfx
 Patch(
-    CoursePerformanceIndicators,
-    Defaults(CoursePerformanceIndicators),
+    Courses,
+    varSelectedCourse,
+    {
+        SupportedPIs: cmbSupportedPIs.SelectedItems
+    }
+);
+Notify("Supported PIs updated for course.", NotificationType.Success)
+```
+
+### A5b) Course-specific outcomes (CSOs) CRUD
+> Use list `CourseSpecificOutcomes` with fields:
+- `Course` (Lookup -> Courses)
+- `CSOCode` (Text)
+- `CSODescription` (Text)
+- `IsActive` (Yes/No)
+
+> `galCSOs.Items`:
+```powerfx
+SortByColumns(
+    Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+    "CSOCode",
+    Ascending
+)
+```
+
+> Add CSO button `OnSelect`:
+```powerfx
+Patch(
+    CourseSpecificOutcomes,
+    Defaults(CourseSpecificOutcomes),
     {
         Course: varSelectedCourse,
-        PerformanceIndicator: ThisItem
+        CSOCode: Upper(Trim(txtCSOCode.Text)),
+        CSODescription: Trim(txtCSODescription.Text),
+        IsActive: true
     }
-)
+);
+Notify("Course-specific outcome added.", NotificationType.Success)
 ```
 
-> Checkbox `chkIncludeIndicator.OnUncheck`:
+> Remove CSO button `OnSelect` (soft delete):
 ```powerfx
-RemoveIf(
-    CoursePerformanceIndicators,
-    Course.Id = varSelectedCourse.ID &&
-    PerformanceIndicator.Id = ThisItem.ID
+Patch(
+    CourseSpecificOutcomes,
+    ThisItem,
+    { IsActive: false }
 )
 ```
-
-This interaction makes it explicit which indicator belongs to which student outcome while admins add/remove course mappings.
 
 ### A6) Questions gallery `Items` (filtered by course + global)
 ```powerfx
