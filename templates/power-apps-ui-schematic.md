@@ -198,16 +198,19 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 ```
 
 ### Controls & bindings
+When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, supported PIs, and existing CSOs.
+
 - `galCourses.Items` -> formula **A2**
-- `galCourses.OnSelect`:
-```powerfx
-Set(varSelectedCourse, ThisItem)
-```
+- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse` and preloads right-panel fields)
+- `txtCourseNumber.Default` -> formula **A2b**
+- `txtCourseTitle.Default` -> formula **A2b**
+- `tglCourseActive.Default` -> formula **A2b**
+- `cmbSupportedPIs.DefaultSelectedItems` -> formula **A2b**
+- `galCSOs.Items` -> formula **A2b/A5b** (shows CSOs for selected course)
 - `btnSaveCourse.OnSelect` -> formula **A3**
 - `btnDeactivateCourse.OnSelect` -> formula **A4**
 - `cmbSupportedPIs.Items` -> formula **A5** (SO->PI visible items)
 - `btnSaveSupportedPIs.OnSelect` -> formula **A5** (save selected PIs on course)
-- `galCSOs.Items` -> formula **A5b**
 - `btnAddCSO.OnSelect` -> formula **A5b** (add CSO)
 - `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove CSO)
 
@@ -239,6 +242,8 @@ Purpose: Question bank management and ordering.
 ```
 
 ### Controls & bindings
+When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, supported PIs, and existing CSOs.
+
 - `galQuestionsAdmin.Items` -> formula **A6**
 - `galQuestionsAdmin.OnSelect`:
 ```powerfx
@@ -272,6 +277,8 @@ Purpose: Track completion and send reminders.
 ```
 
 ### Controls & bindings
+When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, supported PIs, and existing CSOs.
+
 - Pending card text -> formula **A10** (pending)
 - Submitted card text -> formula **A10** (submitted)
 - `btnSendReminderNow.OnSelect` -> formula **A11**

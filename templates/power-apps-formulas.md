@@ -365,6 +365,49 @@ SortByColumns(
 )
 ```
 
+### A2b) When a course is selected, populate right panel fields
+> `galCourses.OnSelect`:
+```powerfx
+Set(varSelectedCourse, ThisItem);
+
+// Preload edit controls from selected course
+Set(varCourseNumberLocal, ThisItem.CourseNumber);
+Set(varCourseTitleLocal, ThisItem.CourseTitle);
+Set(varCourseActiveLocal, ThisItem.IsActive)
+```
+
+> Bind right-panel controls so selected course content is immediately visible:
+```powerfx
+// txtCourseNumber.Default
+Coalesce(varCourseNumberLocal, "")
+```
+
+```powerfx
+// txtCourseTitle.Default
+Coalesce(varCourseTitleLocal, "")
+```
+
+```powerfx
+// tglCourseActive.Default
+Coalesce(varCourseActiveLocal, true)
+```
+
+```powerfx
+// cmbSupportedPIs.DefaultSelectedItems
+Coalesce(varSelectedCourse.SupportedPIs, [])
+```
+
+```powerfx
+// galCSOs.Items
+SortByColumns(
+    Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+    "CSOCode",
+    Ascending
+)
+```
+
+This makes course number, title, active state, supported PIs, and current CSOs appear in the right panel immediately after selecting a course.
+
 ### A3) Add/update a course (Save button `OnSelect`)
 ```powerfx
 If(
