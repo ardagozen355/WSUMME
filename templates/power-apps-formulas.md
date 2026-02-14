@@ -449,13 +449,32 @@ SortByColumns(
     AddColumns(
         PerformanceIndicators As PI,
         SOCode,
-        Coalesce(PI.StudentOutcome.OutcomeCode, PI.StudentOutcome.Value),
+        Coalesce(
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
+            PI.StudentOutcome.Value
+        ),
         DisplayLabel,
-        Coalesce(PI.StudentOutcome.OutcomeCode, PI.StudentOutcome.Value) & " - " & PI.IndicatorCode
+        Coalesce(
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
+            PI.StudentOutcome.Value
+        ) & " - " & PI.IndicatorCode
     ),
     "DisplayLabel",
     SortOrder.Ascending
 )
+```
+
+> If your tenant only supports one lookup key, use one of these simplified variants:
+```powerfx
+// Variant A (common): PI.StudentOutcome.Id
+LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode)
+```
+
+```powerfx
+// Variant B (some schemas): PI.StudentOutcome.ID
+LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode)
 ```
 
 > Combo box display settings (important):
@@ -471,7 +490,11 @@ SortByColumns(
 
 > Optional row label (`lblPILink.Text`) if needed outside combo:
 ```powerfx
-Coalesce(ThisItem.StudentOutcome.OutcomeCode, ThisItem.StudentOutcome.Value) & " - " & ThisItem.IndicatorCode
+Coalesce(
+    LookUp(StudentOutcomes, ID = ThisItem.StudentOutcome.Id, OutcomeCode),
+    LookUp(StudentOutcomes, ID = ThisItem.StudentOutcome.ID, OutcomeCode),
+    ThisItem.StudentOutcome.Value
+) & " - " & ThisItem.IndicatorCode
 ```
 
 > Save button `OnSelect`:
