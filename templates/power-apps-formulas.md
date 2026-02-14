@@ -445,15 +445,14 @@ Notify("Course deactivated.", NotificationType.Information)
 - `galSupportedPIs` = currently supported by the course
 - `galAvailablePIs` = all remaining PIs not currently supported
 
-> **Important fix**: do **not** reference `StudentOutcome` record fields directly.
-Some tenants do not expose that nested lookup record in this context.
-Use lookup-ID based formulas instead (`StudentOutcomeId` or `'StudentOutcome Id'`).
+> **Important fix**: avoid alias-dependent names (`PI`) in tenants where record alias parsing is inconsistent.
+Use `ThisRecord` in `AddColumns(...)` formulas.
 
-> Helper SO code resolver (copy this pattern):
+> Helper SO code resolver (use inside `AddColumns`):
 ```powerfx
 Coalesce(
-    LookUp(StudentOutcomes, ID = PI.StudentOutcomeId, OutcomeCode),
-    LookUp(StudentOutcomes, ID = PI.'StudentOutcome Id', OutcomeCode),
+    LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcomeId, OutcomeCode),
+    LookUp(StudentOutcomes, ID = ThisRecord.'StudentOutcome Id', OutcomeCode),
     "SO?"
 )
 ```
@@ -462,13 +461,13 @@ Coalesce(
 ```powerfx
 SortByColumns(
     AddColumns(
-        If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs) As PI,
+        If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = PI.StudentOutcomeId, OutcomeCode),
-            LookUp(StudentOutcomes, ID = PI.'StudentOutcome Id', OutcomeCode),
+            LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcomeId, OutcomeCode),
+            LookUp(StudentOutcomes, ID = ThisRecord.'StudentOutcome Id', OutcomeCode),
             "SO?"
-        ) & " - " & PI.IndicatorCode
+        ) & " - " & ThisRecord.IndicatorCode
     ),
     "SO_PI_Label",
     SortOrder.Ascending
@@ -480,16 +479,16 @@ SortByColumns(
 SortByColumns(
     AddColumns(
         Filter(
-            PerformanceIndicators As PIBase,
+            PerformanceIndicators,
             IsBlank(varSelectedCourse) ||
-            IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PIBase.ID))
-        ) As PI,
+            IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
+        ),
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = PI.StudentOutcomeId, OutcomeCode),
-            LookUp(StudentOutcomes, ID = PI.'StudentOutcome Id', OutcomeCode),
+            LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcomeId, OutcomeCode),
+            LookUp(StudentOutcomes, ID = ThisRecord.'StudentOutcome Id', OutcomeCode),
             "SO?"
-        ) & " - " & PI.IndicatorCode
+        ) & " - " & ThisRecord.IndicatorCode
     ),
     "SO_PI_Label",
     SortOrder.Ascending
