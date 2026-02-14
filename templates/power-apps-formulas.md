@@ -448,7 +448,12 @@ Notify("Course deactivated.", NotificationType.Information)
 > **Important fix**: this variant does **not** use `StudentOutcomeId`.
 It uses the lookup record already on each PI row and falls back safely.
 
-> Helper SO code resolver (use inside `AddColumns`):
+> `SO_PI_Label` clarification:
+- `SO_PI_Label` is the **new temporary column name** created by `AddColumns(...)`.
+- It is just a label string in the format `SOx - PIy.z` used for display and sorting.
+- If you see `S_PI_Label` anywhere, treat that as a typo; use `SO_PI_Label`.
+
+> Helper SO code resolver expression (the value assigned to `SO_PI_Label`):
 ```powerfx
 Coalesce(
     ThisRecord.StudentOutcome.OutcomeCode,
@@ -462,7 +467,7 @@ Coalesce(
 SortByColumns(
     AddColumns(
         If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-        SO_PI_Label,
+        "SO_PI_Label",
         Coalesce(
             ThisRecord.StudentOutcome.OutcomeCode,
             ThisRecord.StudentOutcome.Value,
@@ -483,7 +488,7 @@ SortByColumns(
             IsBlank(varSelectedCourse) ||
             IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
         ),
-        SO_PI_Label,
+        "SO_PI_Label",
         Coalesce(
             ThisRecord.StudentOutcome.OutcomeCode,
             ThisRecord.StudentOutcome.Value,
