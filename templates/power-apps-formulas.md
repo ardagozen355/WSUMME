@@ -445,14 +445,14 @@ Notify("Course deactivated.", NotificationType.Information)
 - `galSupportedPIs` = currently supported by the course
 - `galAvailablePIs` = all remaining PIs not currently supported
 
-> **Important fix**: avoid alias-dependent names (`PI`) in tenants where record alias parsing is inconsistent.
-Use `ThisRecord` in `AddColumns(...)` formulas.
+> **Important fix**: this variant does **not** use `StudentOutcomeId`.
+It uses the lookup record already on each PI row and falls back safely.
 
 > Helper SO code resolver (use inside `AddColumns`):
 ```powerfx
 Coalesce(
-    LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcomeId, OutcomeCode),
-    LookUp(StudentOutcomes, ID = ThisRecord.'StudentOutcome Id', OutcomeCode),
+    ThisRecord.StudentOutcome.OutcomeCode,
+    ThisRecord.StudentOutcome.Value,
     "SO?"
 )
 ```
@@ -464,8 +464,8 @@ SortByColumns(
         If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcomeId, OutcomeCode),
-            LookUp(StudentOutcomes, ID = ThisRecord.'StudentOutcome Id', OutcomeCode),
+            ThisRecord.StudentOutcome.OutcomeCode,
+            ThisRecord.StudentOutcome.Value,
             "SO?"
         ) & " - " & ThisRecord.IndicatorCode
     ),
@@ -485,8 +485,8 @@ SortByColumns(
         ),
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcomeId, OutcomeCode),
-            LookUp(StudentOutcomes, ID = ThisRecord.'StudentOutcome Id', OutcomeCode),
+            ThisRecord.StudentOutcome.OutcomeCode,
+            ThisRecord.StudentOutcome.Value,
             "SO?"
         ) & " - " & ThisRecord.IndicatorCode
     ),
@@ -497,11 +497,11 @@ SortByColumns(
 
 > Quick schema check label (temporary):
 ```powerfx
-"Has StudentOutcomeId: " & Text(!IsBlank(First(PerformanceIndicators).StudentOutcomeId))
+"Has StudentOutcome record: " & Text(!IsBlank(First(PerformanceIndicators).StudentOutcome))
 ```
 
 ```powerfx
-"Has 'StudentOutcome Id': " & Text(!IsBlank(First(PerformanceIndicators).'StudentOutcome Id'))
+"Has StudentOutcome.Value: " & Text(!IsBlank(First(PerformanceIndicators).StudentOutcome.Value))
 ```
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
@@ -541,8 +541,7 @@ Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 Notify("PI removed from course.", NotificationType.Information)
 ```
 
-If both ID variants fail in your tenant, add a plain text column `OutcomeCodeSnapshot` to `PerformanceIndicators` and use:
-`OutcomeCodeSnapshot & " - " & IndicatorCode` for labels.
+If `ThisRecord.StudentOutcome.OutcomeCode` is blank in your tenant, use `StudentOutcome.Value` only, or add `OutcomeCodeSnapshot` text column on `PerformanceIndicators` and label by `OutcomeCodeSnapshot & " - " & IndicatorCode`.
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
 > Use list `CourseSpecificOutcomes` with fields:
