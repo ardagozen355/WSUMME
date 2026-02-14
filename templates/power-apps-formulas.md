@@ -458,13 +458,13 @@ Coalesce(
 ```powerfx
 SortByColumns(
     AddColumns(
-        If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
+        If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs) As PI,
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = StudentOutcome.Id, OutcomeCode),
-            LookUp(StudentOutcomes, ID = StudentOutcome.ID, OutcomeCode),
-            StudentOutcome.Value
-        ) & " - " & IndicatorCode
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
+            PI.StudentOutcome.Value
+        ) & " - " & PI.IndicatorCode
     ),
     "SO_PI_Label",
     SortOrder.Ascending
@@ -476,16 +476,16 @@ SortByColumns(
 SortByColumns(
     AddColumns(
         Filter(
-            PerformanceIndicators,
+            PerformanceIndicators As PIBase,
             IsBlank(varSelectedCourse) ||
-            IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
-        ),
+            IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PIBase.ID))
+        ) As PI,
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = StudentOutcome.Id, OutcomeCode),
-            LookUp(StudentOutcomes, ID = StudentOutcome.ID, OutcomeCode),
-            StudentOutcome.Value
-        ) & " - " & IndicatorCode
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
+            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
+            PI.StudentOutcome.Value
+        ) & " - " & PI.IndicatorCode
     ),
     "SO_PI_Label",
     SortOrder.Ascending
