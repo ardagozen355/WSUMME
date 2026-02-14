@@ -393,8 +393,8 @@ Coalesce(varCourseActiveLocal, true)
 ```
 
 ```powerfx
-// cmbSupportedPIs.DefaultSelectedItems
-If(IsBlank(varSelectedCourse), Blank(), varSelectedCourse.SupportedPIs)
+// galSupportedPIs.Items and galAvailablePIs.Items use varSelectedCourse.SupportedPIs directly
+// (see A5)
 ```
 
 ```powerfx
@@ -440,74 +440,96 @@ Patch(
 Notify("Course deactivated.", NotificationType.Information)
 ```
 
-### A5) Map supported PIs on a course (no separate CoursePerformanceIndicators list)
-> Assumption: `Courses` has a **multi-lookup column** `SupportedPIs` -> `PerformanceIndicators`.
+### A5) Supported PI editor (show supported + available, add/remove)
+> Goal: when a course is selected, admins see two lists:
+- `galSupportedPIs` = currently supported by the course
+- `galAvailablePIs` = all remaining PIs not currently supported
 
-> Combo box `cmbSupportedPIs.Items` (explicit SO -> PI display):
+> Helper formula used in both galleries (`SO_PI_Label`):
+```powerfx
+Coalesce(
+    LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcome.Id, OutcomeCode),
+    LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcome.ID, OutcomeCode),
+    ThisRecord.StudentOutcome.Value
+) & " - " & ThisRecord.IndicatorCode
+```
+
+> `galSupportedPIs.Items`:
 ```powerfx
 SortByColumns(
     AddColumns(
-        PerformanceIndicators As PI,
-        SOCode,
+        If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
+        SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
-            PI.StudentOutcome.Value
-        ),
-        DisplayLabel,
-        Coalesce(
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
-            PI.StudentOutcome.Value
-        ) & " - " & PI.IndicatorCode
+            LookUp(StudentOutcomes, ID = StudentOutcome.Id, OutcomeCode),
+            LookUp(StudentOutcomes, ID = StudentOutcome.ID, OutcomeCode),
+            StudentOutcome.Value
+        ) & " - " & IndicatorCode
     ),
-    "DisplayLabel",
+    "SO_PI_Label",
     SortOrder.Ascending
 )
 ```
 
-> If your tenant only supports one lookup key, use one of these simplified variants:
+> `galAvailablePIs.Items` (all PIs not in selected course):
 ```powerfx
-// Variant A (common): PI.StudentOutcome.Id
-LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode)
+SortByColumns(
+    AddColumns(
+        Filter(
+            PerformanceIndicators,
+            IsBlank(varSelectedCourse) ||
+            IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
+        ),
+        SO_PI_Label,
+        Coalesce(
+            LookUp(StudentOutcomes, ID = StudentOutcome.Id, OutcomeCode),
+            LookUp(StudentOutcomes, ID = StudentOutcome.ID, OutcomeCode),
+            StudentOutcome.Value
+        ) & " - " & IndicatorCode
+    ),
+    "SO_PI_Label",
+    SortOrder.Ascending
+)
 ```
 
-```powerfx
-// Variant B (some schemas): PI.StudentOutcome.ID
-LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode)
-```
-
-> Combo box display settings (important):
-```powerfx
-// cmbSupportedPIs.DisplayFields
-["DisplayLabel"]
-```
-
-```powerfx
-// cmbSupportedPIs.SearchFields
-["DisplayLabel", "IndicatorCode"]
-```
-
-> Optional row label (`lblPILink.Text`) if needed outside combo:
-```powerfx
-Coalesce(
-    LookUp(StudentOutcomes, ID = ThisItem.StudentOutcome.Id, OutcomeCode),
-    LookUp(StudentOutcomes, ID = ThisItem.StudentOutcome.ID, OutcomeCode),
-    ThisItem.StudentOutcome.Value
-) & " - " & ThisItem.IndicatorCode
-```
-
-> Save button `OnSelect`:
+> Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
 Patch(
     Courses,
     varSelectedCourse,
     {
-        SupportedPIs: cmbSupportedPIs.SelectedItems
+        SupportedPIs:
+            Ungroup(
+                Table(
+                    { x: If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs) },
+                    { x: Table(ThisItem) }
+                ),
+                x
+            )
     }
 );
-Notify("Supported PIs updated for course.", NotificationType.Success)
+Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
+Notify("PI added to course.", NotificationType.Success)
 ```
+
+> Remove PI button in `galSupportedPIs` row (`btnRemovePI.OnSelect`):
+```powerfx
+Patch(
+    Courses,
+    varSelectedCourse,
+    {
+        SupportedPIs:
+            Filter(
+                If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
+                ID <> ThisItem.ID
+            )
+    }
+);
+Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
+Notify("PI removed from course.", NotificationType.Information)
+```
+
+This provides a clear side-by-side supported/available PI management experience and lets admins add/remove directly.
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
 > Use list `CourseSpecificOutcomes` with fields:

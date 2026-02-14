@@ -188,9 +188,11 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 |  - CourseTitle               | Active       [tglCourseActive]                  |
 |                              | [btnSaveCourse] [btnDeactivateCourse]           |
 |                              |--------------------------------------------------|
-|                              | Supported PIs [cmbSupportedPIs multi-select]      |
-|                              |  - label uses SO->PI path                         |
-|                              | [btnSaveSupportedPIs]                             |
+|                              | Supported PIs [galSupportedPIs]                   |
+|                              |  - [lblSupportedPI] [btnRemovePI]                 |
+|                              |--------------------------------------------------|
+|                              | Available PIs [galAvailablePIs]                   |
+|                              |  - [lblAvailablePI] [btnAddPI]                    |
 |                              |--------------------------------------------------|
 |                              | Course-specific outcomes [galCSOs]                |
 |                              | [txtCSOCode] [txtCSODescription] [btnAddCSO]      |
@@ -198,19 +200,20 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 ```
 
 ### Controls & bindings
-When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, supported PIs, and existing CSOs.
+When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galCourses.Items` -> formula **A2**
 - `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse` and preloads right-panel fields)
 - `txtCourseNumber.Default` -> formula **A2b**
 - `txtCourseTitle.Default` -> formula **A2b**
 - `tglCourseActive.Default` -> formula **A2b**
-- `cmbSupportedPIs.DefaultSelectedItems` -> formula **A2b**
+- `galSupportedPIs.Items` -> formula **A5** (currently supported PIs for selected course)
+- `galAvailablePIs.Items` -> formula **A5** (all other PIs not yet supported)
+- `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
+- `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
 - `galCSOs.Items` -> formula **A2b/A5b** (shows CSOs for selected course)
 - `btnSaveCourse.OnSelect` -> formula **A3**
 - `btnDeactivateCourse.OnSelect` -> formula **A4**
-- `cmbSupportedPIs.Items` -> formula **A5** (SO->PI visible items)
-- `btnSaveSupportedPIs.OnSelect` -> formula **A5** (save selected PIs on course)
 - `btnAddCSO.OnSelect` -> formula **A5b** (add CSO)
 - `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove CSO)
 
@@ -242,7 +245,7 @@ Purpose: Question bank management and ordering.
 ```
 
 ### Controls & bindings
-When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, supported PIs, and existing CSOs.
+When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galQuestionsAdmin.Items` -> formula **A6**
 - `galQuestionsAdmin.OnSelect`:
@@ -277,7 +280,7 @@ Purpose: Track completion and send reminders.
 ```
 
 ### Controls & bindings
-When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, supported PIs, and existing CSOs.
+When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - Pending card text -> formula **A10** (pending)
 - Submitted card text -> formula **A10** (submitted)
@@ -296,7 +299,7 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
 - Dropdowns: `drpQuestionScope`, `drpQuestionType`, `drpAppliesTo`, `drpCourseForQuestion`, `drpSemester`
-- PI/CSO controls: `cmbSupportedPIs`, `btnSaveSupportedPIs`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
+- PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
