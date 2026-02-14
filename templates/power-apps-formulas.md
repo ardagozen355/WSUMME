@@ -445,13 +445,17 @@ Notify("Course deactivated.", NotificationType.Information)
 - `galSupportedPIs` = currently supported by the course
 - `galAvailablePIs` = all remaining PIs not currently supported
 
-> Helper formula used in both galleries (`SO_PI_Label`):
+> **Important fix**: do **not** reference `StudentOutcome` record fields directly.
+Some tenants do not expose that nested lookup record in this context.
+Use lookup-ID based formulas instead (`StudentOutcomeId` or `'StudentOutcome Id'`).
+
+> Helper SO code resolver (copy this pattern):
 ```powerfx
 Coalesce(
-    LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcome.Id, OutcomeCode),
-    LookUp(StudentOutcomes, ID = ThisRecord.StudentOutcome.ID, OutcomeCode),
-    ThisRecord.StudentOutcome.Value
-) & " - " & ThisRecord.IndicatorCode
+    LookUp(StudentOutcomes, ID = PI.StudentOutcomeId, OutcomeCode),
+    LookUp(StudentOutcomes, ID = PI.'StudentOutcome Id', OutcomeCode),
+    "SO?"
+)
 ```
 
 > `galSupportedPIs.Items`:
@@ -461,9 +465,9 @@ SortByColumns(
         If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs) As PI,
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
-            PI.StudentOutcome.Value
+            LookUp(StudentOutcomes, ID = PI.StudentOutcomeId, OutcomeCode),
+            LookUp(StudentOutcomes, ID = PI.'StudentOutcome Id', OutcomeCode),
+            "SO?"
         ) & " - " & PI.IndicatorCode
     ),
     "SO_PI_Label",
@@ -482,14 +486,23 @@ SortByColumns(
         ) As PI,
         SO_PI_Label,
         Coalesce(
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.Id, OutcomeCode),
-            LookUp(StudentOutcomes, ID = PI.StudentOutcome.ID, OutcomeCode),
-            PI.StudentOutcome.Value
+            LookUp(StudentOutcomes, ID = PI.StudentOutcomeId, OutcomeCode),
+            LookUp(StudentOutcomes, ID = PI.'StudentOutcome Id', OutcomeCode),
+            "SO?"
         ) & " - " & PI.IndicatorCode
     ),
     "SO_PI_Label",
     SortOrder.Ascending
 )
+```
+
+> Quick schema check label (temporary):
+```powerfx
+"Has StudentOutcomeId: " & Text(!IsBlank(First(PerformanceIndicators).StudentOutcomeId))
+```
+
+```powerfx
+"Has 'StudentOutcome Id': " & Text(!IsBlank(First(PerformanceIndicators).'StudentOutcome Id'))
 ```
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
@@ -529,7 +542,8 @@ Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 Notify("PI removed from course.", NotificationType.Information)
 ```
 
-This provides a clear side-by-side supported/available PI management experience and lets admins add/remove directly.
+If both ID variants fail in your tenant, add a plain text column `OutcomeCodeSnapshot` to `PerformanceIndicators` and use:
+`OutcomeCodeSnapshot & " - " & IndicatorCode` for labels.
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
 > Use list `CourseSpecificOutcomes` with fields:
