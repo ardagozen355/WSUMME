@@ -394,7 +394,7 @@ Coalesce(varCourseActiveLocal, true)
 
 ```powerfx
 // cmbSupportedPIs.DefaultSelectedItems
-Coalesce(varSelectedCourse.SupportedPIs, [])
+If(IsBlank(varSelectedCourse), Blank(), varSelectedCourse.SupportedPIs)
 ```
 
 ```powerfx
@@ -447,18 +447,31 @@ Notify("Course deactivated.", NotificationType.Information)
 ```powerfx
 SortByColumns(
     AddColumns(
-        PerformanceIndicators,
-        "SO_PI_Label",
-        StudentOutcome.OutcomeCode & " - " & IndicatorCode
+        PerformanceIndicators As PI,
+        SOCode,
+        Coalesce(PI.StudentOutcome.OutcomeCode, PI.StudentOutcome.Value),
+        DisplayLabel,
+        Coalesce(PI.StudentOutcome.OutcomeCode, PI.StudentOutcome.Value) & " - " & PI.IndicatorCode
     ),
-    "SO_PI_Label",
-    Ascending
+    "DisplayLabel",
+    SortOrder.Ascending
 )
 ```
 
-> Optional label inside combo template (`lblPILink.Text`):
+> Combo box display settings (important):
 ```powerfx
-ThisItem.StudentOutcome.OutcomeCode & " - " & ThisItem.IndicatorCode
+// cmbSupportedPIs.DisplayFields
+["DisplayLabel"]
+```
+
+```powerfx
+// cmbSupportedPIs.SearchFields
+["DisplayLabel", "IndicatorCode"]
+```
+
+> Optional row label (`lblPILink.Text`) if needed outside combo:
+```powerfx
+Coalesce(ThisItem.StudentOutcome.OutcomeCode, ThisItem.StudentOutcome.Value) & " - " & ThisItem.IndicatorCode
 ```
 
 > Save button `OnSelect`:
