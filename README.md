@@ -203,6 +203,7 @@ This repository now includes starter artifacts you can apply directly:
 
 - SharePoint list schema template: `templates/sharepoint-lists-schema.csv`
 - Power Apps formula snippets for both instructor and admin apps (dynamic forms, CRUD, ordering, dashboard actions): `templates/power-apps-formulas.md`
+- Screen schematic + UI-to-formula mapping template for app build-out: `templates/power-apps-screen-schematic.md`
 - Power Automate flow blueprints for import, solicitation, reminders, and Excel export: `templates/power-automate-flow-outline.md`
 
 ### Quick start (first 2 hours)

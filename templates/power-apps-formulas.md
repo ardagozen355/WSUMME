@@ -177,17 +177,7 @@ If(
 )
 ```
 
-### A4) Soft-delete (deactivate) a course
-```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
-    { IsActive: false }
-);
-Notify("Course deactivated.", NotificationType.Information)
-```
-
-### A5) Link performance indices to a course (multi-select combo + save)
+### A4) Link performance indices to a course (multi-select combo + save)
 > Combo box `cmbIndices.Items`:
 ```powerfx
 SortByColumns(PerformanceIndices, "IndexCode", Ascending)
@@ -214,7 +204,7 @@ ForAll(
 Notify("Performance indices updated.", NotificationType.Success)
 ```
 
-### A6) Questions gallery `Items` (filtered by course + global)
+### A5) Questions gallery `Items` (filtered by course + global)
 ```powerfx
 SortByColumns(
     Filter(
@@ -231,7 +221,7 @@ SortByColumns(
 )
 ```
 
-### A7) Create/update a question
+### A6) Create/update a question
 ```powerfx
 If(
     IsBlank(txtQuestionText.Text),
@@ -254,7 +244,7 @@ If(
 )
 ```
 
-### A8) Maintain single-choice options for selected question
+### A7) Maintain single-choice options for selected question
 > Choices gallery `Items`:
 ```powerfx
 SortByColumns(
@@ -279,7 +269,7 @@ Patch(
 Notify("Choice added.", NotificationType.Success)
 ```
 
-### A9) Reorder question (Move Up button)
+### A8) Reorder question (Move Up button)
 ```powerfx
 Set(varCurrentOrder, ThisItem.DisplayOrder);
 Set(varSwapQuestion,
@@ -298,7 +288,7 @@ If(
 )
 ```
 
-### A10) Semester dashboard cards (counts)
+### A9) Semester dashboard cards (counts)
 ```powerfx
 // Pending count
 CountRows(Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID && FormStatus.Value <> "Submitted"))
@@ -309,7 +299,7 @@ CountRows(Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID && F
 CountRows(Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID && FormStatus.Value = "Submitted"))
 ```
 
-### A11) Trigger reminder flow manually
+### A10) Trigger reminder flow manually
 > Add a Power Automate flow connection named `SendReminderNowFlow`.
 
 ```powerfx
