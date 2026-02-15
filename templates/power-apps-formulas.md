@@ -441,106 +441,45 @@ Notify("Course deactivated.", NotificationType.Information)
 ```
 
 ### A5) Supported PI editor (show supported + available, add/remove)
-> Gallery data-source setup (important):
-- Insert both galleries (`galSupportedPIs`, `galAvailablePIs`) as blank vertical galleries.
-- You do **not** need to bind gallery `Data source` directly in the control picker.
-- Let the `Items` formulas below drive the records.
-- Practically, records come from:
-  - `galSupportedPIs` -> selected course's `SupportedPIs` (lookup records)
-  - `galAvailablePIs` -> `PerformanceIndicators` filtered by not-in-supported set
+> Why `AddColumns` is *not* required for supported vs available logic:
+- The "not supported" calculation is done by `Filter(...)` + `LookUp(...)` on IDs.
+- `AddColumns(...)` was only for creating a display/sort label column.
+- Different tenants expose lookup/alias fields differently, so `AddColumns(...)` often becomes the source of parser errors.
 
-> Goal: when a course is selected, admins see two lists:
-- `galSupportedPIs` = currently supported by the course
-- `galAvailablePIs` = all remaining PIs not currently supported
+> Which data source should `galSupportedPIs` use?
+- In the gallery control, choose a **blank vertical gallery**.
+- Do **not** hard-bind the gallery to `PerformanceIndicators` in the designer.
+- Paste the formula below into `galSupportedPIs.Items`; that formula becomes the data source at runtime.
 
-> **Compatibility-first approach:**
-This variant avoids:
-- string-column syntax in `AddColumns` (e.g., `"SO_PI_Label"`), and
-- dependency on optional `OutcomeCodeSnapshot`.
-
-Because `SupportedPIs` lookup records may expose only `ID`/`Value` in some tenants, this formula first resolves a stable PI code (`piCode`) before building the display label.
-
-> `SO_PI_Label` expression used in `AddColumns`:
+> `galSupportedPIs.Items` (no `AddColumns`):
 ```powerfx
-With(
-    {
-        piCode: Coalesce(
-            IndicatorCode,
-            LookUp(PerformanceIndicators, ID = ID, IndicatorCode),
-            Value,
-            Text(ID)
-        )
-    },
-    If(
-        StartsWith(Upper(piCode), "PI") && Find(".", piCode) > 0,
-        "SO" & First(Split(Mid(Upper(piCode), 3, Len(piCode) - 2), ".")).Value & " - " & piCode,
-        "SO? - " & piCode
-    )
+If(
+    IsBlank(varSelectedCourse),
+    FirstN(PerformanceIndicators, 0),
+    varSelectedCourse.SupportedPIs
 )
 ```
 
-> `galSupportedPIs.Items`:
+> `galAvailablePIs.Items` (no `AddColumns`):
 ```powerfx
-SortByColumns(
-    AddColumns(
-        If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-        SO_PI_Label,
-        With(
-            {
-                piCode: Coalesce(
-                    IndicatorCode,
-                    LookUp(PerformanceIndicators, ID = ID, IndicatorCode),
-                    Value,
-                    Text(ID)
-                )
-            },
-            If(
-                StartsWith(Upper(piCode), "PI") && Find(".", piCode) > 0,
-                "SO" & First(Split(Mid(Upper(piCode), 3, Len(piCode) - 2), ".")).Value & " - " & piCode,
-                "SO? - " & piCode
-            )
-        )
-    ),
-    SO_PI_Label,
-    SortOrder.Ascending
+Filter(
+    PerformanceIndicators,
+    IsBlank(varSelectedCourse) ||
+    IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
 )
 ```
 
-> `galAvailablePIs.Items` (all PIs not in selected course):
+> Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
-SortByColumns(
-    AddColumns(
-        Filter(
-            PerformanceIndicators,
-            IsBlank(varSelectedCourse) ||
-            IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
-        ),
-        SO_PI_Label,
-        With(
-            {
-                piCode: Coalesce(
-                    IndicatorCode,
-                    LookUp(PerformanceIndicators, ID = ID, IndicatorCode),
-                    Value,
-                    Text(ID)
-                )
-            },
-            If(
-                StartsWith(Upper(piCode), "PI") && Find(".", piCode) > 0,
-                "SO" & First(Split(Mid(Upper(piCode), 3, Len(piCode) - 2), ".")).Value & " - " & piCode,
-                "SO? - " & piCode
-            )
-        )
-    ),
-    SO_PI_Label,
-    SortOrder.Ascending
-)
+Coalesce(ThisItem.Value, Text(ThisItem.ID))
 ```
 
-> Quick schema check label (temporary):
+> Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
-"Sample PI code: " & Coalesce(First(PerformanceIndicators).IndicatorCode, First(PerformanceIndicators).Value, "<blank>")
+Coalesce(ThisItem.Title, Text(ThisItem.ID))
 ```
+
+> Keep labels simple first (`ThisItem.Value` / `ThisItem.Title`). After the gallery works, you can optionally switch labels to your preferred PI code column if your tenant exposes it.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
@@ -578,9 +517,6 @@ Patch(
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 Notify("PI removed from course.", NotificationType.Information)
 ```
-
-> If your `IndicatorCode` is not in `PIx.y` format, add a text column `SOCode` to `PerformanceIndicators` and replace the label expression with:
-`SOCode & " - " & IndicatorCode`.
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
 > Use list `CourseSpecificOutcomes` with fields:
