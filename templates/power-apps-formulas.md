@@ -458,14 +458,24 @@ This variant avoids:
 - string-column syntax in `AddColumns` (e.g., `"SO_PI_Label"`), and
 - dependency on optional `OutcomeCodeSnapshot`.
 
-Instead, it derives SO label from `IndicatorCode` pattern `PIx.y` -> `SOx`.
+Because `SupportedPIs` lookup records may expose only `ID`/`Value` in some tenants, this formula first resolves a stable PI code (`piCode`) before building the display label.
 
 > `SO_PI_Label` expression used in `AddColumns`:
 ```powerfx
-If(
-    StartsWith(Upper(IndicatorCode), "PI") && Find(".", IndicatorCode) > 0,
-    "SO" & First(Split(Mid(Upper(IndicatorCode), 3, Len(IndicatorCode) - 2), ".")).Value & " - " & IndicatorCode,
-    "SO? - " & IndicatorCode
+With(
+    {
+        piCode: Coalesce(
+            IndicatorCode,
+            LookUp(PerformanceIndicators, ID = ID, IndicatorCode),
+            Value,
+            Text(ID)
+        )
+    },
+    If(
+        StartsWith(Upper(piCode), "PI") && Find(".", piCode) > 0,
+        "SO" & First(Split(Mid(Upper(piCode), 3, Len(piCode) - 2), ".")).Value & " - " & piCode,
+        "SO? - " & piCode
+    )
 )
 ```
 
@@ -475,10 +485,20 @@ SortByColumns(
     AddColumns(
         If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
         SO_PI_Label,
-        If(
-            StartsWith(Upper(IndicatorCode), "PI") && Find(".", IndicatorCode) > 0,
-            "SO" & First(Split(Mid(Upper(IndicatorCode), 3, Len(IndicatorCode) - 2), ".")).Value & " - " & IndicatorCode,
-            "SO? - " & IndicatorCode
+        With(
+            {
+                piCode: Coalesce(
+                    IndicatorCode,
+                    LookUp(PerformanceIndicators, ID = ID, IndicatorCode),
+                    Value,
+                    Text(ID)
+                )
+            },
+            If(
+                StartsWith(Upper(piCode), "PI") && Find(".", piCode) > 0,
+                "SO" & First(Split(Mid(Upper(piCode), 3, Len(piCode) - 2), ".")).Value & " - " & piCode,
+                "SO? - " & piCode
+            )
         )
     ),
     SO_PI_Label,
@@ -496,10 +516,20 @@ SortByColumns(
             IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
         ),
         SO_PI_Label,
-        If(
-            StartsWith(Upper(IndicatorCode), "PI") && Find(".", IndicatorCode) > 0,
-            "SO" & First(Split(Mid(Upper(IndicatorCode), 3, Len(IndicatorCode) - 2), ".")).Value & " - " & IndicatorCode,
-            "SO? - " & IndicatorCode
+        With(
+            {
+                piCode: Coalesce(
+                    IndicatorCode,
+                    LookUp(PerformanceIndicators, ID = ID, IndicatorCode),
+                    Value,
+                    Text(ID)
+                )
+            },
+            If(
+                StartsWith(Upper(piCode), "PI") && Find(".", piCode) > 0,
+                "SO" & First(Split(Mid(Upper(piCode), 3, Len(piCode) - 2), ".")).Value & " - " & piCode,
+                "SO? - " & piCode
+            )
         )
     ),
     SO_PI_Label,
@@ -509,7 +539,7 @@ SortByColumns(
 
 > Quick schema check label (temporary):
 ```powerfx
-"Sample PI code: " & First(PerformanceIndicators).IndicatorCode
+"Sample PI code: " & Coalesce(First(PerformanceIndicators).IndicatorCode, First(PerformanceIndicators).Value, "<blank>")
 ```
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
