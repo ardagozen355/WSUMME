@@ -507,7 +507,7 @@ Coalesce(
 > Why this collection approach helps:
 - `colAllPIs` is loaded once, then `colSupportedPIs`/`colAvailablePIs` are split locally so `ThisItem` keeps stable typed fields (`ID`, `IndicatorCode`, `Title`).
 - It avoids the previous `&&` / `!` filter warning pattern on `galSupportedPIs.Items`.
-- After add/remove operations, rebuild both collections to keep both galleries in sync.
+- After add/remove operations, refresh `updatedCourse` from SharePoint first, then rebuild collections from `updatedCourse.SupportedPIs` so galleries update immediately without re-selecting the course.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
@@ -535,24 +535,28 @@ With(
         }
     )
 );
-Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 
-// Rebuild typed PI collections after update
-ClearCollect(colAllPIs, PerformanceIndicators);
-ClearCollect(
-    colSupportedPIs,
-    Filter(
-        colAllPIs,
-        !IsBlank(varSelectedCourse) &&
-        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
-    )
-);
-ClearCollect(
-    colAvailablePIs,
-    Filter(
-        colAllPIs,
-        IsBlank(varSelectedCourse) ||
-        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+With(
+    { updatedCourse: LookUp(Courses, ID = varSelectedCourse.ID) },
+    Set(varSelectedCourse, updatedCourse);
+
+    // Rebuild typed PI collections after update
+    ClearCollect(colAllPIs, PerformanceIndicators);
+    ClearCollect(
+        colSupportedPIs,
+        Filter(
+            colAllPIs,
+            !IsBlank(updatedCourse) &&
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
+        )
+    );
+    ClearCollect(
+        colAvailablePIs,
+        Filter(
+            colAllPIs,
+            IsBlank(updatedCourse) ||
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+        )
     )
 );
 
@@ -575,24 +579,28 @@ With(
         }
     )
 );
-Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 
-// Rebuild typed PI collections after update
-ClearCollect(colAllPIs, PerformanceIndicators);
-ClearCollect(
-    colSupportedPIs,
-    Filter(
-        colAllPIs,
-        !IsBlank(varSelectedCourse) &&
-        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
-    )
-);
-ClearCollect(
-    colAvailablePIs,
-    Filter(
-        colAllPIs,
-        IsBlank(varSelectedCourse) ||
-        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+With(
+    { updatedCourse: LookUp(Courses, ID = varSelectedCourse.ID) },
+    Set(varSelectedCourse, updatedCourse);
+
+    // Rebuild typed PI collections after update
+    ClearCollect(colAllPIs, PerformanceIndicators);
+    ClearCollect(
+        colSupportedPIs,
+        Filter(
+            colAllPIs,
+            !IsBlank(updatedCourse) &&
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
+        )
+    );
+    ClearCollect(
+        colAvailablePIs,
+        Filter(
+            colAllPIs,
+            IsBlank(updatedCourse) ||
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+        )
     )
 );
 
