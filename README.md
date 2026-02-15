@@ -58,6 +58,7 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
 Use SharePoint lists as the primary source of truth:
 
 > Indicator hierarchy: each **PerformanceIndicator** must reference one **StudentOutcome**; each course stores a set of supported PIs; and each course can define additional **Course-Specific Outcomes (CSOs)**.
+> To avoid tenant-specific lookup expansion issues in Power Apps galleries, use `OutcomeCodeSnapshot` for PI labels (`SOx - PIy.z`).
 
 1. **Courses**
    - `CourseId` (ID)
@@ -76,6 +77,7 @@ Use SharePoint lists as the primary source of truth:
    - `IndicatorCode` (Text, unique; e.g., `PI2.3`)
    - `IndicatorDescription` (Text)
    - `StudentOutcome` (Lookup → StudentOutcomes)
+   - `OutcomeCodeSnapshot` (Text; denormalized SO code used in app labels)
 
 4. **CourseSpecificOutcomes**
    - `CSOId` (ID)
