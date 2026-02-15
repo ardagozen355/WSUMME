@@ -430,16 +430,6 @@ If(
 )
 ```
 
-### A4) Soft-delete (deactivate) a course
-```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
-    { IsActive: false }
-);
-Notify("Course deactivated.", NotificationType.Information)
-```
-
 ### A5) Supported PI editor (show supported + available, add/remove)
 > Why `AddColumns` is *not* required for supported vs available logic:
 - The "not supported" calculation is done by `Filter(...)` + `LookUp(...)` on IDs.

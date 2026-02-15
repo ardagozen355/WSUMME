@@ -186,7 +186,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 | [galCourses]                 | Course Number [txtCourseNumber]                 |
 |  - CourseNumber              | Course Title  [txtCourseTitle]                  |
 |  - CourseTitle               | Active       [tglCourseActive]                  |
-|                              | [btnSaveCourse] [btnDeactivateCourse]           |
+|                              | [btnSaveCourse]                                  |
 |                              |--------------------------------------------------|
 |                              | Supported PIs [galSupportedPIs]                   |
 |                              |  - [lblSupportedPI] [btnRemovePI]                 |
@@ -218,7 +218,6 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
 - `galCSOs.Items` -> formula **A2b/A5b** (shows CSOs for selected course)
 - `btnSaveCourse.OnSelect` -> formula **A3**
-- `btnDeactivateCourse.OnSelect` -> formula **A4**
 - `btnAddCSO.OnSelect` -> formula **A5b** (add CSO)
 - `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove CSO)
 
