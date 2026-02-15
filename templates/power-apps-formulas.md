@@ -382,7 +382,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         !IsBlank(varSelectedCourse) &&
-        !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.ID) > 0
     )
 );
 ClearCollect(
@@ -390,7 +390,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         IsBlank(varSelectedCourse) ||
-        IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.ID) = 0
     )
 )
 ```
@@ -532,7 +532,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         !IsBlank(varSelectedCourse) &&
-        !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.ID) > 0
     )
 );
 ClearCollect(
@@ -540,7 +540,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         IsBlank(varSelectedCourse) ||
-        IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.ID) = 0
     )
 );
 
@@ -569,7 +569,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         !IsBlank(varSelectedCourse) &&
-        !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.ID) > 0
     )
 );
 ClearCollect(
@@ -577,7 +577,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         IsBlank(varSelectedCourse) ||
-        IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.ID) = 0
     )
 );
 
