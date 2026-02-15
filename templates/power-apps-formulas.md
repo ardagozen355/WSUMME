@@ -393,8 +393,8 @@ Coalesce(varCourseActiveLocal, true)
 ```
 
 ```powerfx
-// galSupportedPIs.Items and galAvailablePIs.Items are both driven from PerformanceIndicators
-// with Filter + LookUp against varSelectedCourse.SupportedPIs (see A5)
+// galSupportedPIs uses varSelectedCourse.SupportedPIs directly (lookup table, non-delegable warning-free)
+// galAvailablePIs filters PerformanceIndicators against selected lookup IDs (see A5)
 ```
 
 ```powerfx
@@ -439,14 +439,14 @@ If(
 > Which data source should `galSupportedPIs` use?
 - In the gallery control, choose a **blank vertical gallery**.
 - Keep the designer data-source setting unset/blank.
-- Paste the formula below into `galSupportedPIs.Items` so the gallery is based on `PerformanceIndicators` records (typed fields like `ID`, `IndicatorCode`, `Title` are available in `ThisItem`).
+- Use the selected course's lookup table directly to avoid delegation warnings from filtering `PerformanceIndicators` with lookup predicates.
 
-> `galSupportedPIs.Items` (typed, no `AddColumns`):
+> `galSupportedPIs.Items` (delegation-warning friendly):
 ```powerfx
-Filter(
-    PerformanceIndicators,
-    !IsBlank(varSelectedCourse) &&
-    !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
+If(
+    IsBlank(varSelectedCourse),
+    FirstN(PerformanceIndicators, 0),
+    varSelectedCourse.SupportedPIs
 )
 ```
 
@@ -471,16 +471,15 @@ Filter(
 > Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
 Coalesce(
-    ThisItem.IndicatorCode,
-    ThisItem.Title,
-    Text(ThisItem.ID)
+    ThisItem.Value,
+    "(PI lookup value missing)"
 )
 ```
 
 > If `ThisItem` only shows `IsSelected` in `lblSupportedPI.Text`:
 - Confirm `lblSupportedPI` is **inside** the `galSupportedPIs` row template.
-- Confirm `galSupportedPIs.Items` uses the typed `Filter(PerformanceIndicators, ...)` formula above, not `varSelectedCourse.SupportedPIs` directly.
-- After updating `Items`, remove/re-add the row controls (or duplicate the gallery) so Studio refreshes available `ThisItem` fields.
+- After changing `galSupportedPIs.Items`, remove/re-add the label in the template so Studio refreshes `ThisItem` schema.
+- If needed, temporarily set `lblSupportedPI.Text` to `galSupportedPIs.Selected.Value` to validate the lookup has values, then switch back to `ThisItem.Value`.
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
@@ -492,9 +491,9 @@ Coalesce(
 ```
 
 > Why you may still be seeing only `Text` at runtime:
-- The PI row in `PerformanceIndicators` likely has `Title = "Text"` (default seed value).
-- Because the supported/available galleries now read from `PerformanceIndicators`, update PI records so `IndicatorCode` (preferred) or `Title` has the real label.
-- In SharePoint lookup settings, set `Courses.SupportedPIs` display column to `IndicatorCode` for cleaner lookup chips elsewhere.
+- `galSupportedPIs` displays lookup `Value`; if the lookup display column points to `Title` and PI items still have default `Title = "Text"`, rows will show `Text`.
+- Update `Courses.SupportedPIs` lookup display column to `IndicatorCode` (or a meaningful PI name field).
+- Update existing `PerformanceIndicators` data so the chosen display column contains real values.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx

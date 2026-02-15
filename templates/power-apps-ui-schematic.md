@@ -210,7 +210,7 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `galSupportedPIs` control type: Vertical gallery (blank)
 - `galSupportedPIs` data source selection in designer: **None/blank** (do not pre-bind to `PerformanceIndicators`)
 - `galSupportedPIs.Items` -> formula **A5** (currently supported PIs for selected course)
-- `lblSupportedPI.Text` -> formula **A5** (uses typed `PerformanceIndicators` fields such as `IndicatorCode`/`Title`)
+- `lblSupportedPI.Text` -> formula **A5** (uses lookup display value from `varSelectedCourse.SupportedPIs`)
 - `galAvailablePIs` control type: Vertical gallery (blank)
 - `galAvailablePIs.Items` -> formula **A5** (all other PIs not yet supported)
 - `lblAvailablePI.Text` -> formula **A5**
