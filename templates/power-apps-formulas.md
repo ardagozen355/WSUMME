@@ -445,23 +445,35 @@ Notify("Course deactivated.", NotificationType.Information)
 - `galSupportedPIs` = currently supported by the course
 - `galAvailablePIs` = all remaining PIs not currently supported
 
-> **Different approach (recommended for stability):**
-Use a denormalized text column on `PerformanceIndicators` named `OutcomeCodeSnapshot`.
-This avoids tenant-specific lookup expansion issues (`StudentOutcome`, `ThisRecord`, alias scope).
+> **Compatibility-first approach:**
+This variant avoids:
+- string-column syntax in `AddColumns` (e.g., `"SO_PI_Label"`), and
+- dependency on optional `OutcomeCodeSnapshot`.
 
-> `SO_PI_Label` definition:
-- `SO_PI_Label` is a temporary text column created by `AddColumns(...)`.
-- Value formula: `Coalesce(OutcomeCodeSnapshot, "SO?") & " - " & IndicatorCode`
+Instead, it derives SO label from `IndicatorCode` pattern `PIx.y` -> `SOx`.
+
+> `SO_PI_Label` expression used in `AddColumns`:
+```powerfx
+If(
+    StartsWith(Upper(IndicatorCode), "PI") && Find(".", IndicatorCode) > 0,
+    "SO" & First(Split(Mid(Upper(IndicatorCode), 3, Len(IndicatorCode) - 2), ".")).Value & " - " & IndicatorCode,
+    "SO? - " & IndicatorCode
+)
+```
 
 > `galSupportedPIs.Items`:
 ```powerfx
 SortByColumns(
     AddColumns(
         If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-        "SO_PI_Label",
-        Coalesce(OutcomeCodeSnapshot, "SO?") & " - " & IndicatorCode
+        SO_PI_Label,
+        If(
+            StartsWith(Upper(IndicatorCode), "PI") && Find(".", IndicatorCode) > 0,
+            "SO" & First(Split(Mid(Upper(IndicatorCode), 3, Len(IndicatorCode) - 2), ".")).Value & " - " & IndicatorCode,
+            "SO? - " & IndicatorCode
+        )
     ),
-    "SO_PI_Label",
+    SO_PI_Label,
     SortOrder.Ascending
 )
 ```
@@ -475,17 +487,21 @@ SortByColumns(
             IsBlank(varSelectedCourse) ||
             IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
         ),
-        "SO_PI_Label",
-        Coalesce(OutcomeCodeSnapshot, "SO?") & " - " & IndicatorCode
+        SO_PI_Label,
+        If(
+            StartsWith(Upper(IndicatorCode), "PI") && Find(".", IndicatorCode) > 0,
+            "SO" & First(Split(Mid(Upper(IndicatorCode), 3, Len(IndicatorCode) - 2), ".")).Value & " - " & IndicatorCode,
+            "SO? - " & IndicatorCode
+        )
     ),
-    "SO_PI_Label",
+    SO_PI_Label,
     SortOrder.Ascending
 )
 ```
 
 > Quick schema check label (temporary):
 ```powerfx
-"Has OutcomeCodeSnapshot: " & Text(!IsBlank(First(PerformanceIndicators).OutcomeCodeSnapshot))
+"Sample PI code: " & First(PerformanceIndicators).IndicatorCode
 ```
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
@@ -525,9 +541,8 @@ Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 Notify("PI removed from course.", NotificationType.Information)
 ```
 
-> Keeping `OutcomeCodeSnapshot` up to date:
-- When creating/editing a PI, set `OutcomeCodeSnapshot` = selected Student Outcome code (e.g., `SO2`).
-- If SO assignment changes, update this snapshot in the same admin action/flow.
+> If your `IndicatorCode` is not in `PIx.y` format, add a text column `SOCode` to `PerformanceIndicators` and replace the label expression with:
+`SOCode & " - " & IndicatorCode`.
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
 > Use list `CourseSpecificOutcomes` with fields:
