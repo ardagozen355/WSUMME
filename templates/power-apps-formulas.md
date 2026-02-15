@@ -471,12 +471,15 @@ Filter(
 > Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
 Coalesce(
-    LookUp(PerformanceIndicators, ID = ThisItem.ID, IndicatorCode),
-    LookUp(PerformanceIndicators, ID = ThisItem.Id, IndicatorCode),
     ThisItem.Value,
-    Text(ThisItem.ID)
+    "(PI lookup value missing)"
 )
 ```
+
+> If `ID` / `Id` is not recognized and you only see `ThisItem.IsSelected`:
+- `lblSupportedPI` is almost certainly **outside** the `galSupportedPIs` template. Cut/paste it into the first gallery row (template) so `ThisItem` is the current record.
+- For SharePoint multi-lookup fields, `ThisItem.Value` is the most reliable display field across tenants.
+- Use `galSupportedPIs.Selected.Value` only for debugging; row labels should use `ThisItem.Value`.
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
@@ -488,10 +491,9 @@ Coalesce(
 ```
 
 > Why you may be seeing only `Text` at runtime:
-- `galSupportedPIs` is bound to `varSelectedCourse.SupportedPIs`, which is a lookup table and often only carries `ID` + display `Value`.
-- If your `Courses.SupportedPIs` lookup was configured to show `Title`, and PI rows still have default title `Text`, the gallery will show `Text`.
-- The lookup-based `lblSupportedPI.Text` formula above resolves PI name from `PerformanceIndicators` by ID to avoid that issue.
-- Also update SharePoint lookup settings so `SupportedPIs` displays `IndicatorCode` (or a dedicated PI name column) instead of `Title`.
+- `galSupportedPIs` is bound to a lookup table (`varSelectedCourse.SupportedPIs`) that typically exposes only the display value.
+- If the SharePoint lookup display column is still `Title` and PI rows have default title `Text`, then `ThisItem.Value` will show `Text`.
+- Update SharePoint lookup settings so `Courses.SupportedPIs` displays `IndicatorCode` (or another PI-name column) instead of `Title`.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
