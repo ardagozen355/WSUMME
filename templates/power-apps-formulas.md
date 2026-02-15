@@ -469,8 +469,8 @@ colSupportedPIs
 1. Insert a **Vertical gallery (blank)** in the right panel and rename it to `galAvailablePIs`.
 2. Keep the gallery's designer data source unset (blank); do not bind it in the right-hand data pane.
 3. Set `galAvailablePIs.Items` to `colAvailablePIs` (the collection prepared in `galCourses.OnSelect`).
-4. Inside the gallery template, add a **Label** named `lblAvailablePI`.
-5. Set `lblAvailablePI.Text` to the available-row label formula below so the UI prefers `IndicatorCode`.
+4. Inside the gallery template, add a **Label** named `lblAvailablePI` (and turn on `Wrap`).
+5. Set `lblAvailablePI.Text` to the available-row label formula below so each row shows PI code + PI description.
 6. Inside the same row, add a **Button** (or icon button) named `btnAddPI` with text such as `"Add"`.
 7. Set `btnAddPI.OnSelect` to the add formula below so clicking a row appends that PI to `Courses.SupportedPIs` and refreshes `varSelectedCourse`.
    - The formula uses row-context `ThisItem` (captured via `With`) so each button click applies only to that row.
@@ -482,11 +482,14 @@ colAvailablePIs
 
 > Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
-Coalesce(
-    ThisItem.IndicatorCode,
-    ThisItem.Title,
-    Text(ThisItem.ID)
-)
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & Char(10) &
+Coalesce(ThisItem.IndicatorDescription, "(No PI description)")
+```
+
+> Optional for readability:
+```powerfx
+// lblSupportedPI.Wrap
+true
 ```
 
 > If `ThisItem` only shows `IsSelected` in `lblSupportedPI.Text`:
@@ -497,15 +500,18 @@ Coalesce(
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
-Coalesce(
-    ThisItem.IndicatorCode,
-    ThisItem.Title,
-    Text(ThisItem.ID)
-)
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & Char(10) &
+Coalesce(ThisItem.IndicatorDescription, "(No PI description)")
+```
+
+> Optional for readability:
+```powerfx
+// lblAvailablePI.Wrap
+true
 ```
 
 > Why this collection approach helps:
-- `colAllPIs` is loaded once, then `colSupportedPIs`/`colAvailablePIs` are split locally so `ThisItem` keeps stable typed fields (`ID`, `IndicatorCode`, `Title`).
+- `colAllPIs` is loaded once, then `colSupportedPIs`/`colAvailablePIs` are split locally so `ThisItem` keeps stable typed fields (`ID`, `IndicatorCode`, `IndicatorDescription`, `Title`).
 - It avoids the previous `&&` / `!` filter warning pattern on `galSupportedPIs.Items`.
 - After add/remove operations, refresh `updatedCourse` from SharePoint first, then rebuild collections from `updatedCourse.SupportedPIs` so galleries update immediately without re-selecting the course.
 

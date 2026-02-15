@@ -210,10 +210,10 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `galSupportedPIs` control type: Vertical gallery (blank)
 - `galSupportedPIs` data source selection in designer: **None/blank** (do not pre-bind to `PerformanceIndicators`)
 - `galSupportedPIs.Items` -> formula **A5** (`colSupportedPIs`, built on course select)
-- `lblSupportedPI.Text` -> formula **A5** (uses typed PI fields such as `IndicatorCode`/`Title`)
+- `lblSupportedPI.Text` -> formula **A5** (shows `IndicatorCode` + `IndicatorDescription` on separate lines)
 - `galAvailablePIs` control type: Vertical gallery (blank)
 - `galAvailablePIs.Items` -> formula **A5** (`colAvailablePIs`, all other PIs not yet supported)
-- `lblAvailablePI.Text` -> formula **A5**
+- `lblAvailablePI.Text` -> formula **A5** (shows `IndicatorCode` + `IndicatorDescription` on separate lines)
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
 - `galCSOs.Items` -> formula **A2b/A5b** (shows CSOs for selected course)
