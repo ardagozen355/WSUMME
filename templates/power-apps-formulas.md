@@ -441,6 +441,14 @@ Notify("Course deactivated.", NotificationType.Information)
 ```
 
 ### A5) Supported PI editor (show supported + available, add/remove)
+> Gallery data-source setup (important):
+- Insert both galleries (`galSupportedPIs`, `galAvailablePIs`) as blank vertical galleries.
+- You do **not** need to bind gallery `Data source` directly in the control picker.
+- Let the `Items` formulas below drive the records.
+- Practically, records come from:
+  - `galSupportedPIs` -> selected course's `SupportedPIs` (lookup records)
+  - `galAvailablePIs` -> `PerformanceIndicators` filtered by not-in-supported set
+
 > Goal: when a course is selected, admins see two lists:
 - `galSupportedPIs` = currently supported by the course
 - `galAvailablePIs` = all remaining PIs not currently supported

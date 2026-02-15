@@ -207,7 +207,9 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `txtCourseNumber.Default` -> formula **A2b**
 - `txtCourseTitle.Default` -> formula **A2b**
 - `tglCourseActive.Default` -> formula **A2b**
+- `galSupportedPIs` control type: Vertical gallery (blank)
 - `galSupportedPIs.Items` -> formula **A5** (currently supported PIs for selected course)
+- `galAvailablePIs` control type: Vertical gallery (blank)
 - `galAvailablePIs.Items` -> formula **A5** (all other PIs not yet supported)
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
