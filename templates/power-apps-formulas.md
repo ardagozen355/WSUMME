@@ -382,7 +382,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         !IsBlank(varSelectedCourse) &&
-        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) > 0
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
     )
 );
 ClearCollect(
@@ -390,7 +390,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         IsBlank(varSelectedCourse) ||
-        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) = 0
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
     )
 )
 ```
@@ -516,8 +516,8 @@ Patch(
         SupportedPIs:
             Ungroup(
                 Table(
-                    { x: If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs) },
-                    { x: Table(ThisItem) }
+                    { x: varSelectedCourse.SupportedPIs },
+                    { x: Table({ Id: ThisItem.ID, Value: Coalesce(ThisItem.IndicatorCode, ThisItem.Title, Text(ThisItem.ID)) }) }
                 ),
                 x
             )
@@ -532,7 +532,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         !IsBlank(varSelectedCourse) &&
-        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) > 0
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
     )
 );
 ClearCollect(
@@ -540,7 +540,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         IsBlank(varSelectedCourse) ||
-        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) = 0
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
     )
 );
 
@@ -555,8 +555,8 @@ Patch(
     {
         SupportedPIs:
             Filter(
-                If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-                ID <> ThisItem.ID
+                varSelectedCourse.SupportedPIs,
+                Id <> ThisItem.ID
             )
     }
 );
@@ -569,7 +569,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         !IsBlank(varSelectedCourse) &&
-        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) > 0
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
     )
 );
 ClearCollect(
@@ -577,7 +577,7 @@ ClearCollect(
     Filter(
         colAllPIs,
         IsBlank(varSelectedCourse) ||
-        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) = 0
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
     )
 );
 
