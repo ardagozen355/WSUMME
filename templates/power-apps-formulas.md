@@ -450,6 +450,15 @@ If(
 )
 ```
 
+> Build `galAvailablePIs` step-by-step (recommended):
+1. Insert a **Vertical gallery (blank)** in the right panel and rename it to `galAvailablePIs`.
+2. Keep the gallery's designer data source unset (blank); do not bind it in the right-hand data pane.
+3. Set `galAvailablePIs.Items` to the formula below so it shows only PIs not already linked to `varSelectedCourse`.
+4. Inside the gallery template, add a **Label** named `lblAvailablePI`.
+5. Set `lblAvailablePI.Text` to the available-row label formula below so the UI prefers `IndicatorCode`.
+6. Inside the same row, add a **Button** (or icon button) named `btnAddPI` with text such as `"Add"`.
+7. Set `btnAddPI.OnSelect` to the add formula below so clicking a row appends that PI to `Courses.SupportedPIs` and refreshes `varSelectedCourse`.
+
 > `galAvailablePIs.Items` (no `AddColumns`):
 ```powerfx
 Filter(
