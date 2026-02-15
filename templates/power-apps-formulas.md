@@ -473,6 +473,7 @@ colSupportedPIs
 5. Set `lblAvailablePI.Text` to the available-row label formula below so the UI prefers `IndicatorCode`.
 6. Inside the same row, add a **Button** (or icon button) named `btnAddPI` with text such as `"Add"`.
 7. Set `btnAddPI.OnSelect` to the add formula below so clicking a row appends that PI to `Courses.SupportedPIs` and refreshes `varSelectedCourse`.
+   - The formula uses `galAvailablePIs.Selected` explicitly to ensure only the clicked/selected PI is added.
 
 > `galAvailablePIs.Items`:
 ```powerfx
@@ -514,12 +515,27 @@ Patch(
     varSelectedCourse,
     {
         SupportedPIs:
-            Ungroup(
-                Table(
-                    { x: varSelectedCourse.SupportedPIs },
-                    { x: Table({ Id: ThisItem.ID, Value: Coalesce(ThisItem.IndicatorCode, ThisItem.Title, Text(ThisItem.ID)) }) }
-                ),
-                x
+            If(
+                CountIf(varSelectedCourse.SupportedPIs, Id = galAvailablePIs.Selected.ID) > 0,
+                varSelectedCourse.SupportedPIs,
+                Ungroup(
+                    Table(
+                        { x: varSelectedCourse.SupportedPIs },
+                        {
+                            x: Table(
+                                {
+                                    Id: galAvailablePIs.Selected.ID,
+                                    Value: Coalesce(
+                                        galAvailablePIs.Selected.IndicatorCode,
+                                        galAvailablePIs.Selected.Title,
+                                        Text(galAvailablePIs.Selected.ID)
+                                    )
+                                }
+                            )
+                        }
+                    ),
+                    x
+                )
             )
     }
 );
