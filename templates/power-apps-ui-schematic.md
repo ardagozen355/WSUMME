@@ -203,16 +203,16 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galCourses.Items` -> formula **A2**
-- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse` and preloads right-panel fields)
+- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse`, preloads fields, and rebuilds `colSupportedPIs`/`colAvailablePIs`)
 - `txtCourseNumber.Default` -> formula **A2b**
 - `txtCourseTitle.Default` -> formula **A2b**
 - `tglCourseActive.Default` -> formula **A2b**
 - `galSupportedPIs` control type: Vertical gallery (blank)
 - `galSupportedPIs` data source selection in designer: **None/blank** (do not pre-bind to `PerformanceIndicators`)
-- `galSupportedPIs.Items` -> formula **A5** (currently supported PIs for selected course)
-- `lblSupportedPI.Text` -> formula **A5** (uses lookup display value from `varSelectedCourse.SupportedPIs`)
+- `galSupportedPIs.Items` -> formula **A5** (`colSupportedPIs`, built on course select)
+- `lblSupportedPI.Text` -> formula **A5** (uses typed PI fields such as `IndicatorCode`/`Title`)
 - `galAvailablePIs` control type: Vertical gallery (blank)
-- `galAvailablePIs.Items` -> formula **A5** (all other PIs not yet supported)
+- `galAvailablePIs.Items` -> formula **A5** (`colAvailablePIs`, all other PIs not yet supported)
 - `lblAvailablePI.Text` -> formula **A5**
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)

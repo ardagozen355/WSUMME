@@ -373,7 +373,21 @@ Set(varSelectedCourse, ThisItem);
 // Preload edit controls from selected course
 Set(varCourseNumberLocal, ThisItem.CourseNumber);
 Set(varCourseTitleLocal, ThisItem.CourseTitle);
-Set(varCourseActiveLocal, ThisItem.IsActive)
+Set(varCourseActiveLocal, ThisItem.IsActive);
+
+// Build typed PI collections for stable gallery schemas
+ClearCollect(
+    colSupportedPIs,
+    ForAll(
+        If(IsBlank(ThisItem.SupportedPIs), FirstN(PerformanceIndicators, 0), ThisItem.SupportedPIs),
+        LookUp(PerformanceIndicators, ID = ID)
+    )
+);
+ClearCollect(colAvailablePIs, PerformanceIndicators);
+ForAll(
+    colSupportedPIs As sp,
+    RemoveIf(colAvailablePIs, ID = sp.ID)
+)
 ```
 
 > Bind right-panel controls so selected course content is immediately visible:
@@ -393,8 +407,8 @@ Coalesce(varCourseActiveLocal, true)
 ```
 
 ```powerfx
-// galSupportedPIs uses varSelectedCourse.SupportedPIs directly (lookup table, non-delegable warning-free)
-// galAvailablePIs filters PerformanceIndicators against selected lookup IDs (see A5)
+// galSupportedPIs.Items -> colSupportedPIs (typed collection)
+// galAvailablePIs.Items -> colAvailablePIs (typed collection)
 ```
 
 ```powerfx
@@ -439,47 +453,40 @@ If(
 > Which data source should `galSupportedPIs` use?
 - In the gallery control, choose a **blank vertical gallery**.
 - Keep the designer data-source setting unset/blank.
-- Use the selected course's lookup table directly to avoid delegation warnings from filtering `PerformanceIndicators` with lookup predicates.
+- Use the typed local collection populated in `galCourses.OnSelect`.
 
-> `galSupportedPIs.Items` (delegation-warning friendly):
+> `galSupportedPIs.Items`:
 ```powerfx
-If(
-    IsBlank(varSelectedCourse),
-    FirstN(PerformanceIndicators, 0),
-    varSelectedCourse.SupportedPIs
-)
+colSupportedPIs
 ```
 
 > Build `galAvailablePIs` step-by-step (recommended):
 1. Insert a **Vertical gallery (blank)** in the right panel and rename it to `galAvailablePIs`.
 2. Keep the gallery's designer data source unset (blank); do not bind it in the right-hand data pane.
-3. Set `galAvailablePIs.Items` to the formula below so it shows only PIs not already linked to `varSelectedCourse`.
+3. Set `galAvailablePIs.Items` to `colAvailablePIs` (the collection prepared in `galCourses.OnSelect`).
 4. Inside the gallery template, add a **Label** named `lblAvailablePI`.
 5. Set `lblAvailablePI.Text` to the available-row label formula below so the UI prefers `IndicatorCode`.
 6. Inside the same row, add a **Button** (or icon button) named `btnAddPI` with text such as `"Add"`.
 7. Set `btnAddPI.OnSelect` to the add formula below so clicking a row appends that PI to `Courses.SupportedPIs` and refreshes `varSelectedCourse`.
 
-> `galAvailablePIs.Items` (no `AddColumns`):
+> `galAvailablePIs.Items`:
 ```powerfx
-Filter(
-    PerformanceIndicators,
-    IsBlank(varSelectedCourse) ||
-    IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
-)
+colAvailablePIs
 ```
 
 > Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
 Coalesce(
-    ThisItem.Value,
-    "(PI lookup value missing)"
+    ThisItem.IndicatorCode,
+    ThisItem.Title,
+    Text(ThisItem.ID)
 )
 ```
 
 > If `ThisItem` only shows `IsSelected` in `lblSupportedPI.Text`:
 - Confirm `lblSupportedPI` is **inside** the `galSupportedPIs` row template.
-- After changing `galSupportedPIs.Items`, remove/re-add the label in the template so Studio refreshes `ThisItem` schema.
-- If needed, temporarily set `lblSupportedPI.Text` to `galSupportedPIs.Selected.Value` to validate the lookup has values, then switch back to `ThisItem.Value`.
+- Confirm `galSupportedPIs.Items = colSupportedPIs` and that `colSupportedPIs` is rebuilt in `galCourses.OnSelect`.
+- In Studio, reselect a course (or re-run `OnSelect`) so collections repopulate before editing row formulas.
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
@@ -490,10 +497,10 @@ Coalesce(
 )
 ```
 
-> Why you may still be seeing only `Text` at runtime:
-- `galSupportedPIs` displays lookup `Value`; if the lookup display column points to `Title` and PI items still have default `Title = "Text"`, rows will show `Text`.
-- Update `Courses.SupportedPIs` lookup display column to `IndicatorCode` (or a meaningful PI name field).
-- Update existing `PerformanceIndicators` data so the chosen display column contains real values.
+> Why this collection approach helps:
+- `colSupportedPIs` and `colAvailablePIs` both contain typed `PerformanceIndicators` rows, so `ThisItem` exposes stable fields (`ID`, `IndicatorCode`, `Title`).
+- It avoids the previous `&&` / `!` filter warning pattern on `galSupportedPIs.Items`.
+- After add/remove operations, rebuild both collections to keep both galleries in sync.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
@@ -512,6 +519,21 @@ Patch(
     }
 );
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
+
+// Rebuild typed PI collections after update
+ClearCollect(
+    colSupportedPIs,
+    ForAll(
+        If(IsBlank(varSelectedCourse.SupportedPIs), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
+        LookUp(PerformanceIndicators, ID = ID)
+    )
+);
+ClearCollect(colAvailablePIs, PerformanceIndicators);
+ForAll(
+    colSupportedPIs As sp,
+    RemoveIf(colAvailablePIs, ID = sp.ID)
+);
+
 Notify("PI added to course.", NotificationType.Success)
 ```
 
@@ -529,6 +551,21 @@ Patch(
     }
 );
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
+
+// Rebuild typed PI collections after update
+ClearCollect(
+    colSupportedPIs,
+    ForAll(
+        If(IsBlank(varSelectedCourse.SupportedPIs), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
+        LookUp(PerformanceIndicators, ID = ID)
+    )
+);
+ClearCollect(colAvailablePIs, PerformanceIndicators);
+ForAll(
+    colSupportedPIs As sp,
+    RemoveIf(colAvailablePIs, ID = sp.ID)
+);
+
 Notify("PI removed from course.", NotificationType.Information)
 ```
 
