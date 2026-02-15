@@ -376,17 +376,22 @@ Set(varCourseTitleLocal, ThisItem.CourseTitle);
 Set(varCourseActiveLocal, ThisItem.IsActive);
 
 // Build typed PI collections for stable gallery schemas
+ClearCollect(colAllPIs, PerformanceIndicators);
 ClearCollect(
     colSupportedPIs,
-    ForAll(
-        If(IsBlank(ThisItem.SupportedPIs), FirstN(PerformanceIndicators, 0), ThisItem.SupportedPIs),
-        LookUp(PerformanceIndicators, ID = ID)
+    Filter(
+        colAllPIs,
+        !IsBlank(varSelectedCourse) &&
+        !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
     )
 );
-ClearCollect(colAvailablePIs, PerformanceIndicators);
-ForAll(
-    colSupportedPIs As sp,
-    RemoveIf(colAvailablePIs, ID = sp.ID)
+ClearCollect(
+    colAvailablePIs,
+    Filter(
+        colAllPIs,
+        IsBlank(varSelectedCourse) ||
+        IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+    )
 )
 ```
 
@@ -407,8 +412,8 @@ Coalesce(varCourseActiveLocal, true)
 ```
 
 ```powerfx
-// galSupportedPIs.Items -> colSupportedPIs (typed collection)
-// galAvailablePIs.Items -> colAvailablePIs (typed collection)
+// colAllPIs caches PerformanceIndicators once per refresh
+// galSupportedPIs.Items -> colSupportedPIs, galAvailablePIs.Items -> colAvailablePIs
 ```
 
 ```powerfx
@@ -498,7 +503,7 @@ Coalesce(
 ```
 
 > Why this collection approach helps:
-- `colSupportedPIs` and `colAvailablePIs` both contain typed `PerformanceIndicators` rows, so `ThisItem` exposes stable fields (`ID`, `IndicatorCode`, `Title`).
+- `colAllPIs` is loaded once, then `colSupportedPIs`/`colAvailablePIs` are split locally so `ThisItem` keeps stable typed fields (`ID`, `IndicatorCode`, `Title`).
 - It avoids the previous `&&` / `!` filter warning pattern on `galSupportedPIs.Items`.
 - After add/remove operations, rebuild both collections to keep both galleries in sync.
 
@@ -521,17 +526,22 @@ Patch(
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 
 // Rebuild typed PI collections after update
+ClearCollect(colAllPIs, PerformanceIndicators);
 ClearCollect(
     colSupportedPIs,
-    ForAll(
-        If(IsBlank(varSelectedCourse.SupportedPIs), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-        LookUp(PerformanceIndicators, ID = ID)
+    Filter(
+        colAllPIs,
+        !IsBlank(varSelectedCourse) &&
+        !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
     )
 );
-ClearCollect(colAvailablePIs, PerformanceIndicators);
-ForAll(
-    colSupportedPIs As sp,
-    RemoveIf(colAvailablePIs, ID = sp.ID)
+ClearCollect(
+    colAvailablePIs,
+    Filter(
+        colAllPIs,
+        IsBlank(varSelectedCourse) ||
+        IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+    )
 );
 
 Notify("PI added to course.", NotificationType.Success)
@@ -553,17 +563,22 @@ Patch(
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 
 // Rebuild typed PI collections after update
+ClearCollect(colAllPIs, PerformanceIndicators);
 ClearCollect(
     colSupportedPIs,
-    ForAll(
-        If(IsBlank(varSelectedCourse.SupportedPIs), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-        LookUp(PerformanceIndicators, ID = ID)
+    Filter(
+        colAllPIs,
+        !IsBlank(varSelectedCourse) &&
+        !IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
     )
 );
-ClearCollect(colAvailablePIs, PerformanceIndicators);
-ForAll(
-    colSupportedPIs As sp,
-    RemoveIf(colAvailablePIs, ID = sp.ID)
+ClearCollect(
+    colAvailablePIs,
+    Filter(
+        colAllPIs,
+        IsBlank(varSelectedCourse) ||
+        IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = colAllPIs[@ID]))
+    )
 );
 
 Notify("PI removed from course.", NotificationType.Information)

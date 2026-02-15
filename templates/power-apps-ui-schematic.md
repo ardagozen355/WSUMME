@@ -203,7 +203,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galCourses.Items` -> formula **A2**
-- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse`, preloads fields, and rebuilds `colSupportedPIs`/`colAvailablePIs`)
+- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse`, preloads fields, caches `colAllPIs`, then rebuilds `colSupportedPIs`/`colAvailablePIs`)
 - `txtCourseNumber.Default` -> formula **A2b**
 - `txtCourseTitle.Default` -> formula **A2b**
 - `tglCourseActive.Default` -> formula **A2b**
