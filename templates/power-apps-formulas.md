@@ -471,15 +471,28 @@ Filter(
 
 > Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
-Coalesce(ThisItem.Value, Text(ThisItem.ID))
+Coalesce(
+    LookUp(PerformanceIndicators, ID = ThisItem.ID, IndicatorCode),
+    LookUp(PerformanceIndicators, ID = ThisItem.Id, IndicatorCode),
+    ThisItem.Value,
+    Text(ThisItem.ID)
+)
 ```
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
-Coalesce(ThisItem.Title, Text(ThisItem.ID))
+Coalesce(
+    ThisItem.IndicatorCode,
+    ThisItem.Title,
+    Text(ThisItem.ID)
+)
 ```
 
-> Keep labels simple first (`ThisItem.Value` / `ThisItem.Title`). After the gallery works, you can optionally switch labels to your preferred PI code column if your tenant exposes it.
+> Why you may be seeing only `Text` at runtime:
+- `galSupportedPIs` is bound to `varSelectedCourse.SupportedPIs`, which is a lookup table and often only carries `ID` + display `Value`.
+- If your `Courses.SupportedPIs` lookup was configured to show `Title`, and PI rows still have default title `Text`, the gallery will show `Text`.
+- The lookup-based `lblSupportedPI.Text` formula above resolves PI name from `PerformanceIndicators` by ID to avoid that issue.
+- Also update SharePoint lookup settings so `SupportedPIs` displays `IndicatorCode` (or a dedicated PI name column) instead of `Title`.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
