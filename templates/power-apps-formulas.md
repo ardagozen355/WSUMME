@@ -473,7 +473,7 @@ colSupportedPIs
 5. Set `lblAvailablePI.Text` to the available-row label formula below so the UI prefers `IndicatorCode`.
 6. Inside the same row, add a **Button** (or icon button) named `btnAddPI` with text such as `"Add"`.
 7. Set `btnAddPI.OnSelect` to the add formula below so clicking a row appends that PI to `Courses.SupportedPIs` and refreshes `varSelectedCourse`.
-   - The formula uses `galAvailablePIs.Selected` explicitly to ensure only the clicked/selected PI is added.
+   - The formula uses row-context `ThisItem` (captured via `With`) so each button click applies only to that row.
 
 > `galAvailablePIs.Items`:
 ```powerfx
@@ -493,6 +493,7 @@ Coalesce(
 - Confirm `lblSupportedPI` is **inside** the `galSupportedPIs` row template.
 - Confirm `galSupportedPIs.Items = colSupportedPIs` and that `colSupportedPIs` is rebuilt in `galCourses.OnSelect`.
 - In Studio, reselect a course (or re-run `OnSelect`) so collections repopulate before editing row formulas.
+- Ensure `btnAddPI` and `btnRemovePI` are inside their gallery templates so `ThisItem.ID` comes from the clicked row.
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
@@ -510,34 +511,29 @@ Coalesce(
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
+With(
     {
-        SupportedPIs:
-            If(
-                CountIf(varSelectedCourse.SupportedPIs, Id = galAvailablePIs.Selected.ID) > 0,
-                varSelectedCourse.SupportedPIs,
-                Ungroup(
-                    Table(
-                        { x: varSelectedCourse.SupportedPIs },
-                        {
-                            x: Table(
-                                {
-                                    Id: galAvailablePIs.Selected.ID,
-                                    Value: Coalesce(
-                                        galAvailablePIs.Selected.IndicatorCode,
-                                        galAvailablePIs.Selected.Title,
-                                        Text(galAvailablePIs.Selected.ID)
-                                    )
-                                }
-                            )
-                        }
-                    ),
-                    x
+        addId: ThisItem.ID,
+        addValue: Coalesce(ThisItem.IndicatorCode, ThisItem.Title, Text(ThisItem.ID))
+    },
+    Patch(
+        Courses,
+        varSelectedCourse,
+        {
+            SupportedPIs:
+                If(
+                    CountIf(varSelectedCourse.SupportedPIs, Id = addId) > 0,
+                    varSelectedCourse.SupportedPIs,
+                    Ungroup(
+                        Table(
+                            { x: varSelectedCourse.SupportedPIs },
+                            { x: Table({ Id: addId, Value: addValue }) }
+                        ),
+                        x
+                    )
                 )
-            )
-    }
+        }
+    )
 );
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 
@@ -565,16 +561,19 @@ Notify("PI added to course.", NotificationType.Success)
 
 > Remove PI button in `galSupportedPIs` row (`btnRemovePI.OnSelect`):
 ```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
-    {
-        SupportedPIs:
-            Filter(
-                varSelectedCourse.SupportedPIs,
-                Id <> ThisItem.ID
-            )
-    }
+With(
+    { removeId: ThisItem.ID },
+    Patch(
+        Courses,
+        varSelectedCourse,
+        {
+            SupportedPIs:
+                Filter(
+                    varSelectedCourse.SupportedPIs,
+                    Id <> removeId
+                )
+        }
+    )
 );
 Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
 
