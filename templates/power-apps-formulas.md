@@ -392,6 +392,15 @@ ClearCollect(
         IsBlank(varSelectedCourse) ||
         CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
     )
+);
+
+ClearCollect(
+    colCSOs,
+    SortByColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+        "CSOCode",
+        Ascending
+    )
 )
 ```
 
@@ -414,15 +423,7 @@ Coalesce(varCourseActiveLocal, true)
 ```powerfx
 // colAllPIs caches PerformanceIndicators once per refresh
 // galSupportedPIs.Items -> colSupportedPIs, galAvailablePIs.Items -> colAvailablePIs
-```
-
-```powerfx
-// galCSOs.Items
-SortByColumns(
-    Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
-    "CSOCode",
-    Ascending
-)
+// galCSOs.Items -> colCSOs
 ```
 
 This makes course number, title, active state, supported PIs, and current CSOs appear in the right panel immediately after selecting a course.
@@ -620,13 +621,27 @@ Notify("PI removed from course.", NotificationType.Information)
 - `CSODescription` (Text)
 - `IsActive` (Yes/No)
 
+> Build `galCSOs` step-by-step:
+1. Insert a **Vertical gallery (blank)** and rename it `galCSOs`.
+2. Set `galCSOs.Items` to `colCSOs` so the list refreshes from the selected course context.
+3. Inside each row add:
+   - `lblCSOCode.Text`:
+   ```powerfx
+   ThisItem.CSOCode
+   ```
+   - `lblCSODescription.Text`:
+   ```powerfx
+   ThisItem.CSODescription
+   ```
+   - `btnRemoveCSO.OnSelect` formula below.
+4. Add text inputs below the gallery:
+   - `txtCSOCode` for code entry
+   - `txtCSODescription` for description entry
+   - `btnAddCSO.OnSelect` formula below.
+
 > `galCSOs.Items`:
 ```powerfx
-SortByColumns(
-    Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
-    "CSOCode",
-    Ascending
-)
+colCSOs
 ```
 
 > Add CSO button `OnSelect`:
@@ -641,6 +656,18 @@ Patch(
         IsActive: true
     }
 );
+
+ClearCollect(
+    colCSOs,
+    SortByColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+        "CSOCode",
+        Ascending
+    )
+);
+
+Reset(txtCSOCode);
+Reset(txtCSODescription);
 Notify("Course-specific outcome added.", NotificationType.Success)
 ```
 
@@ -650,7 +677,18 @@ Patch(
     CourseSpecificOutcomes,
     ThisItem,
     { IsActive: false }
-)
+);
+
+ClearCollect(
+    colCSOs,
+    SortByColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+        "CSOCode",
+        Ascending
+    )
+);
+
+Notify("Course-specific outcome removed.", NotificationType.Information)
 ```
 
 ### A6) Questions gallery `Items` (filtered by course + global)
