@@ -723,43 +723,40 @@ Notify("Course-specific outcome deleted.", NotificationType.Information)
 ```
 
 ### A6) Questions gallery `Items` (global question bank)
+> Build `galQuestionsAdmin` as a **blank vertical gallery** (same pattern as `galAvailablePIs`):
+1. Insert a **Vertical gallery (blank)** named `galQuestionsAdmin`.
+2. Keep the gallery's designer data source unset (blank).
+3. Set `galQuestionsAdmin.Items` to the formula below.
+4. Add labels `lblOrderAndText`, `lblType`, and `lblRequired` inside the row template.
+
+> `galQuestionsAdmin.Items`:
 ```powerfx
-AddColumns(
-    IfError(
-        SortByColumns(
-            Filter(Questions, IsActive = true),
-            "DisplayOrder",
-            Ascending
-        ),
-        SortByColumns(
-            Filter(Questions, IsActive = true),
-            "ID",
-            Ascending
-        )
+IfError(
+    SortByColumns(
+        Filter(Questions, IsActive = true),
+        "DisplayOrder",
+        Ascending
     ),
-    OrderText,
-    Text(Coalesce(DisplayOrder, ID)),
-    QuestionTextPreview,
-    Left(QuestionText, 120),
-    TypeText,
-    QuestionType.Value,
-    RequiredText,
-    If(Coalesce(IsRequired, true), "Required", "Optional")
+    SortByColumns(
+        Filter(Questions, IsActive = true),
+        "ID",
+        Ascending
+    )
 )
 ```
 
 > Suggested row labels inside `galQuestionsAdmin`:
 - `lblOrderAndText.Text`
 ```powerfx
-ThisItem.OrderText & " - " & ThisItem.QuestionTextPreview
+Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)) & " - " & Left(ThisItem.QuestionText, 120)
 ```
 - `lblType.Text`
 ```powerfx
-ThisItem.TypeText
+ThisItem.QuestionType.Value
 ```
 - `lblRequired.Text`
 ```powerfx
-ThisItem.RequiredText
+If(Coalesce(ThisItem.IsRequired, true), "Required", "Optional")
 ```
 
 > If you see a "DisplayOrder column doesn't exist" error, either add the `DisplayOrder` number column to `Questions` or keep this fallback-to-`ID` approach.
