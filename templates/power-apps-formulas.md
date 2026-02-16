@@ -105,10 +105,17 @@ Set(varAssignmentId, ThisItem.ID);
 Set(varCourseId, ThisItem.Course.Id);
 ClearCollect(
     colQuestions,
-    SortByColumns(
-        Filter(Questions, IsActive = true),
-        "DisplayOrder",
-        Ascending
+    IfError(
+        SortByColumns(
+            Filter(Questions, IsActive = true),
+            "DisplayOrder",
+            Ascending
+        ),
+        SortByColumns(
+            Filter(Questions, IsActive = true),
+            "ID",
+            Ascending
+        )
     )
 );
 
@@ -717,12 +724,21 @@ Notify("Course-specific outcome deleted.", NotificationType.Information)
 
 ### A6) Questions gallery `Items` (global question bank)
 ```powerfx
-SortByColumns(
-    Filter(Questions, IsActive = true),
-    "DisplayOrder",
-    Ascending
+IfError(
+    SortByColumns(
+        Filter(Questions, IsActive = true),
+        "DisplayOrder",
+        Ascending
+    ),
+    SortByColumns(
+        Filter(Questions, IsActive = true),
+        "ID",
+        Ascending
+    )
 )
 ```
+
+> If you see a "DisplayOrder column doesn't exist" error, either add the `DisplayOrder` number column to `Questions` or keep this fallback-to-`ID` approach.
 
 ### A7) Create/update a question
 > `tglQuestionRequired.Default`:
