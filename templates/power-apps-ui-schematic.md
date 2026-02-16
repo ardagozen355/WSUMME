@@ -237,6 +237,7 @@ Purpose: Question bank management and ordering.
 | [galQuestionsAdmin]          | Question editor                                 |
 |  - DisplayOrder + Text       | Text [txtQuestionText]                          |
 |  - Type                      | Type [drpQuestionType]                          |
+|  - Required                  | Required [tglQuestionRequired]                  |
 |  - [btnMoveUp]               | Order [txtDisplayOrder]                         |
 |                              | Active [tglQuestionActive]                      |
 |                              | [btnSaveQuestion]                               |
@@ -256,7 +257,7 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 ```powerfx
 Set(varSelectedQuestion, ThisItem)
 ```
-- `btnSaveQuestion.OnSelect` -> formula **A7**
+- `btnSaveQuestion.OnSelect` -> formula **A7** (saves text/type/required/order/active)
 - `galChoices.Items` -> formula **A8** (items)
 - `btnAddChoice.OnSelect` -> formula **A8** (add)
 - `btnMoveUp.OnSelect` -> formula **A9**
@@ -300,7 +301,7 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 
 To avoid broken formulas, keep these names exactly:
 
-- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`
+- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`, `tglQuestionRequired`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`

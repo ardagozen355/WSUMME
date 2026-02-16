@@ -25,6 +25,7 @@ TeachingAssignments,FormStatus,Choice,Yes,Choices: NotSent|Sent|InProgress|Submi
 TeachingAssignments,FormToken,Single line of text,Yes,GUID
 Questions,QuestionText,Multiple lines of text,Yes,
 Questions,QuestionType,Choice,Yes,Choices: LongText|SingleChoice
+Questions,IsRequired,Yes/No,Yes,Default Yes; if No, instructors may skip the question
 Questions,DisplayOrder,Number,Yes,
 Questions,IsActive,Yes/No,Yes,Default Yes
 QuestionChoices,Question,Lookup (Questions),Yes,

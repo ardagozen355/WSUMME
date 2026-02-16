@@ -104,6 +104,7 @@ Use SharePoint lists as the primary source of truth:
    - `QuestionId` (ID)
    - `QuestionText` (Multiple lines)
    - `QuestionType` (Choice: LongText, SingleChoice)
+   - `IsRequired` (Yes/No; default Yes)
    - `DisplayOrder` (Number)
    - `IsActive` (Yes/No)
    - Notes: all questions are global (no course-specific question scope)

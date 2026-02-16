@@ -118,7 +118,8 @@ ClearCollect(
     AddColumns(
         colQuestions,
         "AnswerTextLocal", Blank(),
-        "AnswerChoiceLocal", Blank()
+        "AnswerChoiceLocal", Blank(),
+        "IsRequiredLocal", Coalesce(IsRequired, true)
     )
 );
 ```
@@ -167,11 +168,14 @@ If(
     CountRows(
         Filter(
             colResponses,
-            (QuestionType.Value = "LongText" && IsBlank(AnswerTextLocal)) ||
-            (QuestionType.Value = "SingleChoice" && IsBlank(AnswerChoiceLocal))
+            IsRequiredLocal &&
+            (
+                (QuestionType.Value = "LongText" && IsBlank(AnswerTextLocal)) ||
+                (QuestionType.Value = "SingleChoice" && IsBlank(AnswerChoiceLocal))
+            )
         )
     ) > 0,
-    Notify("Please answer all questions before submitting.", NotificationType.Error),
+    Notify("Please answer all required questions before submitting.", NotificationType.Error),
 
     ForAll(
         colResponses,
@@ -721,6 +725,11 @@ SortByColumns(
 ```
 
 ### A7) Create/update a question
+> `tglQuestionRequired.Default`:
+```powerfx
+If(IsBlank(varSelectedQuestion), true, Coalesce(varSelectedQuestion.IsRequired, true))
+```
+
 ```powerfx
 If(
     IsBlank(txtQuestionText.Text),
@@ -732,6 +741,7 @@ If(
         {
             QuestionText: Trim(txtQuestionText.Text),
             QuestionType: { Value: drpQuestionType.Selected.Value },
+            IsRequired: tglQuestionRequired.Value,
             DisplayOrder: Value(txtDisplayOrder.Text),
             IsActive: tglQuestionActive.Value
         }
