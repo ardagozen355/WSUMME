@@ -25,8 +25,6 @@ TeachingAssignments,FormStatus,Choice,Yes,Choices: NotSent|Sent|InProgress|Submi
 TeachingAssignments,FormToken,Single line of text,Yes,GUID
 Questions,QuestionText,Multiple lines of text,Yes,
 Questions,QuestionType,Choice,Yes,Choices: LongText|SingleChoice
-Questions,AppliesTo,Choice,Yes,Choices: Global|CourseSpecific
-Questions,Course,Lookup (Courses),No,Only required when AppliesTo=CourseSpecific
 Questions,DisplayOrder,Number,Yes,
 Questions,IsActive,Yes/No,Yes,Default Yes
 QuestionChoices,Question,Lookup (Questions),Yes,
@@ -43,4 +41,5 @@ OutcomeEvaluations,EvaluationType,Choice,Yes,Choices: PI|CSO
 OutcomeEvaluations,ReferenceId,Number,Yes,ID from PI or CSO source row
 OutcomeEvaluations,ReferenceCode,Single line of text,Yes,PI code or CSO code
 OutcomeEvaluations,Score,Number,Yes,1 to 5 scale
+OutcomeEvaluations,AssessmentTools,Multiple lines of text,Yes,Instructor rationale describing assessment tools used for the score
 OutcomeEvaluations,SubmittedAt,Date and Time,Yes,

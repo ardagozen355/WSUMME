@@ -106,14 +106,7 @@ Set(varCourseId, ThisItem.Course.Id);
 ClearCollect(
     colQuestions,
     SortByColumns(
-        Filter(
-            Questions,
-            IsActive = true &&
-            (
-                AppliesTo.Value = "Global" ||
-                (AppliesTo.Value = "CourseSpecific" && Course.Id = varCourseId)
-            )
-        ),
+        Filter(Questions, IsActive = true),
         "DisplayOrder",
         Ascending
     )
@@ -205,13 +198,14 @@ If(
 )
 ```
 
-### 7) Instructor ratings for PIs and CSOs (1-5 scale)
+### 7) Instructor evaluations for PIs and CSOs (score + assessment tools)
 > Add list `OutcomeEvaluations` with fields:
 - `Assignment` (Lookup -> TeachingAssignments)
 - `EvaluationType` (Choice: PI, CSO)
 - `ReferenceId` (Number)
 - `ReferenceCode` (Text)
-- `Score` (Number)
+- `Score` (Number: 1-5)
+- `AssessmentTools` (Multiple lines of text)
 - `SubmittedAt` (DateTime)
 
 > Build evaluation items when opening an assignment:
@@ -222,7 +216,8 @@ ClearCollect(
         LookUp(Courses, ID = varCourseId).SupportedPIs,
         "EvalType", "PI",
         "EvalCode", StudentOutcome.OutcomeCode & "-" & IndicatorCode,
-        "ScoreLocal", Blank()
+        "ScoreLocal", Blank(),
+        "AssessmentToolsLocal", Blank()
     )
 );
 Collect(
@@ -231,7 +226,8 @@ Collect(
         Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true),
         "EvalType", "CSO",
         "EvalCode", CSOCode,
-        "ScoreLocal", Blank()
+        "ScoreLocal", Blank(),
+        "AssessmentToolsLocal", Blank()
     )
 )
 ```
@@ -250,21 +246,41 @@ Patch(
 )
 ```
 
+> Assessment tools text input `OnChange`:
+```powerfx
+Patch(
+    colEvalItems,
+    ThisItem,
+    { AssessmentToolsLocal: Trim(Self.Text) }
+)
+```
+
 > Save ratings on submit (append to existing submit logic):
 ```powerfx
-ForAll(
-    colEvalItems,
-    Patch(
-        OutcomeEvaluations,
-        Defaults(OutcomeEvaluations),
-        {
-            Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-            EvaluationType: { Value: EvalType },
-            ReferenceId: ID,
-            ReferenceCode: EvalCode,
-            Score: ScoreLocal,
-            SubmittedAt: Now()
-        }
+If(
+    CountRows(
+        Filter(
+            colEvalItems,
+            IsBlank(ScoreLocal) || IsBlank(AssessmentToolsLocal)
+        )
+    ) > 0,
+    Notify("Please enter both score (1-5) and assessment tools for each PI/CSO.", NotificationType.Error),
+
+    ForAll(
+        colEvalItems,
+        Patch(
+            OutcomeEvaluations,
+            Defaults(OutcomeEvaluations),
+            {
+                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                EvaluationType: { Value: EvalType },
+                ReferenceId: ID,
+                ReferenceCode: EvalCode,
+                Score: ScoreLocal,
+                AssessmentTools: AssessmentToolsLocal,
+                SubmittedAt: Now()
+            }
+        )
     )
 )
 ```
@@ -650,7 +666,10 @@ Patch(
     CourseSpecificOutcomes,
     Defaults(CourseSpecificOutcomes),
     {
-        Course: varSelectedCourse,
+        Course: {
+            Id: varSelectedCourse.ID,
+            Value: varSelectedCourse.Title
+        },
         CSOCode: Upper(Trim(txtCSOCode.Text)),
         CSODescription: Trim(txtCSODescription.Text),
         IsActive: true
@@ -671,12 +690,13 @@ Reset(txtCSODescription);
 Notify("Course-specific outcome added.", NotificationType.Success)
 ```
 
-> Remove CSO button `OnSelect` (soft delete):
+> Note: `Course` is a SharePoint lookup column, so patch it as a lookup record (`Id` + `Value`) rather than sending the entire `varSelectedCourse` object.
+
+> Remove CSO button `OnSelect` (hard delete):
 ```powerfx
-Patch(
+Remove(
     CourseSpecificOutcomes,
-    ThisItem,
-    { IsActive: false }
+    ThisItem
 );
 
 ClearCollect(
@@ -688,21 +708,13 @@ ClearCollect(
     )
 );
 
-Notify("Course-specific outcome removed.", NotificationType.Information)
+Notify("Course-specific outcome deleted.", NotificationType.Information)
 ```
 
-### A6) Questions gallery `Items` (filtered by course + global)
+### A6) Questions gallery `Items` (global question bank)
 ```powerfx
 SortByColumns(
-    Filter(
-        Questions,
-        IsActive = true &&
-        (
-            drpQuestionScope.Selected.Value = "All" ||
-            (drpQuestionScope.Selected.Value = "Global" && AppliesTo.Value = "Global") ||
-            (drpQuestionScope.Selected.Value = "CourseSpecific" && AppliesTo.Value = "CourseSpecific")
-        )
-    ),
+    Filter(Questions, IsActive = true),
     "DisplayOrder",
     Ascending
 )
@@ -720,8 +732,6 @@ If(
         {
             QuestionText: Trim(txtQuestionText.Text),
             QuestionType: { Value: drpQuestionType.Selected.Value },
-            AppliesTo: { Value: drpAppliesTo.Selected.Value },
-            Course: If(drpAppliesTo.Selected.Value = "CourseSpecific", drpCourseForQuestion.Selected, Blank()),
             DisplayOrder: Value(txtDisplayOrder.Text),
             IsActive: tglQuestionActive.Value
         }
@@ -762,9 +772,7 @@ Set(varCurrentOrder, ThisItem.DisplayOrder);
 Set(varSwapQuestion,
     LookUp(
         Questions,
-        DisplayOrder = varCurrentOrder - 1 &&
-        ((AppliesTo.Value = "Global" && ThisItem.AppliesTo.Value = "Global") ||
-         (AppliesTo.Value = "CourseSpecific" && Course.Id = ThisItem.Course.Id))
+        DisplayOrder = varCurrentOrder - 1
     )
 );
 

@@ -33,7 +33,6 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
    - Maintain a SharePoint-backed question model with:
      - Question text
      - Question type (`LongText` or `SingleChoice`)
-     - Course-specific vs global flag
      - Display order
      - Active status
    - Admin UI lets users reorder and toggle questions without redeployment.
@@ -105,10 +104,9 @@ Use SharePoint lists as the primary source of truth:
    - `QuestionId` (ID)
    - `QuestionText` (Multiple lines)
    - `QuestionType` (Choice: LongText, SingleChoice)
-   - `AppliesTo` (Choice: Global, CourseSpecific)
-   - `Course` (Lookup, nullable)
    - `DisplayOrder` (Number)
    - `IsActive` (Yes/No)
+   - Notes: all questions are global (no course-specific question scope)
 
 8. **QuestionChoices**
    - `ChoiceId` (ID)
@@ -132,7 +130,9 @@ Use SharePoint lists as the primary source of truth:
    - `ReferenceId` (Number)
    - `ReferenceCode` (Text)
    - `Score` (Number: 1–5)
+   - `AssessmentTools` (Multiple lines; instructor rationale on tools/evidence used)
    - `SubmittedAt` (DateTime)
+   - Notes: instructors provide two responses per PI/CSO item (`Score` + `AssessmentTools`)
 
 ---
 
@@ -147,8 +147,8 @@ Use SharePoint lists as the primary source of truth:
 
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms
-- Dynamic question rendering by assignment/course
-- Rate PI/CSO performance on a 1-5 scale
+- Dynamic rendering of active global questions
+- Evaluate each PI/CSO with both a 1-5 score and a long-text assessment-tools rationale
 - Save draft + final submit
 
 ### 3) Automations (Power Automate)

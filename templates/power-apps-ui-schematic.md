@@ -47,7 +47,7 @@ Purpose: Instructor sees pending forms.
 ---
 
 ## Screen IA-2: `scrAssessmentForm`
-Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 1-5 scale.
+Purpose: Instructor answers global questions and completes PI/CSO evaluations with a 1-5 score plus assessment-tools rationale.
 
 ### Layout (wireframe)
 ```text
@@ -61,7 +61,7 @@ Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 
 |--------------------------------------------------------------------------------|
 |  Q2. <QuestionText> ...                                                        |
 +--------------------------------------------------------------------------------+
-| Ratings [galEvalItems]: [lblEvalCode] [drpScore (1-5)]                         |
+| Ratings [galEvalItems]: [lblEvalCode] [drpScore (1-5)] [txtAssessmentTools]    |
 | [btnSubmitAssessment]                                                          |
 +--------------------------------------------------------------------------------+
 ```
@@ -73,8 +73,9 @@ Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 
 - `drpSingleChoice.Items` -> `Filter(QuestionChoices, Question.Id = ThisItem.ID)` sorted by `DisplayOrder`
 - `txtLongAnswer.OnChange` and `drpSingleChoice.OnChange` patch `colResponses`
 - `galEvalItems.Items` -> `colEvalItems` (PI + CSO items)
+- `drpScore.OnChange` -> updates `ScoreLocal`
+- `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
 - `drpScore.Items` -> `[1,2,3,4,5]`
-- `drpScore.OnChange` patches `colEvalItems.ScoreLocal`
 - `btnSubmitAssessment.OnSelect` uses submit formula + saves `OutcomeEvaluations`.
 
 (Uses formulas from section **Instructor 3–7**.)
@@ -220,7 +221,7 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `galCSOs.Items` -> formula **A5b** (`colCSOs`, all active CSOs for selected course)
 - `btnSaveCourse.OnSelect` -> formula **A3**
 - `btnAddCSO.OnSelect` -> formula **A5b** (add CSO from `txtCSOCode`/`txtCSODescription` and refresh `colCSOs`)
-- `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove selected CSO row and refresh `colCSOs`)
+- `btnRemoveCSO.OnSelect` -> formula **A5b** (hard delete selected CSO row and refresh `colCSOs`)
 
 ---
 
@@ -233,11 +234,9 @@ Purpose: Question bank management and ordering.
 | Questions                                                                       |
 +------------------------------+-------------------------------------------------+
 | Left pane                    | Right pane                                      |
-| Scope [drpQuestionScope]     | Question editor                                 |
-| [galQuestionsAdmin]          | Text [txtQuestionText]                          |
-|  - DisplayOrder + Text       | Type [drpQuestionType]                          |
-|  - AppliesTo                 | AppliesTo [drpAppliesTo]                        |
-|  - Course                    | Course [drpCourseForQuestion]                   |
+| [galQuestionsAdmin]          | Question editor                                 |
+|  - DisplayOrder + Text       | Text [txtQuestionText]                          |
+|  - Type                      | Type [drpQuestionType]                          |
 |  - [btnMoveUp]               | Order [txtDisplayOrder]                         |
 |                              | Active [tglQuestionActive]                      |
 |                              | [btnSaveQuestion]                               |
@@ -303,7 +302,7 @@ To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
-- Dropdowns: `drpQuestionScope`, `drpQuestionType`, `drpAppliesTo`, `drpCourseForQuestion`, `drpSemester`
+- Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
