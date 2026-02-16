@@ -650,7 +650,10 @@ Patch(
     CourseSpecificOutcomes,
     Defaults(CourseSpecificOutcomes),
     {
-        Course: varSelectedCourse,
+        Course: {
+            Id: varSelectedCourse.ID,
+            Value: varSelectedCourse.Title
+        },
         CSOCode: Upper(Trim(txtCSOCode.Text)),
         CSODescription: Trim(txtCSODescription.Text),
         IsActive: true
@@ -670,6 +673,8 @@ Reset(txtCSOCode);
 Reset(txtCSODescription);
 Notify("Course-specific outcome added.", NotificationType.Success)
 ```
+
+> Note: `Course` is a SharePoint lookup column, so patch it as a lookup record (`Id` + `Value`) rather than sending the entire `varSelectedCourse` object.
 
 > Remove CSO button `OnSelect` (soft delete):
 ```powerfx
