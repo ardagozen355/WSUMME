@@ -253,6 +253,9 @@ Purpose: Question bank management and ordering.
 When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galQuestionsAdmin.Items` -> formula **A6**
+- `lblOrderAndText.Text` -> `ThisItem.OrderText & " - " & ThisItem.QuestionTextPreview`
+- `lblType.Text` -> `ThisItem.TypeText`
+- `lblRequired.Text` -> `ThisItem.RequiredText`
 - `galQuestionsAdmin.OnSelect`:
 ```powerfx
 Set(varSelectedQuestion, ThisItem)

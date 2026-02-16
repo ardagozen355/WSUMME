@@ -724,18 +724,42 @@ Notify("Course-specific outcome deleted.", NotificationType.Information)
 
 ### A6) Questions gallery `Items` (global question bank)
 ```powerfx
-IfError(
-    SortByColumns(
-        Filter(Questions, IsActive = true),
-        "DisplayOrder",
-        Ascending
+AddColumns(
+    IfError(
+        SortByColumns(
+            Filter(Questions, IsActive = true),
+            "DisplayOrder",
+            Ascending
+        ),
+        SortByColumns(
+            Filter(Questions, IsActive = true),
+            "ID",
+            Ascending
+        )
     ),
-    SortByColumns(
-        Filter(Questions, IsActive = true),
-        "ID",
-        Ascending
-    )
+    "OrderText",
+    Text(Coalesce(DisplayOrder, ID)),
+    "QuestionTextPreview",
+    Left(QuestionText, 120),
+    "TypeText",
+    QuestionType.Value,
+    "RequiredText",
+    If(Coalesce(IsRequired, true), "Required", "Optional")
 )
+```
+
+> Suggested row labels inside `galQuestionsAdmin`:
+- `lblOrderAndText.Text`
+```powerfx
+ThisItem.OrderText & " - " & ThisItem.QuestionTextPreview
+```
+- `lblType.Text`
+```powerfx
+ThisItem.TypeText
+```
+- `lblRequired.Text`
+```powerfx
+ThisItem.RequiredText
 ```
 
 > If you see a "DisplayOrder column doesn't exist" error, either add the `DisplayOrder` number column to `Questions` or keep this fallback-to-`ID` approach.
