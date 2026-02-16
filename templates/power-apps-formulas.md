@@ -650,7 +650,10 @@ Patch(
     CourseSpecificOutcomes,
     Defaults(CourseSpecificOutcomes),
     {
-        Course: varSelectedCourse,
+        Course: {
+            Id: varSelectedCourse.ID,
+            Value: varSelectedCourse.Title
+        },
         CSOCode: Upper(Trim(txtCSOCode.Text)),
         CSODescription: Trim(txtCSODescription.Text),
         IsActive: true
@@ -671,12 +674,13 @@ Reset(txtCSODescription);
 Notify("Course-specific outcome added.", NotificationType.Success)
 ```
 
-> Remove CSO button `OnSelect` (soft delete):
+> Note: `Course` is a SharePoint lookup column, so patch it as a lookup record (`Id` + `Value`) rather than sending the entire `varSelectedCourse` object.
+
+> Remove CSO button `OnSelect` (hard delete):
 ```powerfx
-Patch(
+Remove(
     CourseSpecificOutcomes,
-    ThisItem,
-    { IsActive: false }
+    ThisItem
 );
 
 ClearCollect(
@@ -688,7 +692,7 @@ ClearCollect(
     )
 );
 
-Notify("Course-specific outcome removed.", NotificationType.Information)
+Notify("Course-specific outcome deleted.", NotificationType.Information)
 ```
 
 ### A6) Questions gallery `Items` (filtered by course + global)
