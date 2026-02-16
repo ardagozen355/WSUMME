@@ -235,9 +235,9 @@ Purpose: Question bank management and ordering.
 +------------------------------+-------------------------------------------------+
 | Left pane                    | Right pane                                      |
 | [galQuestionsAdmin]          | Question editor                                 |
-|  - DisplayOrder + Text       | Text [txtQuestionText]                          |
-|  - Type                      | Type [drpQuestionType]                          |
-|  - Required                  | Required [tglQuestionRequired]                  |
+|  - [lblOrderAndText]         | Text [txtQuestionText]                          |
+|  - [lblType]                 | Type [drpQuestionType]                          |
+|  - [lblRequired]             | Required [tglQuestionRequired]                  |
 |  - [btnMoveUp]               | Order [txtDisplayOrder]                         |
 |                              | Active [tglQuestionActive]                      |
 |                              | [btnSaveQuestion]                               |
@@ -256,6 +256,7 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `lblOrderAndText.Text` -> `ThisItem.OrderText & " - " & ThisItem.QuestionTextPreview`
 - `lblType.Text` -> `ThisItem.TypeText`
 - `lblRequired.Text` -> `ThisItem.RequiredText`
+- `lblRequired.Color` -> `If(ThisItem.RequiredText = "Required", Color.Red, Color.Gray)` (optional visual cue)
 - `galQuestionsAdmin.OnSelect`:
 ```powerfx
 Set(varSelectedQuestion, ThisItem)
