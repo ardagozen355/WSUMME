@@ -737,13 +737,13 @@ AddColumns(
             Ascending
         )
     ),
-    "OrderText",
+    OrderText,
     Text(Coalesce(DisplayOrder, ID)),
-    "QuestionTextPreview",
+    QuestionTextPreview,
     Left(QuestionText, 120),
-    "TypeText",
+    TypeText,
     QuestionType.Value,
-    "RequiredText",
+    RequiredText,
     If(Coalesce(IsRequired, true), "Required", "Optional")
 )
 ```
