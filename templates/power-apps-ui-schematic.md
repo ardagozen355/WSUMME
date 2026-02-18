@@ -186,7 +186,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 | [galCourses]                 | Course Number [txtCourseNumber]                 |
 |  - CourseNumber              | Course Title  [txtCourseTitle]                  |
 |  - CourseTitle               | Active       [tglCourseActive]                  |
-|                              | [btnSaveCourse] [btnDeactivateCourse]           |
+|                              | [btnSaveCourse]                                  |
 |                              |--------------------------------------------------|
 |                              | Supported PIs [galSupportedPIs]                   |
 |                              |  - [lblSupportedPI] [btnRemovePI]                 |
@@ -195,6 +195,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 |                              |  - [lblAvailablePI] [btnAddPI]                    |
 |                              |--------------------------------------------------|
 |                              | Course-specific outcomes [galCSOs]                |
+|                              |  - [lblCSOCode] [lblCSODescription] [btnRemoveCSO]|
 |                              | [txtCSOCode] [txtCSODescription] [btnAddCSO]      |
 +------------------------------+-------------------------------------------------+
 ```
@@ -203,24 +204,23 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galCourses.Items` -> formula **A2**
-- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse` and preloads right-panel fields)
+- `galCourses.OnSelect` -> formula **A2b** (sets `varSelectedCourse`, preloads fields, caches `colAllPIs`, rebuilds `colSupportedPIs`/`colAvailablePIs`, and loads `colCSOs`)
 - `txtCourseNumber.Default` -> formula **A2b**
 - `txtCourseTitle.Default` -> formula **A2b**
 - `tglCourseActive.Default` -> formula **A2b**
 - `galSupportedPIs` control type: Vertical gallery (blank)
 - `galSupportedPIs` data source selection in designer: **None/blank** (do not pre-bind to `PerformanceIndicators`)
-- `galSupportedPIs.Items` -> formula **A5** (currently supported PIs for selected course)
-- `lblSupportedPI.Text` -> formula **A5** (resolves PI name via `LookUp(PerformanceIndicators, ID=...)` to avoid showing default lookup text)
+- `galSupportedPIs.Items` -> formula **A5** (`colSupportedPIs`, built on course select)
+- `lblSupportedPI.Text` -> formula **A5** (shows `IndicatorCode` + `IndicatorDescription` on separate lines)
 - `galAvailablePIs` control type: Vertical gallery (blank)
-- `galAvailablePIs.Items` -> formula **A5** (all other PIs not yet supported)
-- `lblAvailablePI.Text` -> formula **A5**
+- `galAvailablePIs.Items` -> formula **A5** (`colAvailablePIs`, all other PIs not yet supported)
+- `lblAvailablePI.Text` -> formula **A5** (shows `IndicatorCode` + `IndicatorDescription` on separate lines)
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
-- `galCSOs.Items` -> formula **A2b/A5b** (shows CSOs for selected course)
+- `galCSOs.Items` -> formula **A5b** (`colCSOs`, all active CSOs for selected course)
 - `btnSaveCourse.OnSelect` -> formula **A3**
-- `btnDeactivateCourse.OnSelect` -> formula **A4**
-- `btnAddCSO.OnSelect` -> formula **A5b** (add CSO)
-- `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove CSO)
+- `btnAddCSO.OnSelect` -> formula **A5b** (add CSO from `txtCSOCode`/`txtCSODescription` and refresh `colCSOs`)
+- `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove selected CSO row and refresh `colCSOs`)
 
 ---
 

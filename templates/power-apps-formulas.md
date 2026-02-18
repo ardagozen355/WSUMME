@@ -373,7 +373,35 @@ Set(varSelectedCourse, ThisItem);
 // Preload edit controls from selected course
 Set(varCourseNumberLocal, ThisItem.CourseNumber);
 Set(varCourseTitleLocal, ThisItem.CourseTitle);
-Set(varCourseActiveLocal, ThisItem.IsActive)
+Set(varCourseActiveLocal, ThisItem.IsActive);
+
+// Build typed PI collections for stable gallery schemas
+ClearCollect(colAllPIs, PerformanceIndicators);
+ClearCollect(
+    colSupportedPIs,
+    Filter(
+        colAllPIs,
+        !IsBlank(varSelectedCourse) &&
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
+    )
+);
+ClearCollect(
+    colAvailablePIs,
+    Filter(
+        colAllPIs,
+        IsBlank(varSelectedCourse) ||
+        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+    )
+);
+
+ClearCollect(
+    colCSOs,
+    SortByColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+        "CSOCode",
+        Ascending
+    )
+)
 ```
 
 > Bind right-panel controls so selected course content is immediately visible:
@@ -393,17 +421,9 @@ Coalesce(varCourseActiveLocal, true)
 ```
 
 ```powerfx
-// galSupportedPIs.Items and galAvailablePIs.Items use varSelectedCourse.SupportedPIs directly
-// (see A5)
-```
-
-```powerfx
-// galCSOs.Items
-SortByColumns(
-    Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
-    "CSOCode",
-    Ascending
-)
+// colAllPIs caches PerformanceIndicators once per refresh
+// galSupportedPIs.Items -> colSupportedPIs, galAvailablePIs.Items -> colAvailablePIs
+// galCSOs.Items -> colCSOs
 ```
 
 This makes course number, title, active state, supported PIs, and current CSOs appear in the right panel immediately after selecting a course.
@@ -430,16 +450,6 @@ If(
 )
 ```
 
-### A4) Soft-delete (deactivate) a course
-```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
-    { IsActive: false }
-);
-Notify("Course deactivated.", NotificationType.Information)
-```
-
 ### A5) Supported PI editor (show supported + available, add/remove)
 > Why `AddColumns` is *not* required for supported vs available logic:
 - The "not supported" calculation is done by `Filter(...)` + `LookUp(...)` on IDs.
@@ -448,86 +458,159 @@ Notify("Course deactivated.", NotificationType.Information)
 
 > Which data source should `galSupportedPIs` use?
 - In the gallery control, choose a **blank vertical gallery**.
-- Do **not** hard-bind the gallery to `PerformanceIndicators` in the designer.
-- Paste the formula below into `galSupportedPIs.Items`; that formula becomes the data source at runtime.
+- Keep the designer data-source setting unset/blank.
+- Use the typed local collection populated in `galCourses.OnSelect`.
 
-> `galSupportedPIs.Items` (no `AddColumns`):
+> `galSupportedPIs.Items`:
 ```powerfx
-If(
-    IsBlank(varSelectedCourse),
-    FirstN(PerformanceIndicators, 0),
-    varSelectedCourse.SupportedPIs
-)
+colSupportedPIs
 ```
 
-> `galAvailablePIs.Items` (no `AddColumns`):
+> Build `galAvailablePIs` step-by-step (recommended):
+1. Insert a **Vertical gallery (blank)** in the right panel and rename it to `galAvailablePIs`.
+2. Keep the gallery's designer data source unset (blank); do not bind it in the right-hand data pane.
+3. Set `galAvailablePIs.Items` to `colAvailablePIs` (the collection prepared in `galCourses.OnSelect`).
+4. Inside the gallery template, add a **Label** named `lblAvailablePI` (and turn on `Wrap`).
+5. Set `lblAvailablePI.Text` to the available-row label formula below so each row shows PI code + PI description.
+6. Inside the same row, add a **Button** (or icon button) named `btnAddPI` with text such as `"Add"`.
+7. Set `btnAddPI.OnSelect` to the add formula below so clicking a row appends that PI to `Courses.SupportedPIs` and refreshes `varSelectedCourse`.
+   - The formula uses row-context `ThisItem` (captured via `With`) so each button click applies only to that row.
+
+> `galAvailablePIs.Items`:
 ```powerfx
-Filter(
-    PerformanceIndicators,
-    IsBlank(varSelectedCourse) ||
-    IsBlank(LookUp(varSelectedCourse.SupportedPIs, ID = PerformanceIndicators[@ID]))
-)
+colAvailablePIs
 ```
 
 > Supported PI row label (`lblSupportedPI.Text`):
 ```powerfx
-Coalesce(
-    LookUp(PerformanceIndicators, ID = ThisItem.ID, IndicatorCode),
-    LookUp(PerformanceIndicators, ID = ThisItem.Id, IndicatorCode),
-    ThisItem.Value,
-    Text(ThisItem.ID)
-)
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & Char(10) &
+Coalesce(ThisItem.IndicatorDescription, "(No PI description)")
 ```
+
+> Optional for readability:
+```powerfx
+// lblSupportedPI.Wrap
+true
+```
+
+> If `ThisItem` only shows `IsSelected` in `lblSupportedPI.Text`:
+- Confirm `lblSupportedPI` is **inside** the `galSupportedPIs` row template.
+- Confirm `galSupportedPIs.Items = colSupportedPIs` and that `colSupportedPIs` is rebuilt in `galCourses.OnSelect`.
+- In Studio, reselect a course (or re-run `OnSelect`) so collections repopulate before editing row formulas.
+- Ensure `btnAddPI` and `btnRemovePI` are inside their gallery templates so `ThisItem.ID` comes from the clicked row.
 
 > Available PI row label (`lblAvailablePI.Text`):
 ```powerfx
-Coalesce(
-    ThisItem.IndicatorCode,
-    ThisItem.Title,
-    Text(ThisItem.ID)
-)
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & Char(10) &
+Coalesce(ThisItem.IndicatorDescription, "(No PI description)")
 ```
 
-> Why you may be seeing only `Text` at runtime:
-- `galSupportedPIs` is bound to `varSelectedCourse.SupportedPIs`, which is a lookup table and often only carries `ID` + display `Value`.
-- If your `Courses.SupportedPIs` lookup was configured to show `Title`, and PI rows still have default title `Text`, the gallery will show `Text`.
-- The lookup-based `lblSupportedPI.Text` formula above resolves PI name from `PerformanceIndicators` by ID to avoid that issue.
-- Also update SharePoint lookup settings so `SupportedPIs` displays `IndicatorCode` (or a dedicated PI name column) instead of `Title`.
+> Optional for readability:
+```powerfx
+// lblAvailablePI.Wrap
+true
+```
+
+> Why this collection approach helps:
+- `colAllPIs` is loaded once, then `colSupportedPIs`/`colAvailablePIs` are split locally so `ThisItem` keeps stable typed fields (`ID`, `IndicatorCode`, `IndicatorDescription`, `Title`).
+- It avoids the previous `&&` / `!` filter warning pattern on `galSupportedPIs.Items`.
+- After add/remove operations, refresh `updatedCourse` from SharePoint first, then rebuild collections from `updatedCourse.SupportedPIs` so galleries update immediately without re-selecting the course.
 
 > Add PI button in `galAvailablePIs` row (`btnAddPI.OnSelect`):
 ```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
+With(
     {
-        SupportedPIs:
-            Ungroup(
-                Table(
-                    { x: If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs) },
-                    { x: Table(ThisItem) }
-                ),
-                x
-            )
-    }
+        addId: ThisItem.ID,
+        addValue: Coalesce(ThisItem.IndicatorCode, ThisItem.Title, Text(ThisItem.ID))
+    },
+    Patch(
+        Courses,
+        varSelectedCourse,
+        {
+            SupportedPIs:
+                If(
+                    CountIf(varSelectedCourse.SupportedPIs, Id = addId) > 0,
+                    varSelectedCourse.SupportedPIs,
+                    Ungroup(
+                        Table(
+                            { x: varSelectedCourse.SupportedPIs },
+                            { x: Table({ Id: addId, Value: addValue }) }
+                        ),
+                        x
+                    )
+                )
+        }
+    )
 );
-Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
+
+With(
+    { updatedCourse: LookUp(Courses, ID = varSelectedCourse.ID) },
+    Set(varSelectedCourse, updatedCourse);
+
+    // Rebuild typed PI collections after update
+    ClearCollect(colAllPIs, PerformanceIndicators);
+    ClearCollect(
+        colSupportedPIs,
+        Filter(
+            colAllPIs,
+            !IsBlank(updatedCourse) &&
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
+        )
+    );
+    ClearCollect(
+        colAvailablePIs,
+        Filter(
+            colAllPIs,
+            IsBlank(updatedCourse) ||
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+        )
+    )
+);
+
 Notify("PI added to course.", NotificationType.Success)
 ```
 
 > Remove PI button in `galSupportedPIs` row (`btnRemovePI.OnSelect`):
 ```powerfx
-Patch(
-    Courses,
-    varSelectedCourse,
-    {
-        SupportedPIs:
-            Filter(
-                If(IsBlank(varSelectedCourse), FirstN(PerformanceIndicators, 0), varSelectedCourse.SupportedPIs),
-                ID <> ThisItem.ID
-            )
-    }
+With(
+    { removeId: ThisItem.ID },
+    Patch(
+        Courses,
+        varSelectedCourse,
+        {
+            SupportedPIs:
+                Filter(
+                    varSelectedCourse.SupportedPIs,
+                    Id <> removeId
+                )
+        }
+    )
 );
-Set(varSelectedCourse, LookUp(Courses, ID = varSelectedCourse.ID));
+
+With(
+    { updatedCourse: LookUp(Courses, ID = varSelectedCourse.ID) },
+    Set(varSelectedCourse, updatedCourse);
+
+    // Rebuild typed PI collections after update
+    ClearCollect(colAllPIs, PerformanceIndicators);
+    ClearCollect(
+        colSupportedPIs,
+        Filter(
+            colAllPIs,
+            !IsBlank(updatedCourse) &&
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
+        )
+    );
+    ClearCollect(
+        colAvailablePIs,
+        Filter(
+            colAllPIs,
+            IsBlank(updatedCourse) ||
+            CountIf(updatedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+        )
+    )
+);
+
 Notify("PI removed from course.", NotificationType.Information)
 ```
 
@@ -538,13 +621,27 @@ Notify("PI removed from course.", NotificationType.Information)
 - `CSODescription` (Text)
 - `IsActive` (Yes/No)
 
+> Build `galCSOs` step-by-step:
+1. Insert a **Vertical gallery (blank)** and rename it `galCSOs`.
+2. Set `galCSOs.Items` to `colCSOs` so the list refreshes from the selected course context.
+3. Inside each row add:
+   - `lblCSOCode.Text`:
+   ```powerfx
+   ThisItem.CSOCode
+   ```
+   - `lblCSODescription.Text`:
+   ```powerfx
+   ThisItem.CSODescription
+   ```
+   - `btnRemoveCSO.OnSelect` formula below.
+4. Add text inputs below the gallery:
+   - `txtCSOCode` for code entry
+   - `txtCSODescription` for description entry
+   - `btnAddCSO.OnSelect` formula below.
+
 > `galCSOs.Items`:
 ```powerfx
-SortByColumns(
-    Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
-    "CSOCode",
-    Ascending
-)
+colCSOs
 ```
 
 > Add CSO button `OnSelect`:
@@ -553,22 +650,49 @@ Patch(
     CourseSpecificOutcomes,
     Defaults(CourseSpecificOutcomes),
     {
-        Course: varSelectedCourse,
+        Course: {
+            Id: varSelectedCourse.ID,
+            Value: varSelectedCourse.Title
+        },
         CSOCode: Upper(Trim(txtCSOCode.Text)),
         CSODescription: Trim(txtCSODescription.Text),
         IsActive: true
     }
 );
+
+ClearCollect(
+    colCSOs,
+    SortByColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+        "CSOCode",
+        Ascending
+    )
+);
+
+Reset(txtCSOCode);
+Reset(txtCSODescription);
 Notify("Course-specific outcome added.", NotificationType.Success)
 ```
 
-> Remove CSO button `OnSelect` (soft delete):
+> Note: `Course` is a SharePoint lookup column, so patch it as a lookup record (`Id` + `Value`) rather than sending the entire `varSelectedCourse` object.
+
+> Remove CSO button `OnSelect` (hard delete):
 ```powerfx
-Patch(
+Remove(
     CourseSpecificOutcomes,
-    ThisItem,
-    { IsActive: false }
-)
+    ThisItem
+);
+
+ClearCollect(
+    colCSOs,
+    SortByColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+        "CSOCode",
+        Ascending
+    )
+);
+
+Notify("Course-specific outcome deleted.", NotificationType.Information)
 ```
 
 ### A6) Questions gallery `Items` (filtered by course + global)
