@@ -788,7 +788,7 @@ Reset(txtDisplayOrder)
 
 > `drpQuestionType.Items`:
 ```powerfx
-["LongText", "SingleChoice"]
+Choices(Questions.QuestionType)
 ```
 
 > Right-pane input defaults (so selected question values appear in corresponding inputs):
@@ -798,7 +798,10 @@ varQuestionTextLocal
 ```
 - `drpQuestionType.Default`
 ```powerfx
-varQuestionTypeLocal
+Coalesce(
+    LookUp(Choices(Questions.QuestionType), Value = varQuestionTypeLocal).Value,
+    "LongText"
+)
 ```
 - `tglQuestionRequired.Default`
 ```powerfx

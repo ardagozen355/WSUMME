@@ -269,8 +269,8 @@ Reset(tglQuestionRequired);
 Reset(txtDisplayOrder)
 ```
 - `txtQuestionText.Default` -> `varQuestionTextLocal`
-- `drpQuestionType.Items` -> `["LongText", "SingleChoice"]`
-- `drpQuestionType.Default` -> `varQuestionTypeLocal`
+- `drpQuestionType.Items` -> `Choices(Questions.QuestionType)`
+- `drpQuestionType.Default` -> `Coalesce(LookUp(Choices(Questions.QuestionType), Value = varQuestionTypeLocal).Value, "LongText")`
 - `tglQuestionRequired.Default` -> `varQuestionRequiredLocal`
 - `txtDisplayOrder.Default` -> `varQuestionOrderLocal`
 - `btnNewQuestion.OnSelect` -> formula **A7** (clears editor for a new question)
