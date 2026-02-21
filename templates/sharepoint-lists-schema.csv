@@ -27,7 +27,6 @@ Questions,QuestionText,Multiple lines of text,Yes,
 Questions,QuestionType,Choice,Yes,Choices: LongText|SingleChoice
 Questions,IsRequired,Yes/No,Yes,Default Yes; if No, instructors may skip the question
 Questions,DisplayOrder,Number,Yes,
-Questions,IsActive,Yes/No,Yes,Default Yes
 QuestionChoices,Question,Lookup (Questions),Yes,
 QuestionChoices,ChoiceLabel,Single line of text,Yes,
 QuestionChoices,ChoiceValue,Single line of text,Yes,

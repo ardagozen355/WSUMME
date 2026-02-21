@@ -106,8 +106,8 @@ Use SharePoint lists as the primary source of truth:
    - `QuestionType` (Choice: LongText, SingleChoice)
    - `IsRequired` (Yes/No; default Yes)
    - `DisplayOrder` (Number)
-   - `IsActive` (Yes/No)
    - Notes: all questions are global (no course-specific question scope)
+   - Admin behavior: questions are editable and can be permanently deleted (no activation toggle)
 
 8. **QuestionChoices**
    - `ChoiceId` (ID)

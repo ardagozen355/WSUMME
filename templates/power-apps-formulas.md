@@ -107,12 +107,12 @@ ClearCollect(
     colQuestions,
     IfError(
         SortByColumns(
-            Filter(Questions, IsActive = true),
+            Questions,
             "DisplayOrder",
             Ascending
         ),
         SortByColumns(
-            Filter(Questions, IsActive = true),
+            Questions,
             "ID",
             Ascending
         )
@@ -733,12 +733,12 @@ Notify("Course-specific outcome deleted.", NotificationType.Information)
 ```powerfx
 IfError(
     SortByColumns(
-        Filter(Questions, IsActive = true),
+        Questions,
         "DisplayOrder",
         Ascending
     ),
     SortByColumns(
-        Filter(Questions, IsActive = true),
+        Questions,
         "ID",
         Ascending
     )
@@ -762,6 +762,15 @@ If(Coalesce(ThisItem.IsRequired, true), "Required", "Optional")
 > If you see a "DisplayOrder column doesn't exist" error, either add the `DisplayOrder` number column to `Questions` or keep this fallback-to-`ID` approach.
 
 ### A7) Create/update a question
+> `btnNewQuestion.OnSelect` (clear right panel for new entry):
+```powerfx
+Set(varSelectedQuestion, Blank());
+Reset(txtQuestionText);
+Reset(drpQuestionType);
+Reset(tglQuestionRequired);
+Reset(txtDisplayOrder)
+```
+
 > `tglQuestionRequired.Default`:
 ```powerfx
 If(IsBlank(varSelectedQuestion), true, Coalesce(varSelectedQuestion.IsRequired, true))
@@ -779,12 +788,27 @@ If(
             QuestionText: Trim(txtQuestionText.Text),
             QuestionType: { Value: drpQuestionType.Selected.Value },
             IsRequired: tglQuestionRequired.Value,
-            DisplayOrder: Value(txtDisplayOrder.Text),
-            IsActive: tglQuestionActive.Value
+            DisplayOrder: Value(txtDisplayOrder.Text)
         }
     );
 
     Notify("Question saved.", NotificationType.Success)
+)
+```
+
+### A7a) Delete selected question (permanent delete)
+```powerfx
+If(
+    IsBlank(varSelectedQuestion),
+    Notify("Select a question to delete.", NotificationType.Warning),
+
+    Remove(Questions, varSelectedQuestion);
+    Set(varSelectedQuestion, Blank());
+    Reset(txtQuestionText);
+    Reset(drpQuestionType);
+    Reset(tglQuestionRequired);
+    Reset(txtDisplayOrder);
+    Notify("Question deleted.", NotificationType.Information)
 )
 ```
 

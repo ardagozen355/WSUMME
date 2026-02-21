@@ -239,8 +239,7 @@ Purpose: Question bank management and ordering.
 |  - [lblType]                 | Type [drpQuestionType]                          |
 |  - [lblRequired]             | Required [tglQuestionRequired]                  |
 |  - [btnMoveUp]               | Order [txtDisplayOrder]                         |
-|                              | Active [tglQuestionActive]                      |
-|                              | [btnSaveQuestion]                               |
+|                              | [btnNewQuestion] [btnSaveQuestion] [btnDeleteQuestion] |
 |                              |--------------------------------------------------|
 |                              | Single-choice options                            |
 |                              | [galChoices]                                     |
@@ -261,7 +260,9 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 ```powerfx
 Set(varSelectedQuestion, ThisItem)
 ```
-- `btnSaveQuestion.OnSelect` -> formula **A7** (saves text/type/required/order/active)
+- `btnNewQuestion.OnSelect` -> formula **A7** (clears editor for a new question)
+- `btnSaveQuestion.OnSelect` -> formula **A7** (saves text/type/required/order)
+- `btnDeleteQuestion.OnSelect` -> formula **A7a** (permanently deletes selected question)
 - `galChoices.Items` -> formula **A8** (items)
 - `btnAddChoice.OnSelect` -> formula **A8** (add)
 - `btnMoveUp.OnSelect` -> formula **A9**
@@ -305,7 +306,7 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 
 To avoid broken formulas, keep these names exactly:
 
-- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`, `tglQuestionRequired`
+- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
