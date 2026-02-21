@@ -852,29 +852,86 @@ If(
 )
 ```
 
-### A8) Maintain single-choice options for selected question
-> Choices gallery `Items`:
+### A8) Maintain single-choice options for selected question (embedded row controls)
+> Build `galChoices` as a **blank vertical gallery** (same pattern as `galQuestionsAdmin`):
+1. Insert **Vertical gallery (blank)** named `galChoices`.
+2. Keep the gallery data source unset in the designer.
+3. Set `galChoices.Items` to the formula below.
+4. Inside each row add embedded controls:
+   - `txtChoiceOrderRow`
+   - `txtChoiceLabelRow`
+   - `txtChoiceValueRow`
+   - `btnSaveChoiceRow`
+   - `btnDeleteChoiceRow`
+
+> Optional visibility (show only for single-choice questions):
 ```powerfx
-SortByColumns(
-    Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID),
-    "DisplayOrder",
-    Ascending
+Coalesce(varQuestionTypeLocal, "LongText") = "SingleChoice"
+```
+
+> `galChoices.Items`:
+```powerfx
+If(
+    IsBlank(varSelectedQuestion),
+    [],
+    SortByColumns(
+        Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID),
+        "DisplayOrder",
+        Ascending
+    )
 )
 ```
 
-> Add option button `OnSelect`:
+> Embedded row defaults:
+- `txtChoiceOrderRow.Default`
+```powerfx
+Text(ThisItem.DisplayOrder)
+```
+- `txtChoiceLabelRow.Default`
+```powerfx
+ThisItem.ChoiceLabel
+```
+- `txtChoiceValueRow.Default`
+```powerfx
+ThisItem.ChoiceValue
+```
+
+> Save row button (`btnSaveChoiceRow.OnSelect`):
 ```powerfx
 Patch(
     QuestionChoices,
-    Defaults(QuestionChoices),
+    ThisItem,
     {
-        Question: varSelectedQuestion,
-        ChoiceLabel: Trim(txtChoiceLabel.Text),
-        ChoiceValue: Trim(txtChoiceValue.Text),
-        DisplayOrder: Value(txtChoiceOrder.Text)
+        ChoiceLabel: Trim(txtChoiceLabelRow.Text),
+        ChoiceValue: Trim(txtChoiceValueRow.Text),
+        DisplayOrder: Value(txtChoiceOrderRow.Text)
     }
 );
-Notify("Choice added.", NotificationType.Success)
+Notify("Choice updated.", NotificationType.Success)
+```
+
+> Delete row button (`btnDeleteChoiceRow.OnSelect`):
+```powerfx
+Remove(QuestionChoices, ThisItem);
+Notify("Choice deleted.", NotificationType.Information)
+```
+
+> New choice button (`btnNewChoice.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedQuestion),
+    Notify("Select a question first.", NotificationType.Warning),
+    Patch(
+        QuestionChoices,
+        Defaults(QuestionChoices),
+        {
+            Question: varSelectedQuestion,
+            ChoiceLabel: "",
+            ChoiceValue: "",
+            DisplayOrder: CountRows(Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID)) + 1
+        }
+    )
+)
 ```
 
 ### A9) Reorder question (Move Up button)

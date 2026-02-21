@@ -242,9 +242,10 @@ Purpose: Question bank management and ordering.
 |                              | [btnNewQuestion] [btnSaveQuestion] [btnDeleteQuestion] |
 |                              |--------------------------------------------------|
 |                              | Single-choice options                            |
+|                              | [btnNewChoice]                                   |
 |                              | [galChoices]                                     |
-|                              | Label [txtChoiceLabel] Value [txtChoiceValue]   |
-|                              | Order [txtChoiceOrder] [btnAddChoice]           |
+|                              | [txtChoiceOrderRow] [txtChoiceLabelRow] [txtChoiceValueRow] |
+|                              | [btnSaveChoiceRow] [btnDeleteChoiceRow]         |
 +------------------------------+-------------------------------------------------+
 ```
 
@@ -276,8 +277,14 @@ Reset(txtDisplayOrder)
 - `btnNewQuestion.OnSelect` -> formula **A7** (clears editor for a new question)
 - `btnSaveQuestion.OnSelect` -> formula **A7** (saves text/type/required/order)
 - `btnDeleteQuestion.OnSelect` -> formula **A7a** (permanently deletes selected question)
+- `btnNewChoice.OnSelect` -> formula **A8** (adds a blank choice row for selected question)
+- `galChoices.Visible` -> `Coalesce(varQuestionTypeLocal, "LongText") = "SingleChoice"`
 - `galChoices.Items` -> formula **A8** (items)
-- `btnAddChoice.OnSelect` -> formula **A8** (add)
+- `txtChoiceOrderRow.Default` -> `Text(ThisItem.DisplayOrder)`
+- `txtChoiceLabelRow.Default` -> `ThisItem.ChoiceLabel`
+- `txtChoiceValueRow.Default` -> `ThisItem.ChoiceValue`
+- `btnSaveChoiceRow.OnSelect` -> formula **A8** (update row)
+- `btnDeleteChoiceRow.OnSelect` -> formula **A8** (delete row)
 - `btnMoveUp.OnSelect` -> formula **A9**
 
 ---
@@ -320,9 +327,10 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
-- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
+- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtChoiceValueRow`
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
+- Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
