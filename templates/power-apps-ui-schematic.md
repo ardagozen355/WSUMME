@@ -258,8 +258,20 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `lblRequired.Color` -> `If(Coalesce(ThisItem.IsRequired, true), Color.Red, Color.Gray)` (optional visual cue)
 - `galQuestionsAdmin.OnSelect`:
 ```powerfx
-Set(varSelectedQuestion, ThisItem)
+Set(varSelectedQuestion, ThisItem);
+Set(varQuestionTextLocal, Coalesce(ThisItem.QuestionText, ""));
+Set(varQuestionTypeLocal, Coalesce(ThisItem.QuestionType.Value, "LongText"));
+Set(varQuestionRequiredLocal, Coalesce(ThisItem.IsRequired, true));
+Set(varQuestionOrderLocal, Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)));
+Reset(txtQuestionText);
+Reset(drpQuestionType);
+Reset(tglQuestionRequired);
+Reset(txtDisplayOrder)
 ```
+- `txtQuestionText.Default` -> `varQuestionTextLocal`
+- `drpQuestionType.Default` -> `varQuestionTypeLocal`
+- `tglQuestionRequired.Default` -> `varQuestionRequiredLocal`
+- `txtDisplayOrder.Default` -> `varQuestionOrderLocal`
 - `btnNewQuestion.OnSelect` -> formula **A7** (clears editor for a new question)
 - `btnSaveQuestion.OnSelect` -> formula **A7** (saves text/type/required/order)
 - `btnDeleteQuestion.OnSelect` -> formula **A7a** (permanently deletes selected question)
@@ -310,7 +322,7 @@ To avoid broken formulas, keep these names exactly:
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
-- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`
+- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
 If you prefer different control names, update the formula references consistently.

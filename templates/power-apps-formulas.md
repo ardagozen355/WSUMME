@@ -759,21 +759,49 @@ ThisItem.QuestionType.Value
 If(Coalesce(ThisItem.IsRequired, true), "Required", "Optional")
 ```
 
-> If you see a "DisplayOrder column doesn't exist" error, either add the `DisplayOrder` number column to `Questions` or keep this fallback-to-`ID` approach.
-
-### A7) Create/update a question
-> `btnNewQuestion.OnSelect` (clear right panel for new entry):
+> `galQuestionsAdmin.OnSelect` (load selected question into right-pane inputs):
 ```powerfx
-Set(varSelectedQuestion, Blank());
+Set(varSelectedQuestion, ThisItem);
+Set(varQuestionTextLocal, Coalesce(ThisItem.QuestionText, ""));
+Set(varQuestionTypeLocal, Coalesce(ThisItem.QuestionType.Value, "LongText"));
+Set(varQuestionRequiredLocal, Coalesce(ThisItem.IsRequired, true));
+Set(varQuestionOrderLocal, Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)));
 Reset(txtQuestionText);
 Reset(drpQuestionType);
 Reset(tglQuestionRequired);
 Reset(txtDisplayOrder)
 ```
 
-> `tglQuestionRequired.Default`:
+### A7) Create/update a question
+> `btnNewQuestion.OnSelect` (clear right panel for new entry):
 ```powerfx
-If(IsBlank(varSelectedQuestion), true, Coalesce(varSelectedQuestion.IsRequired, true))
+Set(varSelectedQuestion, Blank());
+Set(varQuestionTextLocal, "");
+Set(varQuestionTypeLocal, "LongText");
+Set(varQuestionRequiredLocal, true);
+Set(varQuestionOrderLocal, "");
+Reset(txtQuestionText);
+Reset(drpQuestionType);
+Reset(tglQuestionRequired);
+Reset(txtDisplayOrder)
+```
+
+> Right-pane input defaults (so selected question values appear in corresponding inputs):
+- `txtQuestionText.Default`
+```powerfx
+varQuestionTextLocal
+```
+- `drpQuestionType.Default`
+```powerfx
+varQuestionTypeLocal
+```
+- `tglQuestionRequired.Default`
+```powerfx
+varQuestionRequiredLocal
+```
+- `txtDisplayOrder.Default`
+```powerfx
+varQuestionOrderLocal
 ```
 
 ```powerfx
@@ -804,6 +832,10 @@ If(
 
     Remove(Questions, varSelectedQuestion);
     Set(varSelectedQuestion, Blank());
+    Set(varQuestionTextLocal, "");
+    Set(varQuestionTypeLocal, "LongText");
+    Set(varQuestionRequiredLocal, true);
+    Set(varQuestionOrderLocal, "");
     Reset(txtQuestionText);
     Reset(drpQuestionType);
     Reset(tglQuestionRequired);
