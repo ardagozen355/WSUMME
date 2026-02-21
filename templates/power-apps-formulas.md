@@ -786,6 +786,11 @@ Reset(tglQuestionRequired);
 Reset(txtDisplayOrder)
 ```
 
+> `drpQuestionType.Items`:
+```powerfx
+["LongText", "SingleChoice"]
+```
+
 > Right-pane input defaults (so selected question values appear in corresponding inputs):
 - `txtQuestionText.Default`
 ```powerfx

@@ -269,6 +269,7 @@ Reset(tglQuestionRequired);
 Reset(txtDisplayOrder)
 ```
 - `txtQuestionText.Default` -> `varQuestionTextLocal`
+- `drpQuestionType.Items` -> `["LongText", "SingleChoice"]`
 - `drpQuestionType.Default` -> `varQuestionTypeLocal`
 - `tglQuestionRequired.Default` -> `varQuestionRequiredLocal`
 - `txtDisplayOrder.Default` -> `varQuestionOrderLocal`
