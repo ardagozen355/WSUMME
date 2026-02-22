@@ -113,7 +113,6 @@ Use SharePoint lists as the primary source of truth:
    - `ChoiceId` (ID)
    - `Question` (Lookup)
    - `ChoiceLabel` (Text)
-   - `ChoiceValue` (Text)
    - `DisplayOrder` (Number)
 
 9. **Responses**

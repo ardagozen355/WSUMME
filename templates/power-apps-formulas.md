@@ -165,7 +165,7 @@ Patch(
 Patch(
     colResponses,
     LookUp(colResponses, ID = ThisItem.ID),
-    { AnswerChoiceLocal: Self.Selected.ChoiceValue }
+    { AnswerChoiceLocal: Self.Selected.ChoiceLabel }
 )
 ```
 
@@ -860,7 +860,6 @@ If(
 4. Inside each row add embedded controls:
    - `txtChoiceOrderRow`
    - `txtChoiceLabelRow`
-   - `txtChoiceValueRow`
    - `btnSaveChoiceRow`
    - `btnDeleteChoiceRow`
 
@@ -891,11 +890,6 @@ Text(ThisItem.DisplayOrder)
 ```powerfx
 ThisItem.ChoiceLabel
 ```
-- `txtChoiceValueRow.Default`
-```powerfx
-ThisItem.ChoiceValue
-```
-
 > Save row button (`btnSaveChoiceRow.OnSelect`):
 ```powerfx
 Patch(
@@ -903,7 +897,6 @@ Patch(
     ThisItem,
     {
         ChoiceLabel: Trim(txtChoiceLabelRow.Text),
-        ChoiceValue: Trim(txtChoiceValueRow.Text),
         DisplayOrder: Value(txtChoiceOrderRow.Text)
     }
 );
@@ -927,7 +920,6 @@ If(
         {
             Question: varSelectedQuestion,
             ChoiceLabel: "",
-            ChoiceValue: "",
             DisplayOrder: CountRows(Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID)) + 1
         }
     )

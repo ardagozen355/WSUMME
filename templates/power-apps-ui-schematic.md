@@ -244,7 +244,7 @@ Purpose: Question bank management and ordering.
 |                              | Single-choice options                            |
 |                              | [btnNewChoice]                                   |
 |                              | [galChoices]                                     |
-|                              | [txtChoiceOrderRow] [txtChoiceLabelRow] [txtChoiceValueRow] |
+|                              | [txtChoiceOrderRow] [txtChoiceLabelRow]         |
 |                              | [btnSaveChoiceRow] [btnDeleteChoiceRow]         |
 +------------------------------+-------------------------------------------------+
 ```
@@ -282,7 +282,6 @@ Reset(txtDisplayOrder)
 - `galChoices.Items` -> formula **A8** (items)
 - `txtChoiceOrderRow.Default` -> `Text(ThisItem.DisplayOrder)`
 - `txtChoiceLabelRow.Default` -> `ThisItem.ChoiceLabel`
-- `txtChoiceValueRow.Default` -> `ThisItem.ChoiceValue`
 - `btnSaveChoiceRow.OnSelect` -> formula **A8** (update row)
 - `btnDeleteChoiceRow.OnSelect` -> formula **A8** (delete row)
 - `btnMoveUp.OnSelect` -> formula **A9**
@@ -327,7 +326,7 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
-- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtChoiceValueRow`
+- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`

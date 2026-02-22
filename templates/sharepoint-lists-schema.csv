@@ -29,7 +29,6 @@ Questions,IsRequired,Yes/No,Yes,Default Yes; if No, instructors may skip the que
 Questions,DisplayOrder,Number,Yes,
 QuestionChoices,Question,Lookup (Questions),Yes,
 QuestionChoices,ChoiceLabel,Single line of text,Yes,
-QuestionChoices,ChoiceValue,Single line of text,Yes,
 QuestionChoices,DisplayOrder,Number,Yes,
 Responses,Assignment,Lookup (TeachingAssignments),Yes,
 Responses,Question,Lookup (Questions),Yes,
