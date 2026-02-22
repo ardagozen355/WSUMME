@@ -909,6 +909,8 @@ Remove(QuestionChoices, ThisItem);
 Notify("Choice deleted.", NotificationType.Information)
 ```
 
+> Note: `Question` is a SharePoint lookup, so this patch uses lookup-record shape (`Id` + `Value`) to avoid schema mismatch errors.
+
 > New choice button (`btnNewChoice.OnSelect`):
 ```powerfx
 If(
@@ -918,7 +920,10 @@ If(
         QuestionChoices,
         Defaults(QuestionChoices),
         {
-            Question: varSelectedQuestion,
+            Question: {
+                Id: varSelectedQuestion.ID,
+                Value: Left(Coalesce(varSelectedQuestion.QuestionText, Text(varSelectedQuestion.ID)), 255)
+            },
             ChoiceLabel: "",
             DisplayOrder: CountRows(Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID)) + 1
         }
