@@ -140,6 +140,7 @@ Use SharePoint lists as the primary source of truth:
 
 ### 1) Admin App (Power Apps)
 - Manage courses, student outcomes, supported PIs, and course-specific outcomes
+- Dedicated admin screen to edit Student Outcomes and PIs with SO->PI filtering and cascade delete
 - Configure questions and order
 - Upload semester assignment file
 - Monitor completion status dashboard

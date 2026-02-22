@@ -369,6 +369,11 @@ Navigate(scrQuestions, ScreenTransition.Fade)
 ```
 
 ```powerfx
+// btnOutcomesPIs.OnSelect
+Navigate(scrOutcomesAndPIs, ScreenTransition.Fade)
+```
+
+```powerfx
 // btnSemesterDashboard.OnSelect
 Navigate(scrSemesterDashboard, ScreenTransition.Fade)
 ```
@@ -639,6 +644,98 @@ With(
 );
 
 Notify("PI removed from course.", NotificationType.Information)
+```
+
+
+### A5c) Student Outcomes + Performance Indicators management screen
+> Screen idea: `scrOutcomesAndPIs` with two galleries.
+- Left gallery `galStudentOutcomesAdmin` (all SO rows)
+- Right gallery `galPIsByOutcome` (PIs for selected SO)
+
+> `galStudentOutcomesAdmin.Items`:
+```powerfx
+SortByColumns(StudentOutcomes, "OutcomeCode", Ascending)
+```
+
+> `galStudentOutcomesAdmin.OnSelect`:
+```powerfx
+Set(varSelectedOutcome, ThisItem)
+```
+
+> Outcome row label (`lblOutcomeAdmin.Text`):
+```powerfx
+ThisItem.OutcomeCode & " - " & Coalesce(ThisItem.OutcomeDescription, "")
+```
+
+> New outcome button (`btnNewOutcome.OnSelect`):
+```powerfx
+Patch(
+    StudentOutcomes,
+    Defaults(StudentOutcomes),
+    {
+        OutcomeCode: Trim(txtOutcomeCode.Text),
+        OutcomeDescription: Trim(txtOutcomeDescription.Text)
+    }
+);
+Notify("Student outcome added.", NotificationType.Success)
+```
+
+> Delete outcome button (`btnDeleteOutcome.OnSelect`) with cascade delete of related PIs:
+```powerfx
+If(
+    IsBlank(varSelectedOutcome),
+    Notify("Select an outcome first.", NotificationType.Warning),
+
+    RemoveIf(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID);
+    Remove(StudentOutcomes, varSelectedOutcome);
+    Set(varSelectedOutcome, Blank());
+    Notify("Outcome and related PIs deleted.", NotificationType.Information)
+)
+```
+
+> `galPIsByOutcome.Items`:
+```powerfx
+If(
+    IsBlank(varSelectedOutcome),
+    [],
+    SortByColumns(
+        Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID),
+        "IndicatorCode",
+        Ascending
+    )
+)
+```
+
+> PI row label (`lblPIAdmin.Text`):
+```powerfx
+ThisItem.IndicatorCode & " - " & Coalesce(ThisItem.IndicatorDescription, "")
+```
+
+> New PI button (`btnNewPIForOutcome.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedOutcome),
+    Notify("Select an outcome first.", NotificationType.Warning),
+    Patch(
+        PerformanceIndicators,
+        Defaults(PerformanceIndicators),
+        {
+            IndicatorCode: Trim(txtNewPIIndicatorCode.Text),
+            IndicatorDescription: Trim(txtNewPIIndicatorDescription.Text),
+            StudentOutcome: {
+                Id: varSelectedOutcome.ID,
+                Value: varSelectedOutcome.OutcomeCode
+            },
+            SOCode: varSelectedOutcome.OutcomeCode
+        }
+    )
+)
+```
+
+> Delete PI button in row (`btnDeletePIFromOutcome.OnSelect`):
+```powerfx
+Remove(PerformanceIndicators, ThisItem);
+Notify("PI deleted.", NotificationType.Information)
 ```
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
