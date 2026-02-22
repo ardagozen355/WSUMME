@@ -93,7 +93,7 @@ Purpose: Navigation hub and admin guard.
 | Header: "Assessment Admin"                                                    |
 | Admin: <varDisplayName>                                                         |
 +--------------------------------------------------------------------------------+
-| [btnCourses] [btnQuestions] [btnSemesterDashboard] [btnImports]               |
+| [btnCourses] [btnOutcomesPIs] [btnQuestions] [btnSemesterDashboard] [btnImports] |
 +--------------------------------------------------------------------------------+
 | Info card: role status (varIsAdmin)                                            |
 +--------------------------------------------------------------------------------+
@@ -300,24 +300,26 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 | Left pane                    | Right pane                                      |
 | Student Outcomes             | Performance Indicators (for selected outcome)    |
 | [galStudentOutcomesAdmin]    | [galPIsByOutcome]                                |
-|  - [lblOutcomeAdmin]         |  - [lblPIAdmin] [btnDeletePIFromOutcome]         |
+|  - [lblOutcomeAdmin] [btnDeleteOutcomeRow] | - [lblPIAdmin] [btnDeletePIFromOutcome] |
 | [txtOutcomeCode]             | [txtNewPIIndicatorCode]                          |
 | [txtOutcomeDescription]      | [txtNewPIIndicatorDescription]                   |
 | [btnNewOutcome]              | [btnNewPIForOutcome]                             |
-| [btnDeleteOutcome]           |                                                 |
 +------------------------------+-------------------------------------------------+
 ```
 
 ### Controls & bindings
+- `galStudentOutcomesAdmin` control type: Vertical gallery (blank)
 - `galStudentOutcomesAdmin.Items` -> formula **A5c**
-- `galStudentOutcomesAdmin.OnSelect` -> formula **A5c**
 - `lblOutcomeAdmin.Text` -> formula **A5c**
-- `btnNewOutcome.OnSelect` -> formula **A5c**
-- `btnDeleteOutcome.OnSelect` -> formula **A5c** (deletes selected outcome and all related PIs)
+- `btnDeleteOutcomeRow.OnSelect` -> formula **A5c** (row-level cascade delete: selected outcome + related PIs)
+- `galStudentOutcomesAdmin.OnSelect` -> formula **A5c**
+- `txtOutcomeCode` + `txtOutcomeDescription` + `btnNewOutcome.OnSelect` -> formula **A5c** (add SO)
+
+- `galPIsByOutcome` control type: Vertical gallery (blank)
 - `galPIsByOutcome.Items` -> formula **A5c**
 - `lblPIAdmin.Text` -> formula **A5c**
-- `btnNewPIForOutcome.OnSelect` -> formula **A5c**
-- `btnDeletePIFromOutcome.OnSelect` -> formula **A5c**
+- `btnDeletePIFromOutcome.OnSelect` -> formula **A5c** (row-level PI delete)
+- `txtNewPIIndicatorCode` + `txtNewPIIndicatorDescription` + `btnNewPIForOutcome.OnSelect` -> formula **A5c** (add PI to selected SO)
 
 ---
 
@@ -363,7 +365,7 @@ To avoid broken formulas, keep these names exactly:
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
-- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnDeleteOutcome`, `btnNewPIForOutcome`, `btnDeletePIFromOutcome`
+- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnDeletePIFromOutcome`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varSelectedOutcome`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 

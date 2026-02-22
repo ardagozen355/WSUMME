@@ -648,7 +648,7 @@ Notify("PI removed from course.", NotificationType.Information)
 
 
 ### A5c) Student Outcomes + Performance Indicators management screen
-> Screen idea: `scrOutcomesAndPIs` with two galleries.
+> Screen idea: `scrOutcomesAndPIs` with two **blank vertical galleries** and embedded row controls.
 - Left gallery `galStudentOutcomesAdmin` (all SO rows)
 - Right gallery `galPIsByOutcome` (PIs for selected SO)
 
@@ -667,6 +667,14 @@ Set(varSelectedOutcome, ThisItem)
 ThisItem.OutcomeCode & " - " & Coalesce(ThisItem.OutcomeDescription, "")
 ```
 
+> Row delete button (`btnDeleteOutcomeRow.OnSelect`) with cascade delete of related PIs:
+```powerfx
+RemoveIf(PerformanceIndicators, StudentOutcome.Id = ThisItem.ID);
+Remove(StudentOutcomes, ThisItem);
+If(varSelectedOutcome.ID = ThisItem.ID, Set(varSelectedOutcome, Blank()));
+Notify("Outcome and related PIs deleted.", NotificationType.Information)
+```
+
 > New outcome button (`btnNewOutcome.OnSelect`):
 ```powerfx
 Patch(
@@ -677,20 +685,9 @@ Patch(
         OutcomeDescription: Trim(txtOutcomeDescription.Text)
     }
 );
+Reset(txtOutcomeCode);
+Reset(txtOutcomeDescription);
 Notify("Student outcome added.", NotificationType.Success)
-```
-
-> Delete outcome button (`btnDeleteOutcome.OnSelect`) with cascade delete of related PIs:
-```powerfx
-If(
-    IsBlank(varSelectedOutcome),
-    Notify("Select an outcome first.", NotificationType.Warning),
-
-    RemoveIf(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID);
-    Remove(StudentOutcomes, varSelectedOutcome);
-    Set(varSelectedOutcome, Blank());
-    Notify("Outcome and related PIs deleted.", NotificationType.Information)
-)
 ```
 
 > `galPIsByOutcome.Items`:
@@ -711,6 +708,12 @@ If(
 ThisItem.IndicatorCode & " - " & Coalesce(ThisItem.IndicatorDescription, "")
 ```
 
+> Row delete button (`btnDeletePIFromOutcome.OnSelect`):
+```powerfx
+Remove(PerformanceIndicators, ThisItem);
+Notify("PI deleted.", NotificationType.Information)
+```
+
 > New PI button (`btnNewPIForOutcome.OnSelect`):
 ```powerfx
 If(
@@ -728,14 +731,11 @@ If(
             },
             SOCode: varSelectedOutcome.OutcomeCode
         }
-    )
+    );
+    Reset(txtNewPIIndicatorCode);
+    Reset(txtNewPIIndicatorDescription);
+    Notify("PI added.", NotificationType.Success)
 )
-```
-
-> Delete PI button in row (`btnDeletePIFromOutcome.OnSelect`):
-```powerfx
-Remove(PerformanceIndicators, ThisItem);
-Notify("PI deleted.", NotificationType.Information)
 ```
 
 ### A5b) Course-specific outcomes (CSOs) CRUD
