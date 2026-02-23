@@ -300,7 +300,7 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 | Left pane                    | Right pane                                      |
 | Student Outcomes             | Performance Indicators (for selected outcome)    |
 | [galStudentOutcomesAdmin]    | [galPIsByOutcome]                                |
-|  - [lblOutcomeAdmin] [btnDeleteOutcomeRow] | - [lblPIAdmin] [btnDeletePIFromOutcome] |
+|  - [lblOutcomeAdmin] [btnMoveUpOutcome] [btnDeleteOutcomeRow] | - [lblPIAdmin] [btnMoveUpPI] [btnDeletePIFromOutcome] |
 | [txtOutcomeCode]             | [txtNewPIIndicatorCode]                          |
 | [txtOutcomeDescription]      | [txtNewPIIndicatorDescription]                   |
 | [btnNewOutcome]              | [btnNewPIForOutcome]                             |
@@ -311,6 +311,7 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 - `galStudentOutcomesAdmin` control type: Vertical gallery (blank)
 - `galStudentOutcomesAdmin.Items` -> formula **A5c**
 - `lblOutcomeAdmin.Text` -> formula **A5c**
+- `btnMoveUpOutcome.OnSelect` -> formula **A5c** (swap outcome display order upward)
 - `btnDeleteOutcomeRow.OnSelect` -> formula **A5c** (row-level cascade delete: selected outcome + related PIs)
 - `galStudentOutcomesAdmin.OnSelect` -> formula **A5c**
 - `txtOutcomeCode` + `txtOutcomeDescription` + `btnNewOutcome.OnSelect` -> formula **A5c** (add SO)
@@ -319,6 +320,7 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 - `galPIsByOutcome.Items` -> formula **A5c** (typed filter on `PerformanceIndicators`; avoids empty-table schema loss)
 - `lblPIAdmin.Text` -> `Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " & Coalesce(ThisItem.IndicatorDescription, "")`
 - If `ThisItem` shows only `IsSelected`, ensure `lblPIAdmin` is inside `galPIsByOutcome` row template and reselect an outcome.
+- `btnMoveUpPI.OnSelect` -> formula **A5c** (swap PI display order upward within selected outcome)
 - `btnDeletePIFromOutcome.OnSelect` -> formula **A5c** (row-level PI delete)
 - `txtNewPIIndicatorCode` + `txtNewPIIndicatorDescription` + `btnNewPIForOutcome.OnSelect` -> formula **A5c** (add PI to selected SO)
 
@@ -366,7 +368,7 @@ To avoid broken formulas, keep these names exactly:
 - Dropdowns: `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
-- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnDeletePIFromOutcome`
+- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varSelectedOutcome`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 

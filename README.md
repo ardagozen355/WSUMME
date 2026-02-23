@@ -70,6 +70,7 @@ Use SharePoint lists as the primary source of truth:
    - `OutcomeId` (ID)
    - `OutcomeCode` (Text, unique)
    - `OutcomeDescription` (Text)
+   - `DisplayOrder` (Number)
 
 3. **PerformanceIndicators**
    - `IndicatorId` (ID)
@@ -77,6 +78,7 @@ Use SharePoint lists as the primary source of truth:
    - `IndicatorDescription` (Text)
    - `StudentOutcome` (Lookup → StudentOutcomes)
    - `SOCode` (Text, optional helper for app label stability if lookup parsing is inconsistent)
+   - `DisplayOrder` (Number)
 
 4. **CourseSpecificOutcomes**
    - `CSOId` (ID)

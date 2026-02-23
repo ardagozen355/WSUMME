@@ -654,7 +654,10 @@ Notify("PI removed from course.", NotificationType.Information)
 
 > `galStudentOutcomesAdmin.Items`:
 ```powerfx
-SortByColumns(StudentOutcomes, "OutcomeCode", Ascending)
+IfError(
+    SortByColumns(StudentOutcomes, "DisplayOrder", Ascending),
+    SortByColumns(StudentOutcomes, "OutcomeCode", Ascending)
+)
 ```
 
 > `galStudentOutcomesAdmin.OnSelect`:
@@ -675,6 +678,19 @@ If(varSelectedOutcome.ID = ThisItem.ID, Set(varSelectedOutcome, Blank()));
 Notify("Outcome and related PIs deleted.", NotificationType.Information)
 ```
 
+> Row move-up button (`btnMoveUpOutcome.OnSelect`):
+```powerfx
+Set(varOutcomeOrder, Coalesce(ThisItem.DisplayOrder, 0));
+Set(varSwapOutcome,
+    LookUp(StudentOutcomes, DisplayOrder = varOutcomeOrder - 1)
+);
+If(
+    !IsBlank(varSwapOutcome),
+    Patch(StudentOutcomes, varSwapOutcome, { DisplayOrder: varOutcomeOrder });
+    Patch(StudentOutcomes, ThisItem, { DisplayOrder: varOutcomeOrder - 1 })
+)
+```
+
 > New outcome button (`btnNewOutcome.OnSelect`):
 ```powerfx
 Patch(
@@ -682,7 +698,8 @@ Patch(
     Defaults(StudentOutcomes),
     {
         OutcomeCode: Trim(txtOutcomeCode.Text),
-        OutcomeDescription: Trim(txtOutcomeDescription.Text)
+        OutcomeDescription: Trim(txtOutcomeDescription.Text),
+        DisplayOrder: CountRows(StudentOutcomes) + 1
     }
 );
 Reset(txtOutcomeCode);
@@ -724,6 +741,22 @@ Remove(PerformanceIndicators, ThisItem);
 Notify("PI deleted.", NotificationType.Information)
 ```
 
+> Row move-up button (`btnMoveUpPI.OnSelect`):
+```powerfx
+Set(varPIOrder, Coalesce(ThisItem.DisplayOrder, 0));
+Set(varSwapPI,
+    LookUp(
+        PerformanceIndicators,
+        StudentOutcome.Id = varSelectedOutcome.ID && DisplayOrder = varPIOrder - 1
+    )
+);
+If(
+    !IsBlank(varSwapPI),
+    Patch(PerformanceIndicators, varSwapPI, { DisplayOrder: varPIOrder });
+    Patch(PerformanceIndicators, ThisItem, { DisplayOrder: varPIOrder - 1 })
+)
+```
+
 > New PI button (`btnNewPIForOutcome.OnSelect`):
 ```powerfx
 If(
@@ -739,7 +772,8 @@ If(
                 Id: varSelectedOutcome.ID,
                 Value: varSelectedOutcome.OutcomeCode
             },
-            SOCode: varSelectedOutcome.OutcomeCode
+            SOCode: varSelectedOutcome.OutcomeCode,
+            DisplayOrder: CountRows(Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID)) + 1
         }
     );
     Reset(txtNewPIIndicatorCode);

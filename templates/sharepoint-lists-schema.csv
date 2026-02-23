@@ -5,10 +5,12 @@ Courses,IsActive,Yes/No,Yes,Default Yes
 Courses,SupportedPIs,Lookup (PerformanceIndicators, multi-select),No,Course supports selected PIs from multiple SOs
 StudentOutcomes,OutcomeCode,Single line of text,Yes,Enforce unique values (e.g. SO1)
 StudentOutcomes,OutcomeDescription,Multiple lines of text,No,
+StudentOutcomes,DisplayOrder,Number,Yes,Used for admin ordering in outcomes gallery
 PerformanceIndicators,IndicatorCode,Single line of text,Yes,Enforce unique values (e.g. PI2.3)
 PerformanceIndicators,IndicatorDescription,Multiple lines of text,No,
 PerformanceIndicators,StudentOutcome,Lookup (StudentOutcomes),Yes,Each PI must belong to exactly one SO
 PerformanceIndicators,SOCode,Single line of text,No,Optional helper code for app label stability (e.g. SO2)
+PerformanceIndicators,DisplayOrder,Number,Yes,Used for admin ordering in PI gallery within each outcome
 CourseSpecificOutcomes,Course,Lookup (Courses),Yes,
 CourseSpecificOutcomes,CSOCode,Single line of text,Yes,Example: CSO-1
 CourseSpecificOutcomes,CSODescription,Multiple lines of text,Yes,
