@@ -317,7 +317,8 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 
 - `galPIsByOutcome` control type: Vertical gallery (blank)
 - `galPIsByOutcome.Items` -> formula **A5c**
-- `lblPIAdmin.Text` -> formula **A5c**
+- `lblPIAdmin.Text` -> `Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " & Coalesce(ThisItem.IndicatorDescription, "")`
+- If `ThisItem` shows only `IsSelected`, ensure `lblPIAdmin` is inside `galPIsByOutcome` row template and reselect an outcome.
 - `btnDeletePIFromOutcome.OnSelect` -> formula **A5c** (row-level PI delete)
 - `txtNewPIIndicatorCode` + `txtNewPIIndicatorDescription` + `btnNewPIForOutcome.OnSelect` -> formula **A5c** (add PI to selected SO)
 

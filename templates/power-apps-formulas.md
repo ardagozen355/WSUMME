@@ -705,8 +705,14 @@ If(
 
 > PI row label (`lblPIAdmin.Text`):
 ```powerfx
-ThisItem.IndicatorCode & " - " & Coalesce(ThisItem.IndicatorDescription, "")
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " &
+Coalesce(ThisItem.IndicatorDescription, "")
 ```
+
+> If `ThisItem` only exposes `IsSelected` in `lblPIAdmin`:
+- Confirm `lblPIAdmin` is inside the `galPIsByOutcome` row template (not outside the gallery).
+- Confirm `galPIsByOutcome.Items` is set to formula **A5c**.
+- Re-select an outcome in `galStudentOutcomesAdmin` so `varSelectedOutcome` refreshes and the PI gallery repopulates.
 
 > Row delete button (`btnDeletePIFromOutcome.OnSelect`):
 ```powerfx
