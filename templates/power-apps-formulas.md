@@ -692,16 +692,20 @@ Notify("Student outcome added.", NotificationType.Success)
 
 > `galPIsByOutcome.Items`:
 ```powerfx
-If(
-    IsBlank(varSelectedOutcome),
-    [],
+With(
+    { selectedOutcomeId: Coalesce(varSelectedOutcome.ID, Blank()) },
     SortByColumns(
-        Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID),
+        Filter(
+            PerformanceIndicators,
+            !IsBlank(selectedOutcomeId) && StudentOutcome.Id = selectedOutcomeId
+        ),
         "IndicatorCode",
         Ascending
     )
 )
 ```
+
+> Why this shape matters: returning `[]` can drop row schema in some tenants. Filtering `PerformanceIndicators` keeps a typed table, so row controls can resolve `IndicatorCode`/`IndicatorDescription` reliably.
 
 > PI row label (`lblPIAdmin.Text`):
 ```powerfx
