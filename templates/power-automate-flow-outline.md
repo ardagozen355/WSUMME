@@ -1,8 +1,18 @@
 # Power Automate Template Flows
 
 ## Flow A: Import semester assignment spreadsheet
-1. **Trigger**: When a file is created in SharePoint folder `/SemesterImports`.
+1. **Trigger**: SharePoint — **When a file is created (properties only)**.
+   - **Site Address**: the same SharePoint site that hosts your app lists and import library (example: `https://contoso.sharepoint.com/sites/Assessment`).
+   - **Library Name**: the document library used for imports (example: `Documents` or `Shared Documents`).
+   - **Folder**: `/SemesterImports` (or your configured import folder under the selected library).
+   - **Trigger Conditions (recommended)**:
+     - Only run for Excel files: `@endsWith(toLower(triggerOutputs()?['body/{FilenameWithExtension}']), '.xlsx')`
+     - Ignore temporary Office lock files: `@not(startsWith(triggerOutputs()?['body/{FilenameWithExtension}'], '~$'))`
+   - **Concurrency Control (recommended)**: On, Degree of Parallelism = `1` to prevent duplicate processing when multiple files arrive close together.
 2. **Action**: List rows present in table (`AssignmentsImport`) from Excel Online (Business).
+   - **Location**: SharePoint Site
+   - **Document Library**: same library as trigger
+   - **File**: use trigger identifier/path from Flow A trigger output
 3. **Apply to each row**:
    - Get matching course by `CourseNumber` from `Courses`.
    - If missing or inactive -> append row to `ImportErrors` list.
