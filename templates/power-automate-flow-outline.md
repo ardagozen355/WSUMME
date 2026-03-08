@@ -6,8 +6,8 @@
    - **Library Name**: the import document library (example: `Shared Documents`).
    - **Folder**: `/SemesterImports`.
    - **Trigger conditions (recommended)**:
-     - Excel files only: `@endsWith(toLower(triggerOutputs()?['body/{FilenameWithExtension}']), '.xlsx')`
-     - Ignore Office temp files: `@not(startsWith(triggerOutputs()?['body/{FilenameWithExtension}'], '~$'))`
+     - Excel files only: `@endsWith(toLower(triggerBody()?['{FilenameWithExtension}']), '.xlsx')`
+     - Ignore Office temp files: `@not(startsWith(triggerBody()?['{FilenameWithExtension}'], '~$'))`
    - **Settings (recommended)**: Concurrency Control **On**, Degree of Parallelism = `1`.
 2. **Action**: Excel Online (Business) — **List rows present in a table**.
    - **Location**: SharePoint Site
