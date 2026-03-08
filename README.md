@@ -33,10 +33,10 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
    - Maintain a SharePoint-backed question model with:
      - Question text
      - Question type (`LongText` or `SingleChoice`)
-     - Course-specific vs global flag
      - Display order
      - Active status
    - Admin UI lets users reorder and toggle questions without redeployment.
+   - Admin UI includes a Faculty directory screen (first/last/email/campus) used by import automation.
 
 5. **Question types required**
    - Implement these in Power Apps form rendering logic:
@@ -71,6 +71,7 @@ Use SharePoint lists as the primary source of truth:
    - `OutcomeId` (ID)
    - `OutcomeCode` (Text, unique)
    - `OutcomeDescription` (Text)
+   - `DisplayOrder` (Number)
 
 3. **PerformanceIndicators**
    - `IndicatorId` (ID)
@@ -78,6 +79,7 @@ Use SharePoint lists as the primary source of truth:
    - `IndicatorDescription` (Text)
    - `StudentOutcome` (Lookup → StudentOutcomes)
    - `SOCode` (Text, optional helper for app label stability if lookup parsing is inconsistent)
+   - `DisplayOrder` (Number)
 
 4. **CourseSpecificOutcomes**
    - `CSOId` (ID)
@@ -92,32 +94,40 @@ Use SharePoint lists as the primary source of truth:
    - `StartDate`, `EndDate`
    - `Status` (Draft / Active / Closed)
 
-6. **TeachingAssignments**
+6. **Faculty**
+   - `FacultyId` (ID)
+   - `FirstName` (Text)
+   - `LastName` (Text)
+   - `Email` (Text, unique)
+   - `Campus` (Choice: Pullman / Everett / Bremerton)
+
+7. **TeachingAssignments**
    - `AssignmentId` (ID)
    - `Semester` (Lookup)
    - `Course` (Lookup)
+   - `Campus` (Choice: Pullman / Everett / Bremerton)
+   - `CampusCode` (Text: PUL / EVE / BRE)
    - `InstructorEmail` (Text)
    - `InstructorName` (Text)
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
    - `FormToken` (GUID)
 
-7. **Questions**
+8. **Questions**
    - `QuestionId` (ID)
    - `QuestionText` (Multiple lines)
    - `QuestionType` (Choice: LongText, SingleChoice)
-   - `AppliesTo` (Choice: Global, CourseSpecific)
-   - `Course` (Lookup, nullable)
+   - `IsRequired` (Yes/No; default Yes)
    - `DisplayOrder` (Number)
-   - `IsActive` (Yes/No)
+   - Notes: all questions are global (no course-specific question scope)
+   - Admin behavior: questions are editable and can be permanently deleted (no activation toggle)
 
-8. **QuestionChoices**
+9. **QuestionChoices**
    - `ChoiceId` (ID)
    - `Question` (Lookup)
    - `ChoiceLabel` (Text)
-   - `ChoiceValue` (Text)
    - `DisplayOrder` (Number)
 
-9. **Responses**
+10. **Responses**
    - `ResponseId` (ID)
    - `Assignment` (Lookup)
    - `Question` (Lookup)
@@ -132,14 +142,17 @@ Use SharePoint lists as the primary source of truth:
    - `ReferenceId` (Number)
    - `ReferenceCode` (Text)
    - `Score` (Number: 1–5)
+   - `AssessmentTools` (Multiple lines; instructor rationale on tools/evidence used)
    - `SubmittedAt` (DateTime)
+   - Notes: instructors provide two responses per PI/CSO item (`Score` + `AssessmentTools`)
 
 ---
 
 ## App Modules
 
 ### 1) Admin App (Power Apps)
-- Manage courses, student outcomes, supported PIs, and course-specific outcomes
+- Manage courses, faculty directory, student outcomes, supported PIs, and course-specific outcomes
+- Dedicated admin screen to edit Student Outcomes and PIs with SO->PI filtering and cascade delete
 - Configure questions and order
 - Upload semester assignment file
 - Monitor completion status dashboard
@@ -147,8 +160,8 @@ Use SharePoint lists as the primary source of truth:
 
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms
-- Dynamic question rendering by assignment/course
-- Rate PI/CSO performance on a 1-5 scale
+- Dynamic rendering of active global questions
+- Evaluate each PI/CSO with both a 1-5 score and a long-text assessment-tools rationale
 - Save draft + final submit
 
 ### 3) Automations (Power Automate)
@@ -194,13 +207,15 @@ Use SharePoint lists as the primary source of truth:
 
 - `Semester`
 - `CourseNumber`
-- `CourseTitle`
-- `InstructorName`
-- `InstructorEmail`
+- `Section`
+- `InstructorName` (required; must match a Faculty record as `FirstName LastName`)
 
 Power Automate validates:
 - Course exists and active
-- Instructor email format is valid
+- Instructor name matches exactly one Faculty record
+- Campus and email are pulled from the Faculty list
+- CampusCode is derived from Faculty campus (Pullman->PUL, Everett->EVE, Bremerton->BRE)
+- Instructor email format comes from Faculty.Email
 - No duplicate assignment rows
 
 ---
@@ -253,7 +268,7 @@ No.
 Recommended minimum permissions:
 
 - **Admins**: Edit/Contribute on configuration + operational lists they manage
-  - `Courses`, `StudentOutcomes`, `PerformanceIndicators`, `CourseSpecificOutcomes`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`, `OutcomeEvaluations`
+  - `Courses`, `Faculty`, `StudentOutcomes`, `PerformanceIndicators`, `CourseSpecificOutcomes`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`, `OutcomeEvaluations`
 - **Instructors**: Limited permissions
   - Read assigned `TeachingAssignments`
   - Create/Edit their own `Responses` rows only

@@ -47,7 +47,7 @@ Purpose: Instructor sees pending forms.
 ---
 
 ## Screen IA-2: `scrAssessmentForm`
-Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 1-5 scale.
+Purpose: Instructor answers global questions and completes PI/CSO evaluations with a 1-5 score plus assessment-tools rationale.
 
 ### Layout (wireframe)
 ```text
@@ -61,7 +61,7 @@ Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 
 |--------------------------------------------------------------------------------|
 |  Q2. <QuestionText> ...                                                        |
 +--------------------------------------------------------------------------------+
-| Ratings [galEvalItems]: [lblEvalCode] [drpScore (1-5)]                         |
+| Ratings [galEvalItems]: [lblEvalCode] [drpScore (1-5)] [txtAssessmentTools]    |
 | [btnSubmitAssessment]                                                          |
 +--------------------------------------------------------------------------------+
 ```
@@ -73,8 +73,9 @@ Purpose: Instructor answers dynamic questions and rates PI/CSO performance on a 
 - `drpSingleChoice.Items` -> `Filter(QuestionChoices, Question.Id = ThisItem.ID)` sorted by `DisplayOrder`
 - `txtLongAnswer.OnChange` and `drpSingleChoice.OnChange` patch `colResponses`
 - `galEvalItems.Items` -> `colEvalItems` (PI + CSO items)
+- `drpScore.OnChange` -> updates `ScoreLocal`
+- `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
 - `drpScore.Items` -> `[1,2,3,4,5]`
-- `drpScore.OnChange` patches `colEvalItems.ScoreLocal`
 - `btnSubmitAssessment.OnSelect` uses submit formula + saves `OutcomeEvaluations`.
 
 (Uses formulas from section **Instructor 3–7**.)
@@ -92,7 +93,7 @@ Purpose: Navigation hub and admin guard.
 | Header: "Assessment Admin"                                                    |
 | Admin: <varDisplayName>                                                         |
 +--------------------------------------------------------------------------------+
-| [btnCourses] [btnQuestions] [btnSemesterDashboard] [btnImports]               |
+| [btnCourses] [btnFaculty] [btnOutcomesPIs] [btnQuestions] [btnSemesterDashboard] [btnImports] |
 +--------------------------------------------------------------------------------+
 | Info card: role status (varIsAdmin)                                            |
 +--------------------------------------------------------------------------------+
@@ -109,7 +110,7 @@ Purpose: Navigation hub and admin guard.
   "Admin: " & varDisplayName
   ```
 - **Navigation controls**: Insert > **Button**
-  - `btnCourses`, `btnQuestions`, `btnSemesterDashboard`, `btnImports`
+  - `btnCourses`, `btnFaculty`, `btnOutcomesPIs`, `btnQuestions`, `btnSemesterDashboard`, `btnImports`
 - **Info card**: easiest approach is Insert > **Container** (`conRoleCard`) with two labels inside:
   - `lblRoleTitle.Text`:
   ```powerfx
@@ -154,6 +155,11 @@ Navigate(scrQuestions, ScreenTransition.Fade)
 ```
 
 ```powerfx
+// btnFaculty
+Navigate(scrFaculty, ScreenTransition.Fade)
+```
+
+```powerfx
 // btnSemesterDashboard
 Navigate(scrSemesterDashboard, ScreenTransition.Fade)
 ```
@@ -186,7 +192,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 | [galCourses]                 | Course Number [txtCourseNumber]                 |
 |  - CourseNumber              | Course Title  [txtCourseTitle]                  |
 |  - CourseTitle               | Active       [tglCourseActive]                  |
-|                              | [btnSaveCourse]                                  |
+|                              | [btnNewCourse] [btnSaveCourse] [btnDeleteCourse] |
 |                              |--------------------------------------------------|
 |                              | Supported PIs [galSupportedPIs]                   |
 |                              |  - [lblSupportedPI] [btnRemovePI]                 |
@@ -218,11 +224,45 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
 - `galCSOs.Items` -> formula **A5b** (`colCSOs`, all active CSOs for selected course)
+- `btnNewCourse.OnSelect` -> formula **A3a** (clear selected course + clear right-pane inputs for new entry)
 - `btnSaveCourse.OnSelect` -> formula **A3**
+- `btnDeleteCourse.OnSelect` -> formula **A3b** (permanently delete selected course)
 - `btnAddCSO.OnSelect` -> formula **A5b** (add CSO from `txtCSOCode`/`txtCSODescription` and refresh `colCSOs`)
-- `btnRemoveCSO.OnSelect` -> formula **A5b** (soft remove selected CSO row and refresh `colCSOs`)
+- `btnRemoveCSO.OnSelect` -> formula **A5b** (hard delete selected CSO row and refresh `colCSOs`)
 
 ---
+
+## Screen AD-2b: `scrFaculty`
+Purpose: Manage the Faculty directory used by assignment imports.
+
+### Layout (wireframe)
+```text
++--------------------------------------------------------------------------------+
+| Faculty Directory                                                               |
++------------------------------+-------------------------------------------------+
+| Left pane                    | Right pane                                      |
+| [galFaculty]                 | First Name [txtFacultyFirstName]                |
+|  - [lblFacultyName]          | Last Name  [txtFacultyLastName]                 |
+|  - [lblFacultyCampus]        | Email      [txtFacultyEmail]                    |
+|                              | Campus     [drpFacultyCampus]                   |
+|                              | [btnNewFaculty] [btnSaveFaculty] [btnDeleteFaculty] |
++------------------------------+-------------------------------------------------+
+```
+
+### Controls & bindings
+- `galFaculty.Items` -> formula **A5d**
+- `lblFacultyName.Text` -> `ThisItem.LastName & ", " & ThisItem.FirstName`
+- `lblFacultyCampus.Text` -> `Coalesce(ThisItem.Campus.Value, "")`
+- `galFaculty.OnSelect` -> formula **A5d**
+- `txtFacultyFirstName.Default` -> formula **A5d**
+- `txtFacultyLastName.Default` -> formula **A5d**
+- `txtFacultyEmail.Default` -> formula **A5d**
+- `drpFacultyCampus.Items` -> formula **A5d**
+- `drpFacultyCampus.Default` -> formula **A5d**
+- `btnNewFaculty.OnSelect` -> formula **A5d**
+- `btnSaveFaculty.OnSelect` -> formula **A5d**
+- `btnDeleteFaculty.OnSelect` -> formula **A5d**
+
 
 ## Screen AD-3: `scrQuestions`
 Purpose: Question bank management and ordering.
@@ -233,19 +273,18 @@ Purpose: Question bank management and ordering.
 | Questions                                                                       |
 +------------------------------+-------------------------------------------------+
 | Left pane                    | Right pane                                      |
-| Scope [drpQuestionScope]     | Question editor                                 |
-| [galQuestionsAdmin]          | Text [txtQuestionText]                          |
-|  - DisplayOrder + Text       | Type [drpQuestionType]                          |
-|  - AppliesTo                 | AppliesTo [drpAppliesTo]                        |
-|  - Course                    | Course [drpCourseForQuestion]                   |
+| [galQuestionsAdmin]          | Question editor                                 |
+|  - [lblOrderAndText]         | Text [txtQuestionText]                          |
+|  - [lblType]                 | Type [drpQuestionType]                          |
+|  - [lblRequired]             | Required [tglQuestionRequired]                  |
 |  - [btnMoveUp]               | Order [txtDisplayOrder]                         |
-|                              | Active [tglQuestionActive]                      |
-|                              | [btnSaveQuestion]                               |
+|                              | [btnNewQuestion] [btnSaveQuestion] [btnDeleteQuestion] |
 |                              |--------------------------------------------------|
 |                              | Single-choice options                            |
+|                              | [btnNewChoice]                                   |
 |                              | [galChoices]                                     |
-|                              | Label [txtChoiceLabel] Value [txtChoiceValue]   |
-|                              | Order [txtChoiceOrder] [btnAddChoice]           |
+|                              | [txtChoiceOrderRow] [txtChoiceLabelRow]         |
+|                              | [btnSaveChoiceRow] [btnDeleteChoiceRow]         |
 +------------------------------+-------------------------------------------------+
 ```
 
@@ -253,14 +292,76 @@ Purpose: Question bank management and ordering.
 When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
 
 - `galQuestionsAdmin.Items` -> formula **A6**
+- `lblOrderAndText.Text` -> `Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)) & " - " & Left(ThisItem.QuestionText, 120)`
+- `lblType.Text` -> `ThisItem.QuestionType.Value`
+- `lblRequired.Text` -> `If(Coalesce(ThisItem.IsRequired, true), "Required", "Optional")`
+- `lblRequired.Color` -> `If(Coalesce(ThisItem.IsRequired, true), Color.Red, Color.Gray)` (optional visual cue)
 - `galQuestionsAdmin.OnSelect`:
 ```powerfx
-Set(varSelectedQuestion, ThisItem)
+Set(varSelectedQuestion, ThisItem);
+Set(varQuestionTextLocal, Coalesce(ThisItem.QuestionText, ""));
+Set(varQuestionTypeLocal, Coalesce(ThisItem.QuestionType.Value, "LongText"));
+Set(varQuestionRequiredLocal, Coalesce(ThisItem.IsRequired, true));
+Set(varQuestionOrderLocal, Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)));
+Reset(txtQuestionText);
+Reset(drpQuestionType);
+Reset(tglQuestionRequired);
+Reset(txtDisplayOrder)
 ```
-- `btnSaveQuestion.OnSelect` -> formula **A7**
+- `txtQuestionText.Default` -> `varQuestionTextLocal`
+- `drpQuestionType.Items` -> `Choices(Questions.QuestionType)`
+- `drpQuestionType.Default` -> `Coalesce(LookUp(Choices(Questions.QuestionType), Value = varQuestionTypeLocal).Value, "LongText")`
+- `tglQuestionRequired.Default` -> `varQuestionRequiredLocal`
+- `txtDisplayOrder.Default` -> `varQuestionOrderLocal`
+- `btnNewQuestion.OnSelect` -> formula **A7** (clears editor for a new question)
+- `btnSaveQuestion.OnSelect` -> formula **A7** (saves text/type/required/order)
+- `btnDeleteQuestion.OnSelect` -> formula **A7a** (permanently deletes selected question)
+- `btnNewChoice.OnSelect` -> formula **A8** (adds a blank choice row for selected question)
+- `galChoices.Visible` -> `Coalesce(varQuestionTypeLocal, "LongText") = "SingleChoice"`
 - `galChoices.Items` -> formula **A8** (items)
-- `btnAddChoice.OnSelect` -> formula **A8** (add)
+- `txtChoiceOrderRow.Default` -> `Text(ThisItem.DisplayOrder)`
+- `txtChoiceLabelRow.Default` -> `ThisItem.ChoiceLabel`
+- `btnSaveChoiceRow.OnSelect` -> formula **A8** (update row)
+- `btnDeleteChoiceRow.OnSelect` -> formula **A8** (delete row)
 - `btnMoveUp.OnSelect` -> formula **A9**
+
+---
+
+
+## Screen AD-3b: `scrOutcomesAndPIs`
+Purpose: Manage Student Outcomes and Performance Indicators with cascading delete.
+
+### Layout (wireframe)
+```text
++--------------------------------------------------------------------------------+
+| Outcomes & Performance Indicators                                              |
++------------------------------+-------------------------------------------------+
+| Left pane                    | Right pane                                      |
+| Student Outcomes             | Performance Indicators (for selected outcome)    |
+| [galStudentOutcomesAdmin]    | [galPIsByOutcome]                                |
+|  - [lblOutcomeAdmin] [btnMoveUpOutcome] [btnDeleteOutcomeRow] | - [lblPIAdmin] [btnMoveUpPI] [btnDeletePIFromOutcome] |
+| [txtOutcomeCode]             | [txtNewPIIndicatorCode]                          |
+| [txtOutcomeDescription]      | [txtNewPIIndicatorDescription]                   |
+| [btnNewOutcome]              | [btnNewPIForOutcome]                             |
++------------------------------+-------------------------------------------------+
+```
+
+### Controls & bindings
+- `galStudentOutcomesAdmin` control type: Vertical gallery (blank)
+- `galStudentOutcomesAdmin.Items` -> formula **A5c**
+- `lblOutcomeAdmin.Text` -> formula **A5c**
+- `btnMoveUpOutcome.OnSelect` -> formula **A5c** (swap outcome display order upward)
+- `btnDeleteOutcomeRow.OnSelect` -> formula **A5c** (row-level cascade delete: selected outcome + related PIs)
+- `galStudentOutcomesAdmin.OnSelect` -> formula **A5c**
+- `txtOutcomeCode` + `txtOutcomeDescription` + `btnNewOutcome.OnSelect` -> formula **A5c** (add SO)
+
+- `galPIsByOutcome` control type: Vertical gallery (blank)
+- `galPIsByOutcome.Items` -> formula **A5c** (typed filter on `PerformanceIndicators`; avoids empty-table schema loss)
+- `lblPIAdmin.Text` -> `Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " & Coalesce(ThisItem.IndicatorDescription, "")`
+- If `ThisItem` shows only `IsSelected`, ensure `lblPIAdmin` is inside `galPIsByOutcome` row template and reselect an outcome.
+- `btnMoveUpPI.OnSelect` -> formula **A5c** (swap PI display order upward within selected outcome)
+- `btnDeletePIFromOutcome.OnSelect` -> formula **A5c** (row-level PI delete)
+- `txtNewPIIndicatorCode` + `txtNewPIIndicatorDescription` + `btnNewPIForOutcome.OnSelect` -> formula **A5c** (add PI to selected SO)
 
 ---
 
@@ -301,11 +402,15 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 
 To avoid broken formulas, keep these names exactly:
 
-- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionActive`
-- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceLabel`, `txtChoiceValue`, `txtChoiceOrder`
-- Dropdowns: `drpQuestionScope`, `drpQuestionType`, `drpAppliesTo`, `drpCourseForQuestion`, `drpSemester`
+- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
+- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`
+- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
-- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedQuestion`, `varAssignmentId`, `varCourseId`
+- Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
+- Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
+- Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
+- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
+- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
 If you prefer different control names, update the formula references consistently.

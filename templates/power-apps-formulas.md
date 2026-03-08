@@ -105,17 +105,17 @@ Set(varAssignmentId, ThisItem.ID);
 Set(varCourseId, ThisItem.Course.Id);
 ClearCollect(
     colQuestions,
-    SortByColumns(
-        Filter(
+    IfError(
+        SortByColumns(
             Questions,
-            IsActive = true &&
-            (
-                AppliesTo.Value = "Global" ||
-                (AppliesTo.Value = "CourseSpecific" && Course.Id = varCourseId)
-            )
+            "DisplayOrder",
+            Ascending
         ),
-        "DisplayOrder",
-        Ascending
+        SortByColumns(
+            Questions,
+            "ID",
+            Ascending
+        )
     )
 );
 
@@ -125,7 +125,8 @@ ClearCollect(
     AddColumns(
         colQuestions,
         "AnswerTextLocal", Blank(),
-        "AnswerChoiceLocal", Blank()
+        "AnswerChoiceLocal", Blank(),
+        "IsRequiredLocal", Coalesce(IsRequired, true)
     )
 );
 ```
@@ -164,7 +165,7 @@ Patch(
 Patch(
     colResponses,
     LookUp(colResponses, ID = ThisItem.ID),
-    { AnswerChoiceLocal: Self.Selected.ChoiceValue }
+    { AnswerChoiceLocal: Self.Selected.ChoiceLabel }
 )
 ```
 
@@ -174,11 +175,14 @@ If(
     CountRows(
         Filter(
             colResponses,
-            (QuestionType.Value = "LongText" && IsBlank(AnswerTextLocal)) ||
-            (QuestionType.Value = "SingleChoice" && IsBlank(AnswerChoiceLocal))
+            IsRequiredLocal &&
+            (
+                (QuestionType.Value = "LongText" && IsBlank(AnswerTextLocal)) ||
+                (QuestionType.Value = "SingleChoice" && IsBlank(AnswerChoiceLocal))
+            )
         )
     ) > 0,
-    Notify("Please answer all questions before submitting.", NotificationType.Error),
+    Notify("Please answer all required questions before submitting.", NotificationType.Error),
 
     ForAll(
         colResponses,
@@ -205,13 +209,14 @@ If(
 )
 ```
 
-### 7) Instructor ratings for PIs and CSOs (1-5 scale)
+### 7) Instructor evaluations for PIs and CSOs (score + assessment tools)
 > Add list `OutcomeEvaluations` with fields:
 - `Assignment` (Lookup -> TeachingAssignments)
 - `EvaluationType` (Choice: PI, CSO)
 - `ReferenceId` (Number)
 - `ReferenceCode` (Text)
-- `Score` (Number)
+- `Score` (Number: 1-5)
+- `AssessmentTools` (Multiple lines of text)
 - `SubmittedAt` (DateTime)
 
 > Build evaluation items when opening an assignment:
@@ -222,7 +227,8 @@ ClearCollect(
         LookUp(Courses, ID = varCourseId).SupportedPIs,
         "EvalType", "PI",
         "EvalCode", StudentOutcome.OutcomeCode & "-" & IndicatorCode,
-        "ScoreLocal", Blank()
+        "ScoreLocal", Blank(),
+        "AssessmentToolsLocal", Blank()
     )
 );
 Collect(
@@ -231,7 +237,8 @@ Collect(
         Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true),
         "EvalType", "CSO",
         "EvalCode", CSOCode,
-        "ScoreLocal", Blank()
+        "ScoreLocal", Blank(),
+        "AssessmentToolsLocal", Blank()
     )
 )
 ```
@@ -250,21 +257,41 @@ Patch(
 )
 ```
 
+> Assessment tools text input `OnChange`:
+```powerfx
+Patch(
+    colEvalItems,
+    ThisItem,
+    { AssessmentToolsLocal: Trim(Self.Text) }
+)
+```
+
 > Save ratings on submit (append to existing submit logic):
 ```powerfx
-ForAll(
-    colEvalItems,
-    Patch(
-        OutcomeEvaluations,
-        Defaults(OutcomeEvaluations),
-        {
-            Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-            EvaluationType: { Value: EvalType },
-            ReferenceId: ID,
-            ReferenceCode: EvalCode,
-            Score: ScoreLocal,
-            SubmittedAt: Now()
-        }
+If(
+    CountRows(
+        Filter(
+            colEvalItems,
+            IsBlank(ScoreLocal) || IsBlank(AssessmentToolsLocal)
+        )
+    ) > 0,
+    Notify("Please enter both score (1-5) and assessment tools for each PI/CSO.", NotificationType.Error),
+
+    ForAll(
+        colEvalItems,
+        Patch(
+            OutcomeEvaluations,
+            Defaults(OutcomeEvaluations),
+            {
+                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                EvaluationType: { Value: EvalType },
+                ReferenceId: ID,
+                ReferenceCode: EvalCode,
+                Score: ScoreLocal,
+                AssessmentTools: AssessmentToolsLocal,
+                SubmittedAt: Now()
+            }
+        )
     )
 )
 ```
@@ -339,6 +366,16 @@ Navigate(scrCourses, ScreenTransition.Fade)
 ```powerfx
 // btnQuestions.OnSelect
 Navigate(scrQuestions, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnOutcomesPIs.OnSelect
+Navigate(scrOutcomesAndPIs, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnFaculty.OnSelect
+Navigate(scrFaculty, ScreenTransition.Fade)
 ```
 
 ```powerfx
@@ -447,6 +484,40 @@ If(
     Notify("Course saved.", NotificationType.Success);
     Reset(txtCourseNumber);
     Reset(txtCourseTitle)
+)
+```
+
+### A3a) New course button (`btnNewCourse.OnSelect`)
+```powerfx
+Set(varSelectedCourse, Blank());
+Set(varCourseNumberLocal, "");
+Set(varCourseTitleLocal, "");
+Set(varCourseActiveLocal, true);
+Clear(colSupportedPIs);
+Clear(colAvailablePIs);
+Clear(colCSOs);
+Reset(txtCourseNumber);
+Reset(txtCourseTitle);
+Reset(tglCourseActive)
+```
+
+### A3b) Delete course button (`btnDeleteCourse.OnSelect`) — permanent delete
+```powerfx
+If(
+    IsBlank(varSelectedCourse),
+    Notify("Select a course first.", NotificationType.Warning),
+    Remove(Courses, varSelectedCourse);
+    Set(varSelectedCourse, Blank());
+    Set(varCourseNumberLocal, "");
+    Set(varCourseTitleLocal, "");
+    Set(varCourseActiveLocal, true);
+    Clear(colSupportedPIs);
+    Clear(colAvailablePIs);
+    Clear(colCSOs);
+    Reset(txtCourseNumber);
+    Reset(txtCourseTitle);
+    Reset(tglCourseActive);
+    Notify("Course deleted.", NotificationType.Information)
 )
 ```
 
@@ -614,6 +685,230 @@ With(
 Notify("PI removed from course.", NotificationType.Information)
 ```
 
+
+### A5c) Student Outcomes + Performance Indicators management screen
+> Screen idea: `scrOutcomesAndPIs` with two **blank vertical galleries** and embedded row controls.
+- Left gallery `galStudentOutcomesAdmin` (all SO rows)
+- Right gallery `galPIsByOutcome` (PIs for selected SO)
+
+> `galStudentOutcomesAdmin.Items`:
+```powerfx
+IfError(
+    SortByColumns(StudentOutcomes, "DisplayOrder", Ascending),
+    SortByColumns(StudentOutcomes, "OutcomeCode", Ascending)
+)
+```
+
+> `galStudentOutcomesAdmin.OnSelect`:
+```powerfx
+Set(varSelectedOutcome, ThisItem)
+```
+
+> Outcome row label (`lblOutcomeAdmin.Text`):
+```powerfx
+ThisItem.OutcomeCode & " - " & Coalesce(ThisItem.OutcomeDescription, "")
+```
+
+> Row delete button (`btnDeleteOutcomeRow.OnSelect`) with cascade delete of related PIs:
+```powerfx
+RemoveIf(PerformanceIndicators, StudentOutcome.Id = ThisItem.ID);
+Remove(StudentOutcomes, ThisItem);
+If(varSelectedOutcome.ID = ThisItem.ID, Set(varSelectedOutcome, Blank()));
+Notify("Outcome and related PIs deleted.", NotificationType.Information)
+```
+
+> Row move-up button (`btnMoveUpOutcome.OnSelect`):
+```powerfx
+Set(varOutcomeOrder, Coalesce(ThisItem.DisplayOrder, 0));
+Set(varSwapOutcome,
+    LookUp(StudentOutcomes, DisplayOrder = varOutcomeOrder - 1)
+);
+If(
+    !IsBlank(varSwapOutcome),
+    Patch(StudentOutcomes, varSwapOutcome, { DisplayOrder: varOutcomeOrder });
+    Patch(StudentOutcomes, ThisItem, { DisplayOrder: varOutcomeOrder - 1 })
+)
+```
+
+> New outcome button (`btnNewOutcome.OnSelect`):
+```powerfx
+Patch(
+    StudentOutcomes,
+    Defaults(StudentOutcomes),
+    {
+        OutcomeCode: Trim(txtOutcomeCode.Text),
+        OutcomeDescription: Trim(txtOutcomeDescription.Text),
+        DisplayOrder: CountRows(StudentOutcomes) + 1
+    }
+);
+Reset(txtOutcomeCode);
+Reset(txtOutcomeDescription);
+Notify("Student outcome added.", NotificationType.Success)
+```
+
+> `galPIsByOutcome.Items`:
+```powerfx
+With(
+    { selectedOutcomeId: Coalesce(varSelectedOutcome.ID, Blank()) },
+    SortByColumns(
+        Filter(
+            PerformanceIndicators,
+            !IsBlank(selectedOutcomeId) && StudentOutcome.Id = selectedOutcomeId
+        ),
+        "IndicatorCode",
+        Ascending
+    )
+)
+```
+
+> Why this shape matters: returning `[]` can drop row schema in some tenants. Filtering `PerformanceIndicators` keeps a typed table, so row controls can resolve `IndicatorCode`/`IndicatorDescription` reliably.
+
+> PI row label (`lblPIAdmin.Text`):
+```powerfx
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " &
+Coalesce(ThisItem.IndicatorDescription, "")
+```
+
+> If `ThisItem` only exposes `IsSelected` in `lblPIAdmin`:
+- Confirm `lblPIAdmin` is inside the `galPIsByOutcome` row template (not outside the gallery).
+- Confirm `galPIsByOutcome.Items` is set to formula **A5c**.
+- Re-select an outcome in `galStudentOutcomesAdmin` so `varSelectedOutcome` refreshes and the PI gallery repopulates.
+
+> Row delete button (`btnDeletePIFromOutcome.OnSelect`):
+```powerfx
+Remove(PerformanceIndicators, ThisItem);
+Notify("PI deleted.", NotificationType.Information)
+```
+
+> Row move-up button (`btnMoveUpPI.OnSelect`):
+```powerfx
+Set(varPIOrder, Coalesce(ThisItem.DisplayOrder, 0));
+Set(varSwapPI,
+    LookUp(
+        PerformanceIndicators,
+        StudentOutcome.Id = varSelectedOutcome.ID && DisplayOrder = varPIOrder - 1
+    )
+);
+If(
+    !IsBlank(varSwapPI),
+    Patch(PerformanceIndicators, varSwapPI, { DisplayOrder: varPIOrder });
+    Patch(PerformanceIndicators, ThisItem, { DisplayOrder: varPIOrder - 1 })
+)
+```
+
+> New PI button (`btnNewPIForOutcome.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedOutcome),
+    Notify("Select an outcome first.", NotificationType.Warning),
+    Patch(
+        PerformanceIndicators,
+        Defaults(PerformanceIndicators),
+        {
+            IndicatorCode: Trim(txtNewPIIndicatorCode.Text),
+            IndicatorDescription: Trim(txtNewPIIndicatorDescription.Text),
+            StudentOutcome: {
+                Id: varSelectedOutcome.ID,
+                Value: varSelectedOutcome.OutcomeCode
+            },
+            SOCode: varSelectedOutcome.OutcomeCode,
+            DisplayOrder: CountRows(Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID)) + 1
+        }
+    );
+    Reset(txtNewPIIndicatorCode);
+    Reset(txtNewPIIndicatorDescription);
+    Notify("PI added.", NotificationType.Success)
+)
+```
+
+### A5d) Faculty directory management screen
+> Screen idea: `scrFaculty` with a **blank vertical gallery** on the left and edit form controls on the right.
+
+> `galFaculty.Items`:
+```powerfx
+SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
+```
+
+> `galFaculty.OnSelect`:
+```powerfx
+Set(varSelectedFaculty, ThisItem);
+Set(varFacultyFirstNameLocal, Coalesce(ThisItem.FirstName, ""));
+Set(varFacultyLastNameLocal, Coalesce(ThisItem.LastName, ""));
+Set(varFacultyEmailLocal, Coalesce(ThisItem.Email, ""));
+Set(varFacultyCampusLocal, Coalesce(ThisItem.Campus.Value, "Pullman"));
+Reset(txtFacultyFirstName);
+Reset(txtFacultyLastName);
+Reset(txtFacultyEmail);
+Reset(drpFacultyCampus)
+```
+
+> Editor defaults:
+```powerfx
+// txtFacultyFirstName.Default
+Coalesce(varFacultyFirstNameLocal, "")
+
+// txtFacultyLastName.Default
+Coalesce(varFacultyLastNameLocal, "")
+
+// txtFacultyEmail.Default
+Coalesce(varFacultyEmailLocal, "")
+
+// drpFacultyCampus.Items
+["Pullman", "Everett", "Bremerton"]
+
+// drpFacultyCampus.Default
+Coalesce(varFacultyCampusLocal, "Pullman")
+```
+
+> New faculty button (`btnNewFaculty.OnSelect`):
+```powerfx
+Set(varSelectedFaculty, Blank());
+Set(varFacultyFirstNameLocal, "");
+Set(varFacultyLastNameLocal, "");
+Set(varFacultyEmailLocal, "");
+Set(varFacultyCampusLocal, "Pullman");
+Reset(txtFacultyFirstName);
+Reset(txtFacultyLastName);
+Reset(txtFacultyEmail);
+Reset(drpFacultyCampus)
+```
+
+> Save faculty button (`btnSaveFaculty.OnSelect`):
+```powerfx
+If(
+    IsBlank(Trim(txtFacultyFirstName.Text)) ||
+    IsBlank(Trim(txtFacultyLastName.Text)) ||
+    IsBlank(Trim(txtFacultyEmail.Text)),
+    Notify("First name, last name, and email are required.", NotificationType.Error),
+    Patch(
+        Faculty,
+        If(IsBlank(varSelectedFaculty), Defaults(Faculty), varSelectedFaculty),
+        {
+            FirstName: Trim(txtFacultyFirstName.Text),
+            LastName: Trim(txtFacultyLastName.Text),
+            Email: Lower(Trim(txtFacultyEmail.Text)),
+            Campus: { Value: drpFacultyCampus.Selected.Value }
+        }
+    );
+    Notify("Faculty saved.", NotificationType.Success)
+)
+```
+
+> Delete faculty button (`btnDeleteFaculty.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedFaculty),
+    Notify("Select a faculty member first.", NotificationType.Warning),
+    Remove(Faculty, varSelectedFaculty);
+    Set(varSelectedFaculty, Blank());
+    Reset(txtFacultyFirstName);
+    Reset(txtFacultyLastName);
+    Reset(txtFacultyEmail);
+    Reset(drpFacultyCampus);
+    Notify("Faculty deleted.", NotificationType.Information)
+)
+```
+
 ### A5b) Course-specific outcomes (CSOs) CRUD
 > Use list `CourseSpecificOutcomes` with fields:
 - `Course` (Lookup -> Courses)
@@ -695,24 +990,96 @@ ClearCollect(
 Notify("Course-specific outcome deleted.", NotificationType.Information)
 ```
 
-### A6) Questions gallery `Items` (filtered by course + global)
+### A6) Questions gallery `Items` (global question bank)
+> Build `galQuestionsAdmin` as a **blank vertical gallery** (same pattern as `galAvailablePIs`):
+1. Insert a **Vertical gallery (blank)** named `galQuestionsAdmin`.
+2. Keep the gallery's designer data source unset (blank).
+3. Set `galQuestionsAdmin.Items` to the formula below.
+4. Add labels `lblOrderAndText`, `lblType`, and `lblRequired` inside the row template.
+
+> `galQuestionsAdmin.Items`:
 ```powerfx
-SortByColumns(
-    Filter(
+IfError(
+    SortByColumns(
         Questions,
-        IsActive = true &&
-        (
-            drpQuestionScope.Selected.Value = "All" ||
-            (drpQuestionScope.Selected.Value = "Global" && AppliesTo.Value = "Global") ||
-            (drpQuestionScope.Selected.Value = "CourseSpecific" && AppliesTo.Value = "CourseSpecific")
-        )
+        "DisplayOrder",
+        Ascending
     ),
-    "DisplayOrder",
-    Ascending
+    SortByColumns(
+        Questions,
+        "ID",
+        Ascending
+    )
 )
 ```
 
+> Suggested row labels inside `galQuestionsAdmin`:
+- `lblOrderAndText.Text`
+```powerfx
+Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)) & " - " & Left(ThisItem.QuestionText, 120)
+```
+- `lblType.Text`
+```powerfx
+ThisItem.QuestionType.Value
+```
+- `lblRequired.Text`
+```powerfx
+If(Coalesce(ThisItem.IsRequired, true), "Required", "Optional")
+```
+
+> `galQuestionsAdmin.OnSelect` (load selected question into right-pane inputs):
+```powerfx
+Set(varSelectedQuestion, ThisItem);
+Set(varQuestionTextLocal, Coalesce(ThisItem.QuestionText, ""));
+Set(varQuestionTypeLocal, Coalesce(ThisItem.QuestionType.Value, "LongText"));
+Set(varQuestionRequiredLocal, Coalesce(ThisItem.IsRequired, true));
+Set(varQuestionOrderLocal, Text(Coalesce(ThisItem.DisplayOrder, ThisItem.ID)));
+Reset(txtQuestionText);
+Reset(drpQuestionType);
+Reset(tglQuestionRequired);
+Reset(txtDisplayOrder)
+```
+
 ### A7) Create/update a question
+> `btnNewQuestion.OnSelect` (clear right panel for new entry):
+```powerfx
+Set(varSelectedQuestion, Blank());
+Set(varQuestionTextLocal, "");
+Set(varQuestionTypeLocal, "LongText");
+Set(varQuestionRequiredLocal, true);
+Set(varQuestionOrderLocal, "");
+Reset(txtQuestionText);
+Reset(drpQuestionType);
+Reset(tglQuestionRequired);
+Reset(txtDisplayOrder)
+```
+
+> `drpQuestionType.Items`:
+```powerfx
+Choices(Questions.QuestionType)
+```
+
+> Right-pane input defaults (so selected question values appear in corresponding inputs):
+- `txtQuestionText.Default`
+```powerfx
+varQuestionTextLocal
+```
+- `drpQuestionType.Default`
+```powerfx
+Coalesce(
+    LookUp(Choices(Questions.QuestionType), Value = varQuestionTypeLocal).Value,
+    "LongText"
+)
+```
+- `tglQuestionRequired.Default`
+```powerfx
+varQuestionRequiredLocal
+```
+- `txtDisplayOrder.Default`
+```powerfx
+varQuestionOrderLocal
+```
+
 ```powerfx
 If(
     IsBlank(txtQuestionText.Text),
@@ -724,10 +1091,8 @@ If(
         {
             QuestionText: Trim(txtQuestionText.Text),
             QuestionType: { Value: drpQuestionType.Selected.Value },
-            AppliesTo: { Value: drpAppliesTo.Selected.Value },
-            Course: If(drpAppliesTo.Selected.Value = "CourseSpecific", drpCourseForQuestion.Selected, Blank()),
-            DisplayOrder: Value(txtDisplayOrder.Text),
-            IsActive: tglQuestionActive.Value
+            IsRequired: tglQuestionRequired.Value,
+            DisplayOrder: Value(txtDisplayOrder.Text)
         }
     );
 
@@ -735,29 +1100,103 @@ If(
 )
 ```
 
-### A8) Maintain single-choice options for selected question
-> Choices gallery `Items`:
+### A7a) Delete selected question (permanent delete)
 ```powerfx
-SortByColumns(
-    Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID),
-    "DisplayOrder",
-    Ascending
+If(
+    IsBlank(varSelectedQuestion),
+    Notify("Select a question to delete.", NotificationType.Warning),
+
+    Remove(Questions, varSelectedQuestion);
+    Set(varSelectedQuestion, Blank());
+    Set(varQuestionTextLocal, "");
+    Set(varQuestionTypeLocal, "LongText");
+    Set(varQuestionRequiredLocal, true);
+    Set(varQuestionOrderLocal, "");
+    Reset(txtQuestionText);
+    Reset(drpQuestionType);
+    Reset(tglQuestionRequired);
+    Reset(txtDisplayOrder);
+    Notify("Question deleted.", NotificationType.Information)
 )
 ```
 
-> Add option button `OnSelect`:
+### A8) Maintain single-choice options for selected question (embedded row controls)
+> Build `galChoices` as a **blank vertical gallery** (same pattern as `galQuestionsAdmin`):
+1. Insert **Vertical gallery (blank)** named `galChoices`.
+2. Keep the gallery data source unset in the designer.
+3. Set `galChoices.Items` to the formula below.
+4. Inside each row add embedded controls:
+   - `txtChoiceOrderRow`
+   - `txtChoiceLabelRow`
+   - `btnSaveChoiceRow`
+   - `btnDeleteChoiceRow`
+
+> Optional visibility (show only for single-choice questions):
+```powerfx
+Coalesce(varQuestionTypeLocal, "LongText") = "SingleChoice"
+```
+
+> `galChoices.Items`:
+```powerfx
+If(
+    IsBlank(varSelectedQuestion),
+    [],
+    SortByColumns(
+        Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID),
+        "DisplayOrder",
+        Ascending
+    )
+)
+```
+
+> Embedded row defaults:
+- `txtChoiceOrderRow.Default`
+```powerfx
+Text(ThisItem.DisplayOrder)
+```
+- `txtChoiceLabelRow.Default`
+```powerfx
+ThisItem.ChoiceLabel
+```
+> Save row button (`btnSaveChoiceRow.OnSelect`):
 ```powerfx
 Patch(
     QuestionChoices,
-    Defaults(QuestionChoices),
+    ThisItem,
     {
-        Question: varSelectedQuestion,
-        ChoiceLabel: Trim(txtChoiceLabel.Text),
-        ChoiceValue: Trim(txtChoiceValue.Text),
-        DisplayOrder: Value(txtChoiceOrder.Text)
+        ChoiceLabel: Trim(txtChoiceLabelRow.Text),
+        DisplayOrder: Value(txtChoiceOrderRow.Text)
     }
 );
-Notify("Choice added.", NotificationType.Success)
+Notify("Choice updated.", NotificationType.Success)
+```
+
+> Delete row button (`btnDeleteChoiceRow.OnSelect`):
+```powerfx
+Remove(QuestionChoices, ThisItem);
+Notify("Choice deleted.", NotificationType.Information)
+```
+
+> Note: `Question` is a SharePoint lookup, so this patch uses lookup-record shape (`Id` + `Value`) to avoid schema mismatch errors.
+
+> New choice button (`btnNewChoice.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedQuestion),
+    Notify("Select a question first.", NotificationType.Warning),
+    Patch(
+        QuestionChoices,
+        Defaults(QuestionChoices),
+        {
+            Question: {
+                Id: varSelectedQuestion.ID,
+                Value: Left(Coalesce(varSelectedQuestion.QuestionText, Text(varSelectedQuestion.ID)), 255)
+            },
+            ChoiceLabel: "",
+            DisplayOrder: CountRows(Filter(QuestionChoices, Question.Id = varSelectedQuestion.ID)) + 1
+        }
+    )
+)
 ```
 
 ### A9) Reorder question (Move Up button)
@@ -766,9 +1205,7 @@ Set(varCurrentOrder, ThisItem.DisplayOrder);
 Set(varSwapQuestion,
     LookUp(
         Questions,
-        DisplayOrder = varCurrentOrder - 1 &&
-        ((AppliesTo.Value = "Global" && ThisItem.AppliesTo.Value = "Global") ||
-         (AppliesTo.Value = "CourseSpecific" && Course.Id = ThisItem.Course.Id))
+        DisplayOrder = varCurrentOrder - 1
     )
 );
 

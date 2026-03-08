@@ -5,10 +5,12 @@ Courses,IsActive,Yes/No,Yes,Default Yes
 Courses,SupportedPIs,Lookup (PerformanceIndicators, multi-select),No,Course supports selected PIs from multiple SOs
 StudentOutcomes,OutcomeCode,Single line of text,Yes,Enforce unique values (e.g. SO1)
 StudentOutcomes,OutcomeDescription,Multiple lines of text,No,
+StudentOutcomes,DisplayOrder,Number,Yes,Used for admin ordering in outcomes gallery
 PerformanceIndicators,IndicatorCode,Single line of text,Yes,Enforce unique values (e.g. PI2.3)
 PerformanceIndicators,IndicatorDescription,Multiple lines of text,No,
 PerformanceIndicators,StudentOutcome,Lookup (StudentOutcomes),Yes,Each PI must belong to exactly one SO
 PerformanceIndicators,SOCode,Single line of text,No,Optional helper code for app label stability (e.g. SO2)
+PerformanceIndicators,DisplayOrder,Number,Yes,Used for admin ordering in PI gallery within each outcome
 CourseSpecificOutcomes,Course,Lookup (Courses),Yes,
 CourseSpecificOutcomes,CSOCode,Single line of text,Yes,Example: CSO-1
 CourseSpecificOutcomes,CSODescription,Multiple lines of text,Yes,
@@ -17,21 +19,24 @@ Semesters,TermName,Single line of text,Yes,Example: Fall 2026
 Semesters,StartDate,Date and Time,Yes,
 Semesters,EndDate,Date and Time,Yes,
 Semesters,Status,Choice,Yes,Choices: Draft|Active|Closed
+Faculty,FirstName,Single line of text,Yes,
+Faculty,LastName,Single line of text,Yes,
+Faculty,Email,Single line of text,Yes,Enforce unique values
+Faculty,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
 TeachingAssignments,Semester,Lookup (Semesters),Yes,
 TeachingAssignments,Course,Lookup (Courses),Yes,
+TeachingAssignments,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
+TeachingAssignments,CampusCode,Single line of text,Yes,Values: PUL|EVE|BRE
 TeachingAssignments,InstructorName,Single line of text,Yes,
 TeachingAssignments,InstructorEmail,Single line of text,Yes,
 TeachingAssignments,FormStatus,Choice,Yes,Choices: NotSent|Sent|InProgress|Submitted
 TeachingAssignments,FormToken,Single line of text,Yes,GUID
 Questions,QuestionText,Multiple lines of text,Yes,
 Questions,QuestionType,Choice,Yes,Choices: LongText|SingleChoice
-Questions,AppliesTo,Choice,Yes,Choices: Global|CourseSpecific
-Questions,Course,Lookup (Courses),No,Only required when AppliesTo=CourseSpecific
+Questions,IsRequired,Yes/No,Yes,Default Yes; if No, instructors may skip the question
 Questions,DisplayOrder,Number,Yes,
-Questions,IsActive,Yes/No,Yes,Default Yes
 QuestionChoices,Question,Lookup (Questions),Yes,
 QuestionChoices,ChoiceLabel,Single line of text,Yes,
-QuestionChoices,ChoiceValue,Single line of text,Yes,
 QuestionChoices,DisplayOrder,Number,Yes,
 Responses,Assignment,Lookup (TeachingAssignments),Yes,
 Responses,Question,Lookup (Questions),Yes,
@@ -43,4 +48,5 @@ OutcomeEvaluations,EvaluationType,Choice,Yes,Choices: PI|CSO
 OutcomeEvaluations,ReferenceId,Number,Yes,ID from PI or CSO source row
 OutcomeEvaluations,ReferenceCode,Single line of text,Yes,PI code or CSO code
 OutcomeEvaluations,Score,Number,Yes,1 to 5 scale
+OutcomeEvaluations,AssessmentTools,Multiple lines of text,Yes,Instructor rationale describing assessment tools used for the score
 OutcomeEvaluations,SubmittedAt,Date and Time,Yes,
