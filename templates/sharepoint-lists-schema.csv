@@ -21,6 +21,8 @@ Semesters,EndDate,Date and Time,Yes,
 Semesters,Status,Choice,Yes,Choices: Draft|Active|Closed
 TeachingAssignments,Semester,Lookup (Semesters),Yes,
 TeachingAssignments,Course,Lookup (Courses),Yes,
+TeachingAssignments,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
+TeachingAssignments,CampusCode,Single line of text,Yes,Values: PUL|EVE|BRE
 TeachingAssignments,InstructorName,Single line of text,Yes,
 TeachingAssignments,InstructorEmail,Single line of text,Yes,
 TeachingAssignments,FormStatus,Choice,Yes,Choices: NotSent|Sent|InProgress|Submitted

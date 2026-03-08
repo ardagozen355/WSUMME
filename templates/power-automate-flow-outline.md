@@ -19,17 +19,24 @@
    - `varCreatedCount` (Integer) = `0`
    - `varErrorCount` (Integer) = `0`
 4. **Action**: **Apply to each** row from `value`.
-   1. **Normalize row values** (Compose actions recommended): trim `InstructorEmail`, `CourseNumber`, `Semester`, `Section`.
-   2. **SharePoint — Get items** from `Courses` with OData filter:
+   1. **Normalize row values** (Compose actions recommended): trim `InstructorEmail`, `CourseNumber`, `Semester`, `Section`, `Campus`.
+   2. **Compose / Switch** campus code mapping from `Campus`:
+      - `Pullman -> PUL`
+      - `Everett -> EVE`
+      - `Bremerton -> BRE`
+      - If anything else, treat row as validation error
+   3. **SharePoint — Get items** from `Courses` with OData filter:
       - `CourseNumber eq '<row.CourseNumber>' and IsActive eq 1`
       - Top Count = `1`
-   3. **Condition**: course found?
+   4. **Condition**: valid campus and course found?
       - **No**:
         - Create `ImportErrors` row with file name, row number/key, and error message.
         - Increment `varErrorCount`.
       - **Yes**:
         - **SharePoint — Create item** in `TeachingAssignments`:
           - `Semester` = row semester
+          - `Campus` = normalized campus name (`Pullman`/`Everett`/`Bremerton`)
+          - `CampusCode` = mapped code (`PUL`/`EVE`/`BRE`)
           - `InstructorEmail` = row email (normalized lower-case recommended)
           - `Course` lookup = returned `Courses` item ID
           - `Section` = row section
@@ -51,7 +58,7 @@
 3. **Compose** instructor link:
    - `https://apps.powerapps.com/play/<APP_ID>?assignmentId=@{triggerBody()?['ID']}&token=@{triggerBody()?['FormToken']}`
 4. **Outlook — Send an email (V2)** to `InstructorEmail`.
-   - Subject includes course + semester.
+   - Subject includes campus code + course + semester.
    - Body includes due date, instructions, and the composed link.
 5. **SharePoint — Update item** (`TeachingAssignments`).
    - Set `FormStatus = Sent`
@@ -72,7 +79,7 @@
    - Calculate age since `SentAt`.
    - Condition: if age >= reminder threshold (for example, 7 days), send reminder.
 4. **Outlook — Send an email (V2)** reminder.
-   - Include the same secure form link pattern and current status.
+   - Include the same secure form link pattern, campus, and current status.
 5. **Optional escalation**:
    - If reminder count >= N (example 3), email department chair and/or set `FormStatus = Escalated`.
 
@@ -92,6 +99,8 @@
    - **Table**: `AssessmentResponses`
 4. **Map output columns**:
    - Semester
+   - Campus
+   - CampusCode
    - CourseNumber
    - InstructorEmail
    - QuestionId
@@ -110,11 +119,13 @@ Create one table in the workbook named exactly **`AssignmentsImport`** with the 
 | `Semester` | Yes | Text (`YYYY-Term`) | `2026-Spring` |
 | `CourseNumber` | Yes | Text (must match `Courses.CourseNumber`) | `MATH-2413` |
 | `Section` | Yes | Text | `001` |
+| `Campus` | Yes | Choice text (`Pullman`/`Everett`/`Bremerton`) | `Pullman` |
+| `CampusCode` | Optional | Text code (`PUL`/`EVE`/`BRE`) if you want to supply it directly | `PUL` |
 | `InstructorEmail` | Yes | Email text (lowercase recommended) | `jane.doe@university.edu` |
 | `InstructorName` | Optional | Text | `Jane Doe` |
 
 Additional recommendations:
 - Keep one assignment per row (no merged cells).
 - Keep header names exactly as above.
-- Avoid formulas in key fields (`Semester`, `CourseNumber`, `Section`, `InstructorEmail`); paste values.
+- Avoid formulas in key fields (`Semester`, `CourseNumber`, `Section`, `Campus`, `InstructorEmail`); paste values.
 - Save as `.xlsx` before uploading to `/SemesterImports`.

@@ -97,6 +97,8 @@ Use SharePoint lists as the primary source of truth:
    - `AssignmentId` (ID)
    - `Semester` (Lookup)
    - `Course` (Lookup)
+   - `Campus` (Choice: Pullman / Everett / Bremerton)
+   - `CampusCode` (Text: PUL / EVE / BRE)
    - `InstructorEmail` (Text)
    - `InstructorName` (Text)
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
@@ -197,12 +199,16 @@ Use SharePoint lists as the primary source of truth:
 
 - `Semester`
 - `CourseNumber`
-- `CourseTitle`
+- `Section`
+- `Campus` (Pullman / Everett / Bremerton)
+- `CampusCode` (optional: PUL / EVE / BRE)
 - `InstructorName`
 - `InstructorEmail`
 
 Power Automate validates:
 - Course exists and active
+- Campus is one of: Pullman / Everett / Bremerton
+- CampusCode is normalized to: PUL / EVE / BRE (when omitted, Flow A derives it from Campus)
 - Instructor email format is valid
 - No duplicate assignment rows
 
