@@ -487,6 +487,40 @@ If(
 )
 ```
 
+### A3a) New course button (`btnNewCourse.OnSelect`)
+```powerfx
+Set(varSelectedCourse, Blank());
+Set(varCourseNumberLocal, "");
+Set(varCourseTitleLocal, "");
+Set(varCourseActiveLocal, true);
+Clear(colSupportedPIs);
+Clear(colAvailablePIs);
+Clear(colCSOs);
+Reset(txtCourseNumber);
+Reset(txtCourseTitle);
+Reset(tglCourseActive)
+```
+
+### A3b) Delete course button (`btnDeleteCourse.OnSelect`) — permanent delete
+```powerfx
+If(
+    IsBlank(varSelectedCourse),
+    Notify("Select a course first.", NotificationType.Warning),
+    Remove(Courses, varSelectedCourse);
+    Set(varSelectedCourse, Blank());
+    Set(varCourseNumberLocal, "");
+    Set(varCourseTitleLocal, "");
+    Set(varCourseActiveLocal, true);
+    Clear(colSupportedPIs);
+    Clear(colAvailablePIs);
+    Clear(colCSOs);
+    Reset(txtCourseNumber);
+    Reset(txtCourseTitle);
+    Reset(tglCourseActive);
+    Notify("Course deleted.", NotificationType.Information)
+)
+```
+
 ### A5) Supported PI editor (show supported + available, add/remove)
 > Why `AddColumns` is *not* required for supported vs available logic:
 - The "not supported" calculation is done by `Filter(...)` + `LookUp(...)` on IDs.

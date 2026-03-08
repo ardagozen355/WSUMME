@@ -192,7 +192,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 | [galCourses]                 | Course Number [txtCourseNumber]                 |
 |  - CourseNumber              | Course Title  [txtCourseTitle]                  |
 |  - CourseTitle               | Active       [tglCourseActive]                  |
-|                              | [btnSaveCourse]                                  |
+|                              | [btnNewCourse] [btnSaveCourse] [btnDeleteCourse] |
 |                              |--------------------------------------------------|
 |                              | Supported PIs [galSupportedPIs]                   |
 |                              |  - [lblSupportedPI] [btnRemovePI]                 |
@@ -224,7 +224,9 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
 - `galCSOs.Items` -> formula **A5b** (`colCSOs`, all active CSOs for selected course)
+- `btnNewCourse.OnSelect` -> formula **A3a** (clear selected course + clear right-pane inputs for new entry)
 - `btnSaveCourse.OnSelect` -> formula **A3**
+- `btnDeleteCourse.OnSelect` -> formula **A3b** (permanently delete selected course)
 - `btnAddCSO.OnSelect` -> formula **A5b** (add CSO from `txtCSOCode`/`txtCSODescription` and refresh `colCSOs`)
 - `btnRemoveCSO.OnSelect` -> formula **A5b** (hard delete selected CSO row and refresh `colCSOs`)
 
@@ -404,6 +406,7 @@ To avoid broken formulas, keep these names exactly:
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
+- Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
