@@ -202,7 +202,7 @@ Purpose: Course CRUD + supported PI mapping + course-specific outcomes (CSOs).
 |                              |--------------------------------------------------|
 |                              | Course-specific outcomes [galCSOs]                |
 |                              |  - [lblCSOCode] [lblCSODescription] [btnRemoveCSO]|
-|                              | [txtCSOCode] [txtCSODescription] [btnAddCSO]      |
+|                              | [txtCSOCode] [txtCSODescription] [btnNewCSO] [btnAddCSO] |
 +------------------------------+-------------------------------------------------+
 ```
 
@@ -224,6 +224,10 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `btnAddPI.OnSelect` -> formula **A5** (add PI to selected course)
 - `btnRemovePI.OnSelect` -> formula **A5** (remove PI from selected course)
 - `galCSOs.Items` -> formula **A5b** (`colCSOs`, all active CSOs for selected course)
+- `galCSOs.OnSelect` -> formula **A5b** (load selected CSO into text inputs for editing)
+- `txtCSOCode.Default` -> formula **A5b**
+- `txtCSODescription.Default` -> formula **A5b**
+- `btnNewCSO.OnSelect` -> formula **A5b** (clear selected CSO + clear text inputs for new entry)
 - `btnNewCourse.OnSelect` -> formula **A3a** (clear selected course + clear right-pane inputs for new entry)
 - `btnSaveCourse.OnSelect` -> formula **A3**
 - `btnDeleteCourse.OnSelect` -> formula **A3b** (permanently delete selected course)
@@ -405,12 +409,12 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`
-- PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
+- PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
-- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`
+- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
 If you prefer different control names, update the formula references consistently.

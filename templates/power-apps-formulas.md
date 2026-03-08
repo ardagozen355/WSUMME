@@ -438,7 +438,10 @@ ClearCollect(
         "CSOCode",
         Ascending
     )
-)
+);
+Set(varSelectedCSO, Blank());
+Set(varCSOCodeLocal, "");
+Set(varCSODescriptionLocal, "")
 ```
 
 > Bind right-panel controls so selected course content is immediately visible:
@@ -496,9 +499,14 @@ Set(varCourseActiveLocal, true);
 Clear(colSupportedPIs);
 Clear(colAvailablePIs);
 Clear(colCSOs);
+Set(varSelectedCSO, Blank());
+Set(varCSOCodeLocal, "");
+Set(varCSODescriptionLocal, "");
 Reset(txtCourseNumber);
 Reset(txtCourseTitle);
-Reset(tglCourseActive)
+Reset(tglCourseActive);
+Reset(txtCSOCode);
+Reset(txtCSODescription)
 ```
 
 ### A3b) Delete course button (`btnDeleteCourse.OnSelect`) — permanent delete
@@ -514,9 +522,14 @@ If(
     Clear(colSupportedPIs);
     Clear(colAvailablePIs);
     Clear(colCSOs);
+    Set(varSelectedCSO, Blank());
+    Set(varCSOCodeLocal, "");
+    Set(varCSODescriptionLocal, "");
     Reset(txtCourseNumber);
     Reset(txtCourseTitle);
     Reset(tglCourseActive);
+    Reset(txtCSOCode);
+    Reset(txtCSODescription);
     Notify("Course deleted.", NotificationType.Information)
 )
 ```
@@ -932,52 +945,88 @@ If(
 4. Add text inputs below the gallery:
    - `txtCSOCode` for code entry
    - `txtCSODescription` for description entry
-   - `btnAddCSO.OnSelect` formula below.
+   - `btnNewCSO.OnSelect` formula below
+   - `btnAddCSO.OnSelect` formula below (save add/edit)
 
 > `galCSOs.Items`:
 ```powerfx
 colCSOs
 ```
 
-> Add CSO button `OnSelect`:
+> `galCSOs.OnSelect` (load selected CSO into text inputs for editing):
 ```powerfx
-Patch(
-    CourseSpecificOutcomes,
-    Defaults(CourseSpecificOutcomes),
-    {
-        Course: {
-            Id: varSelectedCourse.ID,
-            Value: varSelectedCourse.Title
-        },
-        CSOCode: Upper(Trim(txtCSOCode.Text)),
-        CSODescription: Trim(txtCSODescription.Text),
-        IsActive: true
-    }
-);
-
-ClearCollect(
-    colCSOs,
-    SortByColumns(
-        Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
-        "CSOCode",
-        Ascending
-    )
-);
-
+Set(varSelectedCSO, ThisItem);
+Set(varCSOCodeLocal, Coalesce(ThisItem.CSOCode, ""));
+Set(varCSODescriptionLocal, Coalesce(ThisItem.CSODescription, ""));
 Reset(txtCSOCode);
-Reset(txtCSODescription);
-Notify("Course-specific outcome added.", NotificationType.Success)
+Reset(txtCSODescription)
 ```
 
-> Note: `Course` is a SharePoint lookup column, so patch it as a lookup record (`Id` + `Value`) rather than sending the entire `varSelectedCourse` object.
+> Input defaults:
+```powerfx
+// txtCSOCode.Default
+Coalesce(varCSOCodeLocal, "")
+
+// txtCSODescription.Default
+Coalesce(varCSODescriptionLocal, "")
+```
+
+> New CSO button `OnSelect` (clear selected CSO + text boxes):
+```powerfx
+Set(varSelectedCSO, Blank());
+Set(varCSOCodeLocal, "");
+Set(varCSODescriptionLocal, "");
+Reset(txtCSOCode);
+Reset(txtCSODescription)
+```
+
+> Add/Save CSO button `OnSelect` (create if new, update if selected):
+```powerfx
+If(
+    IsBlank(varSelectedCourse),
+    Notify("Select a course first.", NotificationType.Warning),
+    IsBlank(Trim(txtCSOCode.Text)) || IsBlank(Trim(txtCSODescription.Text)),
+    Notify("CSO code and description are required.", NotificationType.Error),
+    Patch(
+        CourseSpecificOutcomes,
+        If(IsBlank(varSelectedCSO), Defaults(CourseSpecificOutcomes), varSelectedCSO),
+        {
+            Course: {
+                Id: varSelectedCourse.ID,
+                Value: varSelectedCourse.CourseNumber
+            },
+            CSOCode: Upper(Trim(txtCSOCode.Text)),
+            CSODescription: Trim(txtCSODescription.Text),
+            IsActive: true
+        }
+    );
+    ClearCollect(
+        colCSOs,
+        SortByColumns(
+            Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
+            "CSOCode",
+            Ascending
+        )
+    );
+    Set(varSelectedCSO, Blank());
+    Set(varCSOCodeLocal, "");
+    Set(varCSODescriptionLocal, "");
+    Reset(txtCSOCode);
+    Reset(txtCSODescription);
+    Notify("CSO saved.", NotificationType.Success)
+)
+```
 
 > Remove CSO button `OnSelect` (hard delete):
 ```powerfx
-Remove(
-    CourseSpecificOutcomes,
-    ThisItem
+Remove(CourseSpecificOutcomes, ThisItem);
+If(!IsBlank(varSelectedCSO) && varSelectedCSO.ID = ThisItem.ID,
+    Set(varSelectedCSO, Blank());
+    Set(varCSOCodeLocal, "");
+    Set(varCSODescriptionLocal, "");
+    Reset(txtCSOCode);
+    Reset(txtCSODescription)
 );
-
 ClearCollect(
     colCSOs,
     SortByColumns(
@@ -986,8 +1035,7 @@ ClearCollect(
         Ascending
     )
 );
-
-Notify("Course-specific outcome deleted.", NotificationType.Information)
+Notify("CSO deleted.", NotificationType.Information)
 ```
 
 ### A6) Questions gallery `Items` (global question bank)
