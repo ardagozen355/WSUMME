@@ -230,8 +230,8 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `btnNewCSO.OnSelect` -> formula **A5b** (clear selected CSO + clear text inputs for new entry)
 - `btnNewCourse.OnSelect` -> formula **A3a** (clear selected course + clear right-pane inputs for new entry)
 - `btnSaveCourse.OnSelect` -> formula **A3**
-- `btnDeleteCourse.OnSelect` -> formula **A3b** (permanently delete selected course)
-- `btnAddCSO.OnSelect` -> formula **A5b** (add CSO from `txtCSOCode`/`txtCSODescription` and refresh `colCSOs`)
+- `btnDeleteCourse.OnSelect` -> formula **A3b** (permanently delete selected course + related CSOs)
+- `btnAddCSO.OnSelect` -> formula **A5b** (save selected CSO edits or add new CSO, then refresh `colCSOs`)
 - `btnRemoveCSO.OnSelect` -> formula **A5b** (hard delete selected CSO row and refresh `colCSOs`)
 
 ---

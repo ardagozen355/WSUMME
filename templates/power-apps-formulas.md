@@ -514,6 +514,7 @@ Reset(txtCSODescription)
 If(
     IsBlank(varSelectedCourse),
     Notify("Select a course first.", NotificationType.Warning),
+    RemoveIf(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID);
     Remove(Courses, varSelectedCourse);
     Set(varSelectedCourse, Blank());
     Set(varCourseNumberLocal, "");
@@ -530,7 +531,7 @@ If(
     Reset(tglCourseActive);
     Reset(txtCSOCode);
     Reset(txtCSODescription);
-    Notify("Course deleted.", NotificationType.Information)
+    Notify("Course and related CSOs deleted.", NotificationType.Information)
 )
 ```
 
@@ -989,7 +990,11 @@ If(
     Notify("CSO code and description are required.", NotificationType.Error),
     Patch(
         CourseSpecificOutcomes,
-        If(IsBlank(varSelectedCSO), Defaults(CourseSpecificOutcomes), varSelectedCSO),
+        If(
+            IsBlank(varSelectedCSO),
+            Defaults(CourseSpecificOutcomes),
+            LookUp(CourseSpecificOutcomes, ID = varSelectedCSO.ID)
+        ),
         {
             Course: {
                 Id: varSelectedCourse.ID,
