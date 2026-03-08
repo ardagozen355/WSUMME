@@ -19,6 +19,10 @@ Semesters,TermName,Single line of text,Yes,Example: Fall 2026
 Semesters,StartDate,Date and Time,Yes,
 Semesters,EndDate,Date and Time,Yes,
 Semesters,Status,Choice,Yes,Choices: Draft|Active|Closed
+Faculty,FirstName,Single line of text,Yes,
+Faculty,LastName,Single line of text,Yes,
+Faculty,Email,Single line of text,Yes,Enforce unique values
+Faculty,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
 TeachingAssignments,Semester,Lookup (Semesters),Yes,
 TeachingAssignments,Course,Lookup (Courses),Yes,
 TeachingAssignments,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton

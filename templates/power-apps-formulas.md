@@ -374,6 +374,11 @@ Navigate(scrOutcomesAndPIs, ScreenTransition.Fade)
 ```
 
 ```powerfx
+// btnFaculty.OnSelect
+Navigate(scrFaculty, ScreenTransition.Fade)
+```
+
+```powerfx
 // btnSemesterDashboard.OnSelect
 Navigate(scrSemesterDashboard, ScreenTransition.Fade)
 ```
@@ -779,6 +784,94 @@ If(
     Reset(txtNewPIIndicatorCode);
     Reset(txtNewPIIndicatorDescription);
     Notify("PI added.", NotificationType.Success)
+)
+```
+
+### A5d) Faculty directory management screen
+> Screen idea: `scrFaculty` with a **blank vertical gallery** on the left and edit form controls on the right.
+
+> `galFaculty.Items`:
+```powerfx
+SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
+```
+
+> `galFaculty.OnSelect`:
+```powerfx
+Set(varSelectedFaculty, ThisItem);
+Set(varFacultyFirstNameLocal, Coalesce(ThisItem.FirstName, ""));
+Set(varFacultyLastNameLocal, Coalesce(ThisItem.LastName, ""));
+Set(varFacultyEmailLocal, Coalesce(ThisItem.Email, ""));
+Set(varFacultyCampusLocal, Coalesce(ThisItem.Campus.Value, "Pullman"));
+Reset(txtFacultyFirstName);
+Reset(txtFacultyLastName);
+Reset(txtFacultyEmail);
+Reset(drpFacultyCampus)
+```
+
+> Editor defaults:
+```powerfx
+// txtFacultyFirstName.Default
+Coalesce(varFacultyFirstNameLocal, "")
+
+// txtFacultyLastName.Default
+Coalesce(varFacultyLastNameLocal, "")
+
+// txtFacultyEmail.Default
+Coalesce(varFacultyEmailLocal, "")
+
+// drpFacultyCampus.Items
+["Pullman", "Everett", "Bremerton"]
+
+// drpFacultyCampus.Default
+Coalesce(varFacultyCampusLocal, "Pullman")
+```
+
+> New faculty button (`btnNewFaculty.OnSelect`):
+```powerfx
+Set(varSelectedFaculty, Blank());
+Set(varFacultyFirstNameLocal, "");
+Set(varFacultyLastNameLocal, "");
+Set(varFacultyEmailLocal, "");
+Set(varFacultyCampusLocal, "Pullman");
+Reset(txtFacultyFirstName);
+Reset(txtFacultyLastName);
+Reset(txtFacultyEmail);
+Reset(drpFacultyCampus)
+```
+
+> Save faculty button (`btnSaveFaculty.OnSelect`):
+```powerfx
+If(
+    IsBlank(Trim(txtFacultyFirstName.Text)) ||
+    IsBlank(Trim(txtFacultyLastName.Text)) ||
+    IsBlank(Trim(txtFacultyEmail.Text)),
+    Notify("First name, last name, and email are required.", NotificationType.Error),
+    Patch(
+        Faculty,
+        If(IsBlank(varSelectedFaculty), Defaults(Faculty), varSelectedFaculty),
+        {
+            FirstName: Trim(txtFacultyFirstName.Text),
+            LastName: Trim(txtFacultyLastName.Text),
+            Email: Lower(Trim(txtFacultyEmail.Text)),
+            Campus: { Value: drpFacultyCampus.Selected.Value }
+        }
+    );
+    Notify("Faculty saved.", NotificationType.Success)
+)
+```
+
+> Delete faculty button (`btnDeleteFaculty.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedFaculty),
+    Notify("Select a faculty member first.", NotificationType.Warning),
+    Remove(Faculty, varSelectedFaculty);
+    Set(varSelectedFaculty, Blank());
+    Reset(txtFacultyFirstName);
+    Reset(txtFacultyLastName);
+    Reset(txtFacultyEmail);
+    Reset(drpFacultyCampus);
+    Notify("Faculty deleted.", NotificationType.Information)
 )
 ```
 

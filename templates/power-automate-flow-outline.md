@@ -19,25 +19,28 @@
    - `varCreatedCount` (Integer) = `0`
    - `varErrorCount` (Integer) = `0`
 4. **Action**: **Apply to each** row from `value`.
-   1. **Normalize row values** (Compose actions recommended): trim `InstructorEmail`, `CourseNumber`, `Semester`, `Section`, `Campus`.
-   2. **Compose / Switch** campus code mapping from `Campus`:
+   1. **Normalize row values** (Compose actions recommended): trim `InstructorName`, `CourseNumber`, `Semester`, `Section`.
+   2. **SharePoint — Get items** from `Courses` with OData filter:
+      - `CourseNumber eq '<row.CourseNumber>' and IsActive eq 1`
+      - Top Count = `1`
+   3. **SharePoint — Get items** from `Faculty` (directory list).
+      - Pull candidate faculty rows and match normalized full name (`FirstName & " " & LastName`) to row `InstructorName`
+      - Expected result count: exactly `1` match
+   4. **Compose / Switch** campus code mapping from matched faculty campus:
       - `Pullman -> PUL`
       - `Everett -> EVE`
       - `Bremerton -> BRE`
-      - If anything else, treat row as validation error
-   3. **SharePoint — Get items** from `Courses` with OData filter:
-      - `CourseNumber eq '<row.CourseNumber>' and IsActive eq 1`
-      - Top Count = `1`
-   4. **Condition**: valid campus and course found?
+   5. **Condition**: course found and exactly one faculty match?
       - **No**:
-        - Create `ImportErrors` row with file name, row number/key, and error message.
+        - Create `ImportErrors` row with file name, row number/key, and error message (missing/ambiguous faculty or missing course).
         - Increment `varErrorCount`.
       - **Yes**:
         - **SharePoint — Create item** in `TeachingAssignments`:
           - `Semester` = row semester
-          - `Campus` = normalized campus name (`Pullman`/`Everett`/`Bremerton`)
-          - `CampusCode` = mapped code (`PUL`/`EVE`/`BRE`)
-          - `InstructorEmail` = row email (normalized lower-case recommended)
+          - `Campus` = matched Faculty.Campus
+          - `CampusCode` = mapped code (`PUL`/`EVE`/`BRE`) from Faculty.Campus
+          - `InstructorName` = matched Faculty full name
+          - `InstructorEmail` = matched Faculty.Email
           - `Course` lookup = returned `Courses` item ID
           - `Section` = row section
           - `FormStatus` = `NotSent`
@@ -119,13 +122,10 @@ Create one table in the workbook named exactly **`AssignmentsImport`** with the 
 | `Semester` | Yes | Text (`YYYY-Term`) | `2026-Spring` |
 | `CourseNumber` | Yes | Text (must match `Courses.CourseNumber`) | `MATH-2413` |
 | `Section` | Yes | Text | `001` |
-| `Campus` | Yes | Choice text (`Pullman`/`Everett`/`Bremerton`) | `Pullman` |
-| `CampusCode` | Optional | Text code (`PUL`/`EVE`/`BRE`) if you want to supply it directly | `PUL` |
-| `InstructorEmail` | Yes | Email text (lowercase recommended) | `jane.doe@university.edu` |
-| `InstructorName` | Optional | Text | `Jane Doe` |
+| `InstructorName` | Yes | Text (`FirstName LastName`) matching Faculty directory | `Jane Doe` |
 
 Additional recommendations:
 - Keep one assignment per row (no merged cells).
 - Keep header names exactly as above.
-- Avoid formulas in key fields (`Semester`, `CourseNumber`, `Section`, `Campus`, `InstructorEmail`); paste values.
+- Avoid formulas in key fields (`Semester`, `CourseNumber`, `Section`, `InstructorName`); paste values.
 - Save as `.xlsx` before uploading to `/SemesterImports`.

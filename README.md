@@ -36,6 +36,7 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
      - Display order
      - Active status
    - Admin UI lets users reorder and toggle questions without redeployment.
+   - Admin UI includes a Faculty directory screen (first/last/email/campus) used by import automation.
 
 5. **Question types required**
    - Implement these in Power Apps form rendering logic:
@@ -93,7 +94,14 @@ Use SharePoint lists as the primary source of truth:
    - `StartDate`, `EndDate`
    - `Status` (Draft / Active / Closed)
 
-6. **TeachingAssignments**
+6. **Faculty**
+   - `FacultyId` (ID)
+   - `FirstName` (Text)
+   - `LastName` (Text)
+   - `Email` (Text, unique)
+   - `Campus` (Choice: Pullman / Everett / Bremerton)
+
+7. **TeachingAssignments**
    - `AssignmentId` (ID)
    - `Semester` (Lookup)
    - `Course` (Lookup)
@@ -104,7 +112,7 @@ Use SharePoint lists as the primary source of truth:
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
    - `FormToken` (GUID)
 
-7. **Questions**
+8. **Questions**
    - `QuestionId` (ID)
    - `QuestionText` (Multiple lines)
    - `QuestionType` (Choice: LongText, SingleChoice)
@@ -113,13 +121,13 @@ Use SharePoint lists as the primary source of truth:
    - Notes: all questions are global (no course-specific question scope)
    - Admin behavior: questions are editable and can be permanently deleted (no activation toggle)
 
-8. **QuestionChoices**
+9. **QuestionChoices**
    - `ChoiceId` (ID)
    - `Question` (Lookup)
    - `ChoiceLabel` (Text)
    - `DisplayOrder` (Number)
 
-9. **Responses**
+10. **Responses**
    - `ResponseId` (ID)
    - `Assignment` (Lookup)
    - `Question` (Lookup)
@@ -143,7 +151,7 @@ Use SharePoint lists as the primary source of truth:
 ## App Modules
 
 ### 1) Admin App (Power Apps)
-- Manage courses, student outcomes, supported PIs, and course-specific outcomes
+- Manage courses, faculty directory, student outcomes, supported PIs, and course-specific outcomes
 - Dedicated admin screen to edit Student Outcomes and PIs with SO->PI filtering and cascade delete
 - Configure questions and order
 - Upload semester assignment file
@@ -200,16 +208,14 @@ Use SharePoint lists as the primary source of truth:
 - `Semester`
 - `CourseNumber`
 - `Section`
-- `Campus` (Pullman / Everett / Bremerton)
-- `CampusCode` (optional: PUL / EVE / BRE)
-- `InstructorName`
-- `InstructorEmail`
+- `InstructorName` (required; must match a Faculty record as `FirstName LastName`)
 
 Power Automate validates:
 - Course exists and active
-- Campus is one of: Pullman / Everett / Bremerton
-- CampusCode is normalized to: PUL / EVE / BRE (when omitted, Flow A derives it from Campus)
-- Instructor email format is valid
+- Instructor name matches exactly one Faculty record
+- Campus and email are pulled from the Faculty list
+- CampusCode is derived from Faculty campus (Pullman->PUL, Everett->EVE, Bremerton->BRE)
+- Instructor email format comes from Faculty.Email
 - No duplicate assignment rows
 
 ---
@@ -262,7 +268,7 @@ No.
 Recommended minimum permissions:
 
 - **Admins**: Edit/Contribute on configuration + operational lists they manage
-  - `Courses`, `StudentOutcomes`, `PerformanceIndicators`, `CourseSpecificOutcomes`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`, `OutcomeEvaluations`
+  - `Courses`, `Faculty`, `StudentOutcomes`, `PerformanceIndicators`, `CourseSpecificOutcomes`, `Questions`, `QuestionChoices`, `Semesters`, `TeachingAssignments`, `OutcomeEvaluations`
 - **Instructors**: Limited permissions
   - Read assigned `TeachingAssignments`
   - Create/Edit their own `Responses` rows only
