@@ -726,9 +726,30 @@ IfError(
 Set(varSelectedOutcome, ThisItem)
 ```
 
-> Outcome row label (`lblOutcomeAdmin.Text`):
+> Outcome row embedded edit controls (replace label with text inputs):
 ```powerfx
-ThisItem.OutcomeCode & " - " & Coalesce(ThisItem.OutcomeDescription, "")
+// txtOutcomeCodeRow.Default
+ThisItem.OutcomeCode
+
+// txtOutcomeDescriptionRow.Default
+ThisItem.OutcomeDescription
+```
+
+> Row save button (`btnSaveOutcomeRow.OnSelect`) — updates existing outcome without changing IDs:
+```powerfx
+Patch(
+    StudentOutcomes,
+    ThisItem,
+    {
+        OutcomeCode: Trim(txtOutcomeCodeRow.Text),
+        OutcomeDescription: Trim(txtOutcomeDescriptionRow.Text)
+    }
+);
+ForAll(
+    Filter(PerformanceIndicators, StudentOutcome.Id = ThisItem.ID),
+    Patch(PerformanceIndicators, ThisRecord, { SOCode: Trim(txtOutcomeCodeRow.Text) })
+);
+Notify("Outcome updated. Related PIs were preserved and kept linked.", NotificationType.Success)
 ```
 
 > Row delete button (`btnDeleteOutcomeRow.OnSelect`) with cascade delete of related PIs:
@@ -785,14 +806,30 @@ With(
 
 > Why this shape matters: returning `[]` can drop row schema in some tenants. Filtering `PerformanceIndicators` keeps a typed table, so row controls can resolve `IndicatorCode`/`IndicatorDescription` reliably.
 
-> PI row label (`lblPIAdmin.Text`):
+> PI row embedded edit controls (replace label with text inputs):
 ```powerfx
-Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " &
-Coalesce(ThisItem.IndicatorDescription, "")
+// txtPIIndicatorCodeRow.Default
+ThisItem.IndicatorCode
+
+// txtPIIndicatorDescriptionRow.Default
+ThisItem.IndicatorDescription
 ```
 
-> If `ThisItem` only exposes `IsSelected` in `lblPIAdmin`:
-- Confirm `lblPIAdmin` is inside the `galPIsByOutcome` row template (not outside the gallery).
+> Row save button (`btnSavePIRow.OnSelect`) — updates existing PI in place so related options stay linked:
+```powerfx
+Patch(
+    PerformanceIndicators,
+    ThisItem,
+    {
+        IndicatorCode: Trim(txtPIIndicatorCodeRow.Text),
+        IndicatorDescription: Trim(txtPIIndicatorDescriptionRow.Text)
+    }
+);
+Notify("PI updated.", NotificationType.Success)
+```
+
+> If `ThisItem` only exposes `IsSelected` in PI row controls:
+- Confirm PI row controls (`txtPIIndicatorCodeRow`, `txtPIIndicatorDescriptionRow`, `btnSavePIRow`) are inside the `galPIsByOutcome` row template (not outside the gallery).
 - Confirm `galPIsByOutcome.Items` is set to formula **A5c**.
 - Re-select an outcome in `galStudentOutcomesAdmin` so `varSelectedOutcome` refreshes and the PI gallery repopulates.
 

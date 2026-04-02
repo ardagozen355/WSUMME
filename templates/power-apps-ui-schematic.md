@@ -343,7 +343,7 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 | Left pane                    | Right pane                                      |
 | Student Outcomes             | Performance Indicators (for selected outcome)    |
 | [galStudentOutcomesAdmin]    | [galPIsByOutcome]                                |
-|  - [lblOutcomeAdmin] [btnMoveUpOutcome] [btnDeleteOutcomeRow] | - [lblPIAdmin] [btnMoveUpPI] [btnDeletePIFromOutcome] |
+|  - [txtOutcomeCodeRow] [txtOutcomeDescriptionRow] [btnSaveOutcomeRow] [btnMoveUpOutcome] [btnDeleteOutcomeRow] | - [txtPIIndicatorCodeRow] [txtPIIndicatorDescriptionRow] [btnSavePIRow] [btnMoveUpPI] [btnDeletePIFromOutcome] |
 | [txtOutcomeCode]             | [txtNewPIIndicatorCode]                          |
 | [txtOutcomeDescription]      | [txtNewPIIndicatorDescription]                   |
 | [btnNewOutcome]              | [btnNewPIForOutcome]                             |
@@ -356,7 +356,9 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 ### Controls & bindings
 - `galStudentOutcomesAdmin` control type: Vertical gallery (blank)
 - `galStudentOutcomesAdmin.Items` -> formula **A5c**
-- `lblOutcomeAdmin.Text` -> formula **A5c**
+- `txtOutcomeCodeRow.Default` -> formula **A5c**
+- `txtOutcomeDescriptionRow.Default` -> formula **A5c**
+- `btnSaveOutcomeRow.OnSelect` -> formula **A5c** (update selected outcome row in place)
 - `btnMoveUpOutcome.OnSelect` -> formula **A5c** (swap outcome display order upward)
 - `btnDeleteOutcomeRow.OnSelect` -> formula **A5c** (row-level cascade delete: selected outcome + related PIs)
 - `galStudentOutcomesAdmin.OnSelect` -> formula **A5c**
@@ -364,8 +366,10 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 
 - `galPIsByOutcome` control type: Vertical gallery (blank)
 - `galPIsByOutcome.Items` -> formula **A5c** (typed filter on `PerformanceIndicators`; avoids empty-table schema loss)
-- `lblPIAdmin.Text` -> `Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " & Coalesce(ThisItem.IndicatorDescription, "")`
-- If `ThisItem` shows only `IsSelected`, ensure `lblPIAdmin` is inside `galPIsByOutcome` row template and reselect an outcome.
+- `txtPIIndicatorCodeRow.Default` -> formula **A5c**
+- `txtPIIndicatorDescriptionRow.Default` -> formula **A5c**
+- `btnSavePIRow.OnSelect` -> formula **A5c** (update PI row in place, preserves PI options links)
+- If `ThisItem` shows only `IsSelected`, ensure PI row controls are inside `galPIsByOutcome` row template and reselect an outcome.
 - `btnMoveUpPI.OnSelect` -> formula **A5c** (swap PI display order upward within selected outcome)
 - `btnDeletePIFromOutcome.OnSelect` -> formula **A5c** (row-level PI delete)
 - `txtNewPIIndicatorCode` + `txtNewPIIndicatorDescription` + `btnNewPIForOutcome.OnSelect` -> formula **A5c** (add PI to selected SO)
@@ -413,13 +417,13 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
-- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`
+- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtOutcomeCodeRow`, `txtOutcomeDescriptionRow`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtPIIndicatorCodeRow`, `txtPIIndicatorDescriptionRow`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
-- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
+- Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnSaveOutcomeRow`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnSavePIRow`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
