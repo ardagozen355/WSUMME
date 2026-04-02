@@ -413,26 +413,21 @@ Set(varCourseTitleLocal, ThisItem.CourseTitle);
 Set(varCourseActiveLocal, ThisItem.IsActive);
 
 // Build typed PI collections for stable gallery schemas
-// Use explicit row aliases (`As pi`, `As sp`) so ID matching resolves reliably across tenants.
 ClearCollect(colAllPIs, PerformanceIndicators);
 ClearCollect(
     colSupportedPIs,
     Filter(
-        colAllPIs As pi,
-        CountIf(
-            Coalesce(ThisItem.SupportedPIs, Table()) As sp,
-            sp.Id = pi.ID
-        ) > 0
+        colAllPIs,
+        !IsBlank(varSelectedCourse) &&
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) > 0
     )
 );
 ClearCollect(
     colAvailablePIs,
     Filter(
-        colAllPIs As pi,
-        CountIf(
-            Coalesce(ThisItem.SupportedPIs, Table()) As sp,
-            sp.Id = pi.ID
-        ) = 0
+        colAllPIs,
+        IsBlank(varSelectedCourse) ||
+        CountIf(varSelectedCourse.SupportedPIs, ID = ThisRecord.Id) = 0
     )
 );
 
@@ -441,7 +436,7 @@ ClearCollect(
     SortByColumns(
         Filter(CourseSpecificOutcomes, Course.Id = varSelectedCourse.ID && IsActive = true),
         "CSOCode",
-        Ascending
+        "Ascending"
     )
 );
 Set(varSelectedCSO, Blank());
