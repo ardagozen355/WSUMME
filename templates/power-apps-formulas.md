@@ -209,13 +209,13 @@ If(
 )
 ```
 
-### 7) Instructor evaluations for PIs and CSOs (score + assessment tools)
+### 7) Instructor evaluations for PIs and CSOs (PI option-based rating + assessment tools)
 > Add list `OutcomeEvaluations` with fields:
 - `Assignment` (Lookup -> TeachingAssignments)
 - `EvaluationType` (Choice: PI, CSO)
 - `ReferenceId` (Number)
 - `ReferenceCode` (Text)
-- `Score` (Number: 1-5)
+- `Score` (Text: for PI rows this is selected option label from `PIGradingOptions`; CSO can still use numeric/text scheme)
 - `AssessmentTools` (Multiple lines of text)
 - `SubmittedAt` (DateTime)
 
@@ -226,8 +226,10 @@ ClearCollect(
     AddColumns(
         LookUp(Courses, ID = varCourseId).SupportedPIs,
         "EvalType", "PI",
-        "EvalCode", StudentOutcome.OutcomeCode & "-" & IndicatorCode,
+        "EvalId", Id,
+        "EvalCode", Value,
         "ScoreLocal", Blank(),
+        "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
         "AssessmentToolsLocal", Blank()
     )
 );
@@ -236,8 +238,10 @@ Collect(
     AddColumns(
         Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true),
         "EvalType", "CSO",
+        "EvalId", ID,
         "EvalCode", CSOCode,
         "ScoreLocal", Blank(),
+        "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
         "AssessmentToolsLocal", Blank()
     )
 )
@@ -245,7 +249,7 @@ Collect(
 
 > Rating dropdown `drpScore.Items`:
 ```powerfx
-[1,2,3,4,5]
+ThisItem.OptionItems
 ```
 
 > Rating dropdown `OnChange`:
@@ -253,7 +257,7 @@ Collect(
 Patch(
     colEvalItems,
     ThisItem,
-    { ScoreLocal: Value(Self.Selected.Value) }
+    { ScoreLocal: Coalesce(Self.Selected.OptionLabel, Self.Selected.Value) }
 )
 ```
 
@@ -275,7 +279,7 @@ If(
             IsBlank(ScoreLocal) || IsBlank(AssessmentToolsLocal)
         )
     ) > 0,
-    Notify("Please enter both score (1-5) and assessment tools for each PI/CSO.", NotificationType.Error),
+    Notify("Please select a rating option and enter assessment tools for each PI/CSO.", NotificationType.Error),
 
     ForAll(
         colEvalItems,
@@ -285,7 +289,7 @@ If(
             {
                 Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
                 EvaluationType: { Value: EvalType },
-                ReferenceId: ID,
+                ReferenceId: EvalId,
                 ReferenceCode: EvalCode,
                 Score: ScoreLocal,
                 AssessmentTools: AssessmentToolsLocal,
@@ -839,6 +843,66 @@ If(
 )
 ```
 
+
+
+> PI-specific grading options (five configurable options per PI) on `scrOutcomesAndPIs`:
+- Gallery: `galPIGradeOptions` (filtered by selected PI row)
+- Row controls: `txtPIOptionLabelRow`, `txtPIOptionOrderRow`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
+- New option button: `btnNewPIOption`
+
+> `galPIGradeOptions.Items`:
+```powerfx
+If(
+    IsBlank(varSelectedPIAdmin),
+    Filter(PIGradingOptions, false),
+    SortByColumns(
+        Filter(PIGradingOptions, PerformanceIndicator.Id = varSelectedPIAdmin.ID && IsActive = true),
+        "DisplayOrder",
+        Ascending
+    )
+)
+```
+
+> `galPIsByOutcome.OnSelect`:
+```powerfx
+Set(varSelectedPIAdmin, ThisItem)
+```
+
+> `btnNewPIOption.OnSelect`:
+```powerfx
+If(
+    IsBlank(varSelectedPIAdmin),
+    Notify("Select a PI first.", NotificationType.Warning),
+    Patch(
+        PIGradingOptions,
+        Defaults(PIGradingOptions),
+        {
+            PerformanceIndicator: { Id: varSelectedPIAdmin.ID, Value: varSelectedPIAdmin.IndicatorCode },
+            OptionLabel: "New option",
+            DisplayOrder: CountRows(Filter(PIGradingOptions, PerformanceIndicator.Id = varSelectedPIAdmin.ID && IsActive = true)) + 1,
+            IsActive: true
+        }
+    )
+)
+```
+
+
+> PI option row save/delete (inside `galPIGradeOptions`):
+```powerfx
+// btnSavePIOptionRow.OnSelect
+Patch(
+    PIGradingOptions,
+    ThisItem,
+    {
+        OptionLabel: Trim(txtPIOptionLabelRow.Text),
+        DisplayOrder: Value(txtPIOptionOrderRow.Text),
+        IsActive: true
+    }
+)
+
+// btnDeletePIOptionRow.OnSelect
+Remove(PIGradingOptions, ThisItem)
+```
 ### A5d) Faculty directory management screen
 > Screen idea: `scrFaculty` with a **blank vertical gallery** on the left and edit form controls on the right.
 

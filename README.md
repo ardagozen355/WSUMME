@@ -141,10 +141,16 @@ Use SharePoint lists as the primary source of truth:
    - `EvaluationType` (Choice: `PI`, `CSO`)
    - `ReferenceId` (Number)
    - `ReferenceCode` (Text)
-   - `Score` (Number: 1–5)
+   - `Score` (Text; for PI rows store selected PI-specific option label configured by admins)
    - `AssessmentTools` (Multiple lines; instructor rationale on tools/evidence used)
    - `SubmittedAt` (DateTime)
    - Notes: instructors provide two responses per PI/CSO item (`Score` + `AssessmentTools`)
+
+11. **PIGradingOptions**
+   - `PerformanceIndicator` (Lookup)
+   - `OptionLabel` (Text)
+   - `DisplayOrder` (Number; 1..5 per PI)
+   - `IsActive` (Yes/No)
 
 ---
 
@@ -153,6 +159,7 @@ Use SharePoint lists as the primary source of truth:
 ### 1) Admin App (Power Apps)
 - Manage courses, faculty directory, student outcomes, supported PIs, and course-specific outcomes
 - Dedicated admin screen to edit Student Outcomes and PIs with SO->PI filtering and cascade delete
+- Configure five PI-specific grading options per PI in the StudentOutcomesAndPIs admin screen
 - Configure questions and order
 - Upload semester assignment file
 - Monitor completion status dashboard
@@ -161,7 +168,7 @@ Use SharePoint lists as the primary source of truth:
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms
 - Dynamic rendering of active global questions
-- Evaluate each PI/CSO with both a 1-5 score and a long-text assessment-tools rationale
+- Evaluate each PI/CSO with a rating option (PI-specific five-option scheme for PIs) and a long-text assessment-tools rationale
 - Save draft + final submit
 
 ### 3) Automations (Power Automate)

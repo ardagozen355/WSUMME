@@ -47,7 +47,7 @@ Purpose: Instructor sees pending forms.
 ---
 
 ## Screen IA-2: `scrAssessmentForm`
-Purpose: Instructor answers global questions and completes PI/CSO evaluations with a 1-5 score plus assessment-tools rationale.
+Purpose: Instructor answers global questions and completes PI/CSO evaluations with PI-specific option ratings (configured by admins) plus assessment-tools rationale.
 
 ### Layout (wireframe)
 ```text
@@ -61,7 +61,7 @@ Purpose: Instructor answers global questions and completes PI/CSO evaluations wi
 |--------------------------------------------------------------------------------|
 |  Q2. <QuestionText> ...                                                        |
 +--------------------------------------------------------------------------------+
-| Ratings [galEvalItems]: [lblEvalCode] [drpScore (1-5)] [txtAssessmentTools]    |
+| Ratings [galEvalItems]: [lblEvalCode] [drpScore (PI options / CSO scale)] [txtAssessmentTools] |
 | [btnSubmitAssessment]                                                          |
 +--------------------------------------------------------------------------------+
 ```
@@ -75,7 +75,7 @@ Purpose: Instructor answers global questions and completes PI/CSO evaluations wi
 - `galEvalItems.Items` -> `colEvalItems` (PI + CSO items)
 - `drpScore.OnChange` -> updates `ScoreLocal`
 - `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
-- `drpScore.Items` -> `[1,2,3,4,5]`
+- `drpScore.Items` -> formula **7** (`ThisItem.OptionItems`, PI-specific when `EvalType="PI"`)
 - `btnSubmitAssessment.OnSelect` uses submit formula + saves `OutcomeEvaluations`.
 
 (Uses formulas from section **Instructor 3–7**.)
@@ -347,6 +347,9 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 | [txtOutcomeCode]             | [txtNewPIIndicatorCode]                          |
 | [txtOutcomeDescription]      | [txtNewPIIndicatorDescription]                   |
 | [btnNewOutcome]              | [btnNewPIForOutcome]                             |
+|                              | PI grading options [galPIGradeOptions]           |
+|                              | [txtPIOptionOrderRow] [txtPIOptionLabelRow]      |
+|                              | [btnSavePIOptionRow] [btnDeletePIOptionRow] [btnNewPIOption] |
 +------------------------------+-------------------------------------------------+
 ```
 
@@ -366,6 +369,9 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 - `btnMoveUpPI.OnSelect` -> formula **A5c** (swap PI display order upward within selected outcome)
 - `btnDeletePIFromOutcome.OnSelect` -> formula **A5c** (row-level PI delete)
 - `txtNewPIIndicatorCode` + `txtNewPIIndicatorDescription` + `btnNewPIForOutcome.OnSelect` -> formula **A5c** (add PI to selected SO)
+- `galPIsByOutcome.OnSelect` -> formula **A5c** (sets selected PI for options editor)
+- `galPIGradeOptions.Items` -> formula **A5c** (PI-specific options)
+- `btnNewPIOption.OnSelect` -> formula **A5c** (add option for selected PI)
 
 ---
 
@@ -409,12 +415,12 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`
-- PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`
+- PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
-- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`
+- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
 If you prefer different control names, update the formula references consistently.

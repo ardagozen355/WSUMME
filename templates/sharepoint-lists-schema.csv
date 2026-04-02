@@ -15,6 +15,10 @@ CourseSpecificOutcomes,Course,Lookup (Courses),Yes,
 CourseSpecificOutcomes,CSOCode,Single line of text,Yes,Example: CSO-1
 CourseSpecificOutcomes,CSODescription,Multiple lines of text,Yes,
 CourseSpecificOutcomes,IsActive,Yes/No,Yes,Default Yes
+PIGradingOptions,PerformanceIndicator,Lookup (PerformanceIndicators),Yes,One PI can have multiple grading options
+PIGradingOptions,OptionLabel,Single line of text,Yes,Faculty-visible grading option label
+PIGradingOptions,DisplayOrder,Number,Yes,1..5 option ordering per PI
+PIGradingOptions,IsActive,Yes/No,Yes,Default Yes
 Semesters,TermName,Single line of text,Yes,Example: Fall 2026
 Semesters,StartDate,Date and Time,Yes,
 Semesters,EndDate,Date and Time,Yes,
@@ -47,6 +51,6 @@ OutcomeEvaluations,Assignment,Lookup (TeachingAssignments),Yes,
 OutcomeEvaluations,EvaluationType,Choice,Yes,Choices: PI|CSO
 OutcomeEvaluations,ReferenceId,Number,Yes,ID from PI or CSO source row
 OutcomeEvaluations,ReferenceCode,Single line of text,Yes,PI code or CSO code
-OutcomeEvaluations,Score,Number,Yes,1 to 5 scale
+OutcomeEvaluations,Score,Single line of text,Yes,For PI evaluations store selected PI grading option label; for CSO keep numeric/text scheme
 OutcomeEvaluations,AssessmentTools,Multiple lines of text,Yes,Instructor rationale describing assessment tools used for the score
 OutcomeEvaluations,SubmittedAt,Date and Time,Yes,
