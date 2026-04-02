@@ -216,7 +216,7 @@ When a course is selected in `galCourses`, the right panel immediately shows tha
 - `tglCourseActive.Default` -> formula **A2b**
 - `galSupportedPIs` control type: Vertical gallery (blank)
 - `galSupportedPIs` data source selection in designer: **None/blank** (do not pre-bind to `PerformanceIndicators`)
-- `galSupportedPIs.Items` -> formula **A5** (`colSupportedPIs`, built on course select)
+- `galSupportedPIs.Items` -> formula **A5** (shows `colSupportedPIs` and returns empty when no valid course is selected)
 - `lblSupportedPI.Text` -> formula **A5** (shows `IndicatorCode` + `IndicatorDescription` on separate lines)
 - `galAvailablePIs` control type: Vertical gallery (blank)
 - `galAvailablePIs.Items` -> formula **A5** (`colAvailablePIs`, all other PIs not yet supported)

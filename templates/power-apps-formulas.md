@@ -414,20 +414,27 @@ Set(varCourseActiveLocal, ThisItem.IsActive);
 
 // Build typed PI collections for stable gallery schemas
 ClearCollect(colAllPIs, PerformanceIndicators);
-ClearCollect(
-    colSupportedPIs,
-    Filter(
-        colAllPIs,
-        !IsBlank(varSelectedCourse) &&
-        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) > 0
-    )
-);
-ClearCollect(
-    colAvailablePIs,
-    Filter(
-        colAllPIs,
-        IsBlank(varSelectedCourse) ||
-        CountIf(varSelectedCourse.SupportedPIs, Id = ThisRecord.Id) = 0
+With(
+    {
+        selectedSupportedPIs: If(
+            IsBlank(ThisItem.ID),
+            Filter(colAllPIs, false),
+            Coalesce(ThisItem.SupportedPIs, Filter(colAllPIs, false))
+        )
+    },
+    ClearCollect(
+        colSupportedPIs,
+        Filter(
+            colAllPIs,
+            CountIf(selectedSupportedPIs, Id = ThisRecord.ID) > 0
+        )
+    );
+    ClearCollect(
+        colAvailablePIs,
+        Filter(
+            colAllPIs,
+            CountIf(selectedSupportedPIs, Id = ThisRecord.ID) = 0
+        )
     )
 );
 
@@ -462,7 +469,7 @@ Coalesce(varCourseActiveLocal, true)
 
 ```powerfx
 // colAllPIs caches PerformanceIndicators once per refresh
-// galSupportedPIs.Items -> colSupportedPIs, galAvailablePIs.Items -> colAvailablePIs
+// galSupportedPIs.Items -> guarded colSupportedPIs formula, galAvailablePIs.Items -> colAvailablePIs
 // galCSOs.Items -> colCSOs
 ```
 
@@ -548,7 +555,11 @@ If(
 
 > `galSupportedPIs.Items`:
 ```powerfx
-colSupportedPIs
+If(
+    IsBlank(varSelectedCourse) || IsBlank(varSelectedCourse.ID),
+    Filter(colAllPIs, false),
+    colSupportedPIs
+)
 ```
 
 > Build `galAvailablePIs` step-by-step (recommended):
@@ -580,7 +591,7 @@ true
 
 > If `ThisItem` only shows `IsSelected` in `lblSupportedPI.Text`:
 - Confirm `lblSupportedPI` is **inside** the `galSupportedPIs` row template.
-- Confirm `galSupportedPIs.Items = colSupportedPIs` and that `colSupportedPIs` is rebuilt in `galCourses.OnSelect`.
+- Confirm `galSupportedPIs.Items` uses the guarded A5 formula and that `colSupportedPIs` is rebuilt in `galCourses.OnSelect`.
 - In Studio, reselect a course (or re-run `OnSelect`) so collections repopulate before editing row formulas.
 - Ensure `btnAddPI` and `btnRemovePI` are inside their gallery templates so `ThisItem.ID` comes from the clicked row.
 
