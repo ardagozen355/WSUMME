@@ -721,35 +721,22 @@ IfError(
 )
 ```
 
-> `galStudentOutcomesAdmin.OnSelect`:
+> `galStudentOutcomesAdmin.OnSelect` (load selected outcome into right-pane inputs):
 ```powerfx
-Set(varSelectedOutcome, ThisItem)
+Set(varSelectedOutcome, ThisItem);
+Set(varOutcomeCodeLocal, Coalesce(ThisItem.OutcomeCode, ""));
+Set(varOutcomeDescriptionLocal, Coalesce(ThisItem.OutcomeDescription, ""));
+Reset(txtOutcomeCode);
+Reset(txtOutcomeDescription)
 ```
 
-> Outcome row embedded edit controls (replace label with text inputs):
+> Right-pane defaults for outcome editor:
 ```powerfx
-// txtOutcomeCodeRow.Default
-ThisItem.OutcomeCode
+// txtOutcomeCode.Default
+Coalesce(varOutcomeCodeLocal, "")
 
-// txtOutcomeDescriptionRow.Default
-ThisItem.OutcomeDescription
-```
-
-> Row save button (`btnSaveOutcomeRow.OnSelect`) — updates existing outcome without changing IDs:
-```powerfx
-Patch(
-    StudentOutcomes,
-    ThisItem,
-    {
-        OutcomeCode: Trim(txtOutcomeCodeRow.Text),
-        OutcomeDescription: Trim(txtOutcomeDescriptionRow.Text)
-    }
-);
-ForAll(
-    Filter(PerformanceIndicators, StudentOutcome.Id = ThisItem.ID),
-    Patch(PerformanceIndicators, ThisRecord, { SOCode: Trim(txtOutcomeCodeRow.Text) })
-);
-Notify("Outcome updated. Related PIs were preserved and kept linked.", NotificationType.Success)
+// txtOutcomeDescription.Default
+Coalesce(varOutcomeDescriptionLocal, "")
 ```
 
 > Row delete button (`btnDeleteOutcomeRow.OnSelect`) with cascade delete of related PIs:
@@ -773,20 +760,43 @@ If(
 )
 ```
 
-> New outcome button (`btnNewOutcome.OnSelect`):
+> Outcome save button (`btnNewOutcome.OnSelect`) — create new when none selected, otherwise save selected:
 ```powerfx
-Patch(
-    StudentOutcomes,
-    Defaults(StudentOutcomes),
-    {
-        OutcomeCode: Trim(txtOutcomeCode.Text),
-        OutcomeDescription: Trim(txtOutcomeDescription.Text),
-        DisplayOrder: CountRows(StudentOutcomes) + 1
-    }
-);
-Reset(txtOutcomeCode);
-Reset(txtOutcomeDescription);
-Notify("Student outcome added.", NotificationType.Success)
+If(
+    IsBlank(Trim(txtOutcomeCode.Text)) || IsBlank(Trim(txtOutcomeDescription.Text)),
+    Notify("Outcome code and description are required.", NotificationType.Error),
+    If(
+        IsBlank(varSelectedOutcome),
+        Patch(
+            StudentOutcomes,
+            Defaults(StudentOutcomes),
+            {
+                OutcomeCode: Trim(txtOutcomeCode.Text),
+                OutcomeDescription: Trim(txtOutcomeDescription.Text),
+                DisplayOrder: CountRows(StudentOutcomes) + 1
+            }
+        );
+        Notify("Student outcome added.", NotificationType.Success),
+        Patch(
+            StudentOutcomes,
+            varSelectedOutcome,
+            {
+                OutcomeCode: Trim(txtOutcomeCode.Text),
+                OutcomeDescription: Trim(txtOutcomeDescription.Text)
+            }
+        );
+        ForAll(
+            Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID),
+            Patch(PerformanceIndicators, ThisRecord, { SOCode: Trim(txtOutcomeCode.Text) })
+        );
+        Notify("Outcome updated.", NotificationType.Success)
+    );
+    Set(varSelectedOutcome, Blank());
+    Set(varOutcomeCodeLocal, "");
+    Set(varOutcomeDescriptionLocal, "");
+    Reset(txtOutcomeCode);
+    Reset(txtOutcomeDescription)
+)
 ```
 
 > `galPIsByOutcome.Items`:
@@ -806,30 +816,14 @@ With(
 
 > Why this shape matters: returning `[]` can drop row schema in some tenants. Filtering `PerformanceIndicators` keeps a typed table, so row controls can resolve `IndicatorCode`/`IndicatorDescription` reliably.
 
-> PI row embedded edit controls (replace label with text inputs):
+> PI row label (`lblPIAdmin.Text`):
 ```powerfx
-// txtPIIndicatorCodeRow.Default
-ThisItem.IndicatorCode
-
-// txtPIIndicatorDescriptionRow.Default
-ThisItem.IndicatorDescription
+Coalesce(ThisItem.IndicatorCode, Text(ThisItem.ID)) & " - " &
+Coalesce(ThisItem.IndicatorDescription, "")
 ```
 
-> Row save button (`btnSavePIRow.OnSelect`) — updates existing PI in place so related options stay linked:
-```powerfx
-Patch(
-    PerformanceIndicators,
-    ThisItem,
-    {
-        IndicatorCode: Trim(txtPIIndicatorCodeRow.Text),
-        IndicatorDescription: Trim(txtPIIndicatorDescriptionRow.Text)
-    }
-);
-Notify("PI updated.", NotificationType.Success)
-```
-
-> If `ThisItem` only exposes `IsSelected` in PI row controls:
-- Confirm PI row controls (`txtPIIndicatorCodeRow`, `txtPIIndicatorDescriptionRow`, `btnSavePIRow`) are inside the `galPIsByOutcome` row template (not outside the gallery).
+> If `ThisItem` only exposes `IsSelected` in `lblPIAdmin`:
+- Confirm `lblPIAdmin` is inside the `galPIsByOutcome` row template (not outside the gallery).
 - Confirm `galPIsByOutcome.Items` is set to formula **A5c**.
 - Re-select an outcome in `galStudentOutcomesAdmin` so `varSelectedOutcome` refreshes and the PI gallery repopulates.
 
@@ -855,28 +849,45 @@ If(
 )
 ```
 
-> New PI button (`btnNewPIForOutcome.OnSelect`):
+> PI save button (`btnNewPIForOutcome.OnSelect`) — create new when none selected, otherwise save selected:
 ```powerfx
 If(
     IsBlank(varSelectedOutcome),
     Notify("Select an outcome first.", NotificationType.Warning),
-    Patch(
-        PerformanceIndicators,
-        Defaults(PerformanceIndicators),
-        {
-            IndicatorCode: Trim(txtNewPIIndicatorCode.Text),
-            IndicatorDescription: Trim(txtNewPIIndicatorDescription.Text),
-            StudentOutcome: {
-                Id: varSelectedOutcome.ID,
-                Value: varSelectedOutcome.OutcomeCode
-            },
-            SOCode: varSelectedOutcome.OutcomeCode,
-            DisplayOrder: CountRows(Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID)) + 1
-        }
+    IsBlank(Trim(txtNewPIIndicatorCode.Text)) || IsBlank(Trim(txtNewPIIndicatorDescription.Text)),
+    Notify("PI code and description are required.", NotificationType.Error),
+    If(
+        IsBlank(varSelectedPIAdmin),
+        Patch(
+            PerformanceIndicators,
+            Defaults(PerformanceIndicators),
+            {
+                IndicatorCode: Trim(txtNewPIIndicatorCode.Text),
+                IndicatorDescription: Trim(txtNewPIIndicatorDescription.Text),
+                StudentOutcome: {
+                    Id: varSelectedOutcome.ID,
+                    Value: varSelectedOutcome.OutcomeCode
+                },
+                SOCode: varSelectedOutcome.OutcomeCode,
+                DisplayOrder: CountRows(Filter(PerformanceIndicators, StudentOutcome.Id = varSelectedOutcome.ID)) + 1
+            }
+        );
+        Notify("PI added.", NotificationType.Success),
+        Patch(
+            PerformanceIndicators,
+            varSelectedPIAdmin,
+            {
+                IndicatorCode: Trim(txtNewPIIndicatorCode.Text),
+                IndicatorDescription: Trim(txtNewPIIndicatorDescription.Text)
+            }
+        );
+        Notify("PI updated. Existing PI options were preserved.", NotificationType.Success)
     );
+    Set(varSelectedPIAdmin, Blank());
+    Set(varPIIndicatorCodeLocal, "");
+    Set(varPIIndicatorDescriptionLocal, "");
     Reset(txtNewPIIndicatorCode);
-    Reset(txtNewPIIndicatorDescription);
-    Notify("PI added.", NotificationType.Success)
+    Reset(txtNewPIIndicatorDescription)
 )
 ```
 
@@ -900,9 +911,22 @@ If(
 )
 ```
 
-> `galPIsByOutcome.OnSelect`:
+> `galPIsByOutcome.OnSelect` (load selected PI into right-pane inputs + options editor):
 ```powerfx
-Set(varSelectedPIAdmin, ThisItem)
+Set(varSelectedPIAdmin, ThisItem);
+Set(varPIIndicatorCodeLocal, Coalesce(ThisItem.IndicatorCode, ""));
+Set(varPIIndicatorDescriptionLocal, Coalesce(ThisItem.IndicatorDescription, ""));
+Reset(txtNewPIIndicatorCode);
+Reset(txtNewPIIndicatorDescription)
+```
+
+> Right-pane defaults for PI editor:
+```powerfx
+// txtNewPIIndicatorCode.Default
+Coalesce(varPIIndicatorCodeLocal, "")
+
+// txtNewPIIndicatorDescription.Default
+Coalesce(varPIIndicatorDescriptionLocal, "")
 ```
 
 > `btnNewPIOption.OnSelect`:
