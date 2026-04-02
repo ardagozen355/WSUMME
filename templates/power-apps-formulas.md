@@ -413,33 +413,20 @@ Set(varCourseTitleLocal, ThisItem.CourseTitle);
 Set(varCourseActiveLocal, ThisItem.IsActive);
 
 // Build typed PI collections for stable gallery schemas
-// Use lookup `Value` matching (IndicatorCode/Title) to avoid tenant-specific Id/ID column differences.
+// Use lookup `Id` matching against each PI record ID.
 ClearCollect(colAllPIs, PerformanceIndicators);
-ClearCollect(
-    colSupportedPIValues,
-    ForAll(
-        Coalesce(ThisItem.SupportedPIs, Table()),
-        { PIValue: Text(Value) }
-    )
-);
 ClearCollect(
     colSupportedPIs,
     Filter(
         colAllPIs,
-        CountIf(
-            colSupportedPIValues,
-            PIValue = Coalesce(ThisRecord.IndicatorCode, ThisRecord.Title, Text(ThisRecord.ID))
-        ) > 0
+        CountIf(Coalesce(ThisItem.SupportedPIs, Table()), Id = ThisRecord.ID) > 0
     )
 );
 ClearCollect(
     colAvailablePIs,
     Filter(
         colAllPIs,
-        CountIf(
-            colSupportedPIValues,
-            PIValue = Coalesce(ThisRecord.IndicatorCode, ThisRecord.Title, Text(ThisRecord.ID))
-        ) = 0
+        CountIf(Coalesce(ThisItem.SupportedPIs, Table()), Id = ThisRecord.ID) = 0
     )
 );
 
@@ -556,7 +543,7 @@ If(
 > Which data source should `galSupportedPIs` use?
 - In the gallery control, choose a **blank vertical gallery**.
 - Keep the designer data-source setting unset/blank.
-- Use the typed local collection populated in `galCourses.OnSelect` (with normalized `colSupportedPIValues`).
+- Use the typed local collection populated in `galCourses.OnSelect`.
 
 > `galSupportedPIs.Items`:
 ```powerfx
