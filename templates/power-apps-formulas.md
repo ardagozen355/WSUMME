@@ -414,27 +414,25 @@ Set(varCourseActiveLocal, ThisItem.IsActive);
 
 // Build typed PI collections for stable gallery schemas
 ClearCollect(colAllPIs, PerformanceIndicators);
-With(
-    {
-        selectedSupportedPIs: If(
-            IsBlank(ThisItem.ID),
-            Filter(colAllPIs, false),
-            Coalesce(ThisItem.SupportedPIs, Filter(colAllPIs, false))
-        )
-    },
-    ClearCollect(
-        colSupportedPIs,
-        Filter(
-            colAllPIs,
-            CountIf(selectedSupportedPIs, Id = ThisRecord.ID) > 0
-        )
-    );
-    ClearCollect(
-        colAvailablePIs,
-        Filter(
-            colAllPIs,
-            CountIf(selectedSupportedPIs, Id = ThisRecord.ID) = 0
-        )
+ClearCollect(
+    colSupportedPIIds,
+    ForAll(
+        Coalesce(ThisItem.SupportedPIs, Table()),
+        { PIID: Value(Coalesce(Id, ID)) }
+    )
+);
+ClearCollect(
+    colSupportedPIs,
+    Filter(
+        colAllPIs,
+        CountIf(colSupportedPIIds, PIID = ThisRecord.ID) > 0
+    )
+);
+ClearCollect(
+    colAvailablePIs,
+    Filter(
+        colAllPIs,
+        CountIf(colSupportedPIIds, PIID = ThisRecord.ID) = 0
     )
 );
 
@@ -551,7 +549,7 @@ If(
 > Which data source should `galSupportedPIs` use?
 - In the gallery control, choose a **blank vertical gallery**.
 - Keep the designer data-source setting unset/blank.
-- Use the typed local collection populated in `galCourses.OnSelect`.
+- Use the typed local collection populated in `galCourses.OnSelect` (with normalized `colSupportedPIIds`).
 
 > `galSupportedPIs.Items`:
 ```powerfx
