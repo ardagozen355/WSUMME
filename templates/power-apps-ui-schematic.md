@@ -388,6 +388,7 @@ Purpose: Import/manage `TeachingAssignments`, track completion, and control remi
 | Semester Dashboard                                                              |
 +--------------------------------------------------------------------------------+
 | Semester [drpSemester] [tglSemesterReminders] [txtReminderCadenceDays] [btnSaveReminderCadence] [btnSendReminderNow] |
+| New Semester: [txtNewSemesterTermName] [dtNewSemesterStart] [dtNewSemesterEnd] [drpNewSemesterStatus] [btnCreateSemester] |
 | [attAssignmentsImport] [btnImportAssignments]                                  |
 |--------------------------------------------------------------------------------|
 | Card: Pending Count                                                            |
@@ -396,8 +397,8 @@ Purpose: Import/manage `TeachingAssignments`, track completion, and control remi
 | Gallery [galAssignmentsBySemester] (left)                                      |
 |  - Instructor  - Course  - Section  - FormStatus  - ResponseCount             |
 | Assignment editor (right):                                                     |
-|  [drpAssignCourse] [txtAssignSection] [txtAssignInstructorName]               |
-|  [txtAssignInstructorEmail] [drpAssignCampus] [drpAssignStatus]               |
+|  [drpAssignCourse] [txtAssignSection] [drpAssignInstructor]                   |
+|  [drpAssignCampus] [drpAssignStatus]                                           |
 |  [btnNewAssignmentAdmin] [btnSaveAssignmentAdmin]                              |
 +--------------------------------------------------------------------------------+
 ```
@@ -421,6 +422,7 @@ If(
 - `tglSemesterReminders.OnChange` -> formula **A12**
 - `btnSaveReminderCadence.OnSelect` -> formula **A12**
 - `btnImportAssignments.OnSelect` -> formula **A15**
+- `btnCreateSemester.OnSelect` -> formula **A16**
 - Pending card text -> formula **A10** (pending)
 - Submitted card text -> formula **A10** (submitted)
 - `btnSendReminderNow.OnSelect` -> formula **A11**
@@ -444,10 +446,10 @@ AddColumns(
 To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
-- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtAssignInstructorName`, `txtAssignInstructorEmail`
-- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`
+- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
+- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
-- Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`
+- Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`

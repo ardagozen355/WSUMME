@@ -109,14 +109,14 @@ Use SharePoint lists as the primary source of truth:
    - `Semester` (Lookup)
    - `Course` (Lookup)
    - `Section` (Text)
+   - `Instructor` (Lookup → Faculty)
    - `Campus` (Choice: Pullman / Everett / Bremerton)
    - `CampusCode` (Text: PUL / EVE / BRE)
-   - `InstructorEmail` (Text)
-   - `InstructorName` (Text)
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
    - `FormToken` (GUID)
    - `LastReminderSentAt` (DateTime)
    - `ReminderCount` (Number)
+   - Note: use Faculty lookup expansion (`Instructor.Email`) in app/flow filters instead of storing a duplicate `InstructorEmail` column.
 
 8. **Questions**
    - `QuestionId` (ID)
@@ -171,6 +171,7 @@ Use SharePoint lists as the primary source of truth:
 - Configure five PI-specific grading options per PI in the StudentOutcomesAndPIs admin screen
 - Configure questions and order
 - Upload semester assignment file from within the dashboard (Power Apps button)
+- Create new semesters directly in the Semester Dashboard (term + dates + status)
 - Manually create/edit/delete `TeachingAssignments` in the same dashboard gallery
 - Toggle periodic reminders on/off by semester and adjust cadence
 - Monitor assignment status plus submitted response count per assignment

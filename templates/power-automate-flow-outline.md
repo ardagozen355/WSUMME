@@ -37,8 +37,7 @@
           - `Semester` = row semester
           - `Campus` = matched Faculty.Campus
           - `CampusCode` = mapped code (`PUL`/`EVE`/`BRE`) from Faculty.Campus
-          - `InstructorName` = matched Faculty full name
-          - `InstructorEmail` = matched Faculty.Email
+          - `Instructor` lookup = matched `Faculty` item ID
           - `Course` lookup = returned `Courses` item ID
           - `Section` = row section
           - `FormStatus` = `NotSent`
@@ -58,7 +57,7 @@
    - Expression example: `@equals(triggerBody()?['FormStatus'], 'NotSent')`
 3. **Compose** instructor link:
    - `https://apps.powerapps.com/play/<APP_ID>?assignmentId=@{triggerBody()?['ID']}&token=@{triggerBody()?['FormToken']}`
-4. **Outlook — Send an email (V2)** to `InstructorEmail`.
+4. **Outlook — Send an email (V2)** to `Instructor.Email` (expanded lookup field from Faculty).
    - Subject includes campus code + course + semester.
    - Body includes due date, instructions, and the composed link.
 5. **SharePoint — Update item** (`TeachingAssignments`).
@@ -110,7 +109,7 @@
    - Campus
    - CampusCode
    - CourseNumber
-   - InstructorEmail
+   - InstructorEmail (from `TeachingAssignments.Instructor.Email`)
    - QuestionId
    - QuestionText
    - AnswerText

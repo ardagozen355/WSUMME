@@ -34,7 +34,7 @@ ClearCollect(
     colMyAssignments,
     Filter(
         TeachingAssignments,
-        Lower(InstructorEmail) = varUserEmail && FormStatus.Value <> "Submitted"
+        Lower(Instructor.Email) = varUserEmail && FormStatus.Value <> "Submitted"
     )
 );
 
@@ -77,7 +77,7 @@ ClearCollect(
     colMyAssignments,
     Filter(
         TeachingAssignments,
-        Lower(InstructorEmail) = varUserEmail && FormStatus.Value <> "Submitted"
+        Lower(Instructor.Email) = varUserEmail && FormStatus.Value <> "Submitted"
     )
 )
 ```
@@ -87,6 +87,8 @@ ClearCollect(
 ## Instructor App Formulas
 
 ### 1) Load instructor's pending assignments (App OnStart)
+> `TeachingAssignments.Instructor` is a lookup to `Faculty`. Include Faculty `Email` as an additional lookup column so `Instructor.Email` is available in Power Apps filters.
+
 ```powerfx
 Set(varUserEmail, Lower(User().Email));
 Set(varDisplayName, Coalesce(User().FullName, User().Email));
@@ -94,7 +96,7 @@ ClearCollect(
     colMyAssignments,
     Filter(
         TeachingAssignments,
-        Lower(InstructorEmail) = varUserEmail && FormStatus <> "Submitted"
+        Lower(Instructor.Email) = varUserEmail && FormStatus <> "Submitted"
     )
 );
 ```
@@ -1485,7 +1487,13 @@ Set(varSelectedAssignmentAdmin, ThisItem)
 ```
 
 ### A14) Manual create/edit assignment in dashboard
-> Save button (`btnSaveAssignmentAdmin.OnSelect`) with controls: `drpAssignCourse`, `txtAssignSection`, `txtAssignInstructorName`, `txtAssignInstructorEmail`, `drpAssignCampus`, `drpAssignStatus`.
+> Save button (`btnSaveAssignmentAdmin.OnSelect`) with controls: `drpAssignCourse`, `txtAssignSection`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`.
+>
+> `drpAssignInstructor.Items`:
+```powerfx
+SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
+```
+
 ```powerfx
 Patch(
     TeachingAssignments,
@@ -1494,8 +1502,7 @@ Patch(
         Semester: LookUp(Semesters, ID = drpSemester.Selected.ID),
         Course: LookUp(Courses, ID = drpAssignCourse.Selected.ID),
         Section: Trim(txtAssignSection.Text),
-        InstructorName: Trim(txtAssignInstructorName.Text),
-        InstructorEmail: Lower(Trim(txtAssignInstructorEmail.Text)),
+        Instructor: LookUp(Faculty, ID = drpAssignInstructor.Selected.ID),
         Campus: drpAssignCampus.Selected,
         CampusCode: Switch(
             drpAssignCampus.Selected.Value,
@@ -1514,7 +1521,7 @@ Notify("Teaching assignment saved.", NotificationType.Success)
 > New assignment button (`btnNewAssignmentAdmin.OnSelect`):
 ```powerfx
 Set(varSelectedAssignmentAdmin, Blank());
-Reset(drpAssignCourse); Reset(txtAssignSection); Reset(txtAssignInstructorName); Reset(txtAssignInstructorEmail); Reset(drpAssignCampus); Reset(drpAssignStatus)
+Reset(drpAssignCourse); Reset(txtAssignSection); Reset(drpAssignInstructor); Reset(drpAssignCampus); Reset(drpAssignStatus)
 ```
 
 ### A15) Upload `SemesterAssignments.xlsx` from Admin app
@@ -1532,5 +1539,30 @@ If(
         First(attAssignmentsImport.Attachments).Value
     );
     Notify("Import started. Refresh the gallery in a few moments.", NotificationType.Success)
+)
+```
+
+### A16) Create new semester directly in Semester Dashboard
+> Controls: `txtNewSemesterTermName`, `dtNewSemesterStart`, `dtNewSemesterEnd`, `drpNewSemesterStatus`, `btnCreateSemester`.
+
+```powerfx
+// btnCreateSemester.OnSelect
+If(
+    IsBlank(Trim(txtNewSemesterTermName.Text)),
+    Notify("Term name is required.", NotificationType.Error),
+    Patch(
+        Semesters,
+        Defaults(Semesters),
+        {
+            TermName: Trim(txtNewSemesterTermName.Text),
+            StartDate: dtNewSemesterStart.SelectedDate,
+            EndDate: dtNewSemesterEnd.SelectedDate,
+            Status: drpNewSemesterStatus.Selected,
+            RemindersEnabled: true,
+            ReminderCadenceDays: 7
+        }
+    );
+    Notify("Semester created.", NotificationType.Success);
+    Refresh(Semesters)
 )
 ```
