@@ -42,7 +42,8 @@ Questions,DisplayOrder,Number,Yes,
 QuestionChoices,Question,Lookup (Questions),Yes,
 QuestionChoices,ChoiceLabel,Single line of text,Yes,
 QuestionChoices,DisplayOrder,Number,Yes,
-Responses,Assignment,Lookup (TeachingAssignments),Yes,
+Responses,Assignment,Lookup (TeachingAssignments),Yes,Do not select TeachingAssignments.Course as an additional lookup column (nested lookup unsupported)
+Responses,Course,Lookup (Courses),Yes,Direct lookup used for filtering/reporting instead of nested Assignment.Course
 Responses,Question,Lookup (Questions),Yes,
 Responses,AnswerText,Multiple lines of text,No,Used for LongText
 Responses,AnswerChoice,Single line of text,No,Used for SingleChoice

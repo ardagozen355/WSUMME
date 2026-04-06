@@ -129,11 +129,13 @@ Use SharePoint lists as the primary source of truth:
 
 10. **Responses**
    - `ResponseId` (ID)
-   - `Assignment` (Lookup)
+   - `Assignment` (Lookup → TeachingAssignments)
+   - `Course` (Lookup → Courses)
    - `Question` (Lookup)
    - `AnswerText` (Multiple lines)
    - `AnswerChoice` (Text)
    - `SubmittedAt` (DateTime)
+   - Note: keep `Course` as a direct lookup on `Responses`; do **not** configure `Assignment` to pull `Course` as an additional lookup column from `TeachingAssignments` (SharePoint nested lookup limitation).
 
 10. **OutcomeEvaluations**
    - `EvaluationId` (ID)

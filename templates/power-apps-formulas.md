@@ -170,6 +170,12 @@ Patch(
 ```
 
 ### 6) Submit button (OnSelect)
+> `Responses` should include both:
+> - `Assignment` (Lookup -> TeachingAssignments)
+> - `Course` (Lookup -> Courses)
+>
+> Keep `Course` as a direct lookup column on `Responses` (instead of trying to include `TeachingAssignments.Course` as an extra lookup column on `Assignment`).
+
 ```powerfx
 If(
     CountRows(
@@ -191,6 +197,7 @@ If(
             Defaults(Responses),
             {
                 Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                Course: LookUp(Courses, ID = varCourseId),
                 Question: LookUp(Questions, ID = ThisRecord.ID),
                 AnswerText: ThisRecord.AnswerTextLocal,
                 AnswerChoice: ThisRecord.AnswerChoiceLocal,
