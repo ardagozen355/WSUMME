@@ -135,6 +135,7 @@ Use SharePoint lists as the primary source of truth:
    - `AnswerText` (Multiple lines)
    - `AnswerChoice` (Text)
    - `SubmittedAt` (DateTime)
+   - `Assignment` lookup target: the `TeachingAssignments` list item itself (internally the source item `ID`; SharePoint may display `Title` or another configured display column).
    - Note: keep `Course` as a direct lookup on `Responses`; do **not** configure `Assignment` to pull `Course` as an additional lookup column from `TeachingAssignments` (SharePoint nested lookup limitation).
 
 10. **OutcomeEvaluations**

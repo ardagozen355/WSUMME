@@ -174,6 +174,8 @@ Patch(
 > - `Assignment` (Lookup -> TeachingAssignments)
 > - `Course` (Lookup -> Courses)
 >
+> `Assignment` points to the TeachingAssignments list item (source row ID). In Patch, use the full record from `LookUp(TeachingAssignments, ID = varAssignmentId)`.
+>
 > Keep `Course` as a direct lookup column on `Responses` (instead of trying to include `TeachingAssignments.Course` as an extra lookup column on `Assignment`).
 
 ```powerfx
