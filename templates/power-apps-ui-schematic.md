@@ -400,7 +400,19 @@ Purpose: Track completion and send reminders.
 ```
 
 ### Controls & bindings
-When a course is selected in `galCourses`, the right panel immediately shows that course's number, title, active status, the supported PIs list, the available (not-yet-supported) PIs list, and existing CSOs.
+- `drpSemester.Items`:
+```powerfx
+SortByColumns(Semesters, "StartDate", Descending)
+```
+
+- `drpSemester.DefaultSelectedItems` (recommended):
+```powerfx
+If(
+    CountRows(Filter(Semesters, IsActive = true)) > 0,
+    [First(SortByColumns(Filter(Semesters, IsActive = true), "StartDate", Descending))],
+    [First(SortByColumns(Semesters, "StartDate", Descending))]
+)
+```
 
 - Pending card text -> formula **A10** (pending)
 - Submitted card text -> formula **A10** (submitted)

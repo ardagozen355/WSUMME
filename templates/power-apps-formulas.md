@@ -1408,6 +1408,21 @@ If(
 ```
 
 ### A10) Semester dashboard cards (counts)
+> `drpSemester` should be bound to the `Semesters` list:
+```powerfx
+// drpSemester.Items
+SortByColumns(Semesters, "StartDate", Descending)
+```
+
+```powerfx
+// drpSemester.DefaultSelectedItems (optional, default to active/current semester)
+If(
+    CountRows(Filter(Semesters, IsActive = true)) > 0,
+    [First(SortByColumns(Filter(Semesters, IsActive = true), "StartDate", Descending))],
+    [First(SortByColumns(Semesters, "StartDate", Descending))]
+)
+```
+
 ```powerfx
 // Pending count
 CountRows(Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID && FormStatus.Value <> "Submitted"))
