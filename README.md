@@ -22,12 +22,13 @@ This avoids custom hosting and gives role-based access control via Azure AD/Micr
    - Build an **Admin screen in Power Apps** so admins can edit supported PIs and CSOs with clear SO -> PI labeling.
 
 2. **Semester spreadsheet import (course → instructor assignment)**
-   - Admin uploads an Excel file (template-controlled) to a SharePoint document library.
-   - Power Automate parses the rows and creates semester assignment records.
+   - Admin uploads `SemesterAssignments.xlsx` from the **Semester Dashboard** in the Admin app.
+   - A Power Apps-triggered import flow parses rows and creates/updates `TeachingAssignments` for the selected semester.
+   - Admin can also manually create/edit assignments directly in the same dashboard (no spreadsheet required).
 
 3. **Email each faculty member a form**
    - After import, Power Automate sends each instructor a personalized email with a secure link to their pending course assessment form.
-   - Supports scheduled reminders (e.g., 7-day and 2-day reminders) for incomplete submissions.
+   - Supports scheduled reminders for incomplete submissions, with admin-controlled semester-level on/off and cadence.
 
 4. **Reconfigurable question bank and order**
    - Maintain a SharePoint-backed question model with:
@@ -93,6 +94,8 @@ Use SharePoint lists as the primary source of truth:
    - `TermName` (e.g., Fall 2026)
    - `StartDate`, `EndDate`
    - `Status` (Draft / Active / Closed)
+   - `RemindersEnabled` (Yes/No; admin toggle in semester dashboard)
+   - `ReminderCadenceDays` (Number; e.g., `7`)
 
 6. **Faculty**
    - `FacultyId` (ID)
@@ -105,12 +108,15 @@ Use SharePoint lists as the primary source of truth:
    - `AssignmentId` (ID)
    - `Semester` (Lookup)
    - `Course` (Lookup)
+   - `Section` (Text)
    - `Campus` (Choice: Pullman / Everett / Bremerton)
    - `CampusCode` (Text: PUL / EVE / BRE)
    - `InstructorEmail` (Text)
    - `InstructorName` (Text)
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
    - `FormToken` (GUID)
+   - `LastReminderSentAt` (DateTime)
+   - `ReminderCount` (Number)
 
 8. **Questions**
    - `QuestionId` (ID)
@@ -164,8 +170,10 @@ Use SharePoint lists as the primary source of truth:
 - Dedicated admin screen to edit Student Outcomes and PIs with SO->PI filtering and cascade delete
 - Configure five PI-specific grading options per PI in the StudentOutcomesAndPIs admin screen
 - Configure questions and order
-- Upload semester assignment file
-- Monitor completion status dashboard
+- Upload semester assignment file from within the dashboard (Power Apps button)
+- Manually create/edit/delete `TeachingAssignments` in the same dashboard gallery
+- Toggle periodic reminders on/off by semester and adjust cadence
+- Monitor assignment status plus submitted response count per assignment
 - Trigger resend reminders manually
 
 ### 2) Instructor App (Power Apps)
@@ -256,7 +264,7 @@ This repository now includes starter artifacts you can apply directly:
 ### Quick start (first 2 hours)
 1. Create SharePoint lists using `templates/sharepoint-lists-schema.csv` as your field checklist.
 2. Create a Canvas app with two screens (`Admin`, `Instructor`) and paste/adapt formulas from `templates/power-apps-formulas.md`.
-3. Build Flow A and Flow B from `templates/power-automate-flow-outline.md`.
+3. Build Flow A (Power Apps-triggered import), Flow B (solicitation), and Flow C (periodic reminders) from `templates/power-automate-flow-outline.md`.
 4. Upload a test import file and run an end-to-end dry run with two sample instructors.
 
 ### What this gives you immediately

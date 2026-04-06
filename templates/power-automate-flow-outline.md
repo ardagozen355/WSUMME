@@ -1,20 +1,18 @@
 # Power Automate Template Flows
 
-## Flow A: Import semester assignment spreadsheet
-1. **Trigger**: SharePoint — **When a file is created (properties only)**.
-   - **Site Address**: the SharePoint site that hosts your solution lists/libraries (example: `https://contoso.sharepoint.com/sites/Assessment`).
-   - **Library Name**: the import document library (example: `Shared Documents`).
-   - **Folder**: `/SemesterImports`.
-   - **Trigger conditions (recommended)**:
-     - Excel files only: `@endsWith(toLower(triggerBody()?['{FilenameWithExtension}']), '.xlsx')`
-     - Ignore Office temp files: `@not(startsWith(triggerBody()?['{FilenameWithExtension}'], '~$'))`
-   - **Settings (recommended)**: Concurrency Control **On**, Degree of Parallelism = `1`.
-2. **Action**: Excel Online (Business) — **List rows present in a table**.
-   - **Location**: SharePoint Site
-   - **Document Library**: same as trigger
-   - **File**: `Identifier` from trigger (`@{triggerOutputs()?['body/{Identifier}']}`)
-   - **Table**: `AssignmentsImport`
-   - **Pagination**: On, threshold sized to expected import volume (example `5000`).
+## Flow A: Admin-initiated import from Power Apps (Semester Dashboard)
+1. **Trigger**: **Power Apps (V2)**.
+   - Inputs:
+     - `semesterId` (Number)
+     - `fileName` (Text)
+     - `fileContent` (File)
+2. **Action**: Create file in a temp/import library (optional but recommended for traceability).
+   - Folder example: `/SemesterImports`
+   - File name: include timestamp + semester (`{semesterId}-{utcNow()}.xlsx`)
+3. **Action**: Excel Online (Business) — **List rows present in a table**.
+   - File: from created file (or directly from trigger file content, if your connector pattern supports it)
+   - Table: `AssignmentsImport`
+   - Pagination: On, threshold sized to expected import volume (example `5000`).
 3. **Action**: Initialize variables (before Apply to each).
    - `varCreatedCount` (Integer) = `0`
    - `varErrorCount` (Integer) = `0`
@@ -46,8 +44,8 @@
           - `FormStatus` = `NotSent`
           - `FormToken` = `guid()`
         - Increment `varCreatedCount`.
-5. **Action**: Outlook — **Send an email (V2)** summary to admin.
-   - Include: uploaded file name, created count, error count, and link to `ImportErrors` view.
+5. **Action**: Respond to Power Apps with summary payload (created count, error count, error log link).
+6. **Optional**: Outlook — send import summary email to admin group.
 
 ---
 
@@ -74,16 +72,23 @@
    - Frequency: Daily (recommended)
    - Time zone: local campus timezone
    - Suggested run time: early morning local time
-2. **SharePoint — Get items** from `TeachingAssignments`.
-   - Filter Query example:
-     - `FormStatus ne 'Submitted' and FormStatus ne 'Closed'`
-   - Optionally also filter by `SentAt` older than N days.
-3. **Apply to each** returned assignment.
-   - Calculate age since `SentAt`.
-   - Condition: if age >= reminder threshold (for example, 7 days), send reminder.
-4. **Outlook — Send an email (V2)** reminder.
-   - Include the same secure form link pattern, campus, and current status.
-5. **Optional escalation**:
+2. **SharePoint — Get items** from `Semesters` where reminders are enabled.
+   - Filter example: `Status eq 'Active' and RemindersEnabled eq 1`
+3. **Apply to each active semester**.
+   1. **SharePoint — Get items** from `TeachingAssignments`.
+      - Filter Query example:
+        - `SemesterId eq <current semester ID> and FormStatus ne 'Submitted' and FormStatus ne 'Closed'`
+   2. Use semester cadence:
+      - `ReminderCadenceDays` from current semester (fallback to `7` if blank).
+   3. **Apply to each** returned assignment.
+      - Calculate age since `SentAt` or `LastReminderSentAt`.
+      - Condition: if age >= cadence, send reminder.
+   4. **Outlook — Send an email (V2)** reminder.
+      - Include secure form link, campus, and current status.
+   5. **SharePoint — Update item** (`TeachingAssignments`):
+      - `LastReminderSentAt = utcNow()`
+      - `ReminderCount = add(int(coalesce(ReminderCount, 0)), 1)`
+4. **Optional escalation**:
    - If reminder count >= N (example 3), email department chair and/or set `FormStatus = Escalated`.
 
 ---

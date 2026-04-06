@@ -1417,8 +1417,8 @@ SortByColumns(Semesters, "StartDate", Descending)
 ```powerfx
 // drpSemester.DefaultSelectedItems (optional, default to active/current semester)
 If(
-    CountRows(Filter(Semesters, IsActive = true)) > 0,
-    [First(SortByColumns(Filter(Semesters, IsActive = true), "StartDate", Descending))],
+    CountRows(Filter(Semesters, Status.Value = "Active")) > 0,
+    [First(SortByColumns(Filter(Semesters, Status.Value = "Active"), "StartDate", Descending))],
     [First(SortByColumns(Semesters, "StartDate", Descending))]
 )
 ```
@@ -1439,4 +1439,98 @@ CountRows(Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID && F
 ```powerfx
 SendReminderNowFlow.Run(drpSemester.Selected.ID);
 Notify("Reminder flow started.", NotificationType.Success)
+```
+
+### A12) Semester reminder settings toggle (in `scrSemesterDashboard`)
+> Bind `tglSemesterReminders.Default`:
+```powerfx
+Coalesce(drpSemester.Selected.RemindersEnabled, true)
+```
+
+> Save toggle (`tglSemesterReminders.OnChange`):
+```powerfx
+Patch(
+    Semesters,
+    LookUp(Semesters, ID = drpSemester.Selected.ID),
+    { RemindersEnabled: Self.Value }
+);
+Notify("Reminder setting updated.", NotificationType.Success)
+```
+
+> Optional cadence input save (`btnSaveReminderCadence.OnSelect`, using `txtReminderCadenceDays`):
+```powerfx
+Patch(
+    Semesters,
+    LookUp(Semesters, ID = drpSemester.Selected.ID),
+    { ReminderCadenceDays: Value(txtReminderCadenceDays.Text) }
+);
+Notify("Reminder cadence saved.", NotificationType.Success)
+```
+
+### A13) Assignment gallery with response monitoring
+> `galAssignmentsBySemester.Items`:
+```powerfx
+AddColumns(
+    Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID),
+    ResponseCount,
+    CountRows(Filter(Responses, Assignment.Id = ID)),
+    IsSubmitted,
+    FormStatus.Value = "Submitted"
+)
+```
+
+> `galAssignmentsBySemester.OnSelect`:
+```powerfx
+Set(varSelectedAssignmentAdmin, ThisItem)
+```
+
+### A14) Manual create/edit assignment in dashboard
+> Save button (`btnSaveAssignmentAdmin.OnSelect`) with controls: `drpAssignCourse`, `txtAssignSection`, `txtAssignInstructorName`, `txtAssignInstructorEmail`, `drpAssignCampus`, `drpAssignStatus`.
+```powerfx
+Patch(
+    TeachingAssignments,
+    If(IsBlank(varSelectedAssignmentAdmin), Defaults(TeachingAssignments), varSelectedAssignmentAdmin),
+    {
+        Semester: LookUp(Semesters, ID = drpSemester.Selected.ID),
+        Course: LookUp(Courses, ID = drpAssignCourse.Selected.ID),
+        Section: Trim(txtAssignSection.Text),
+        InstructorName: Trim(txtAssignInstructorName.Text),
+        InstructorEmail: Lower(Trim(txtAssignInstructorEmail.Text)),
+        Campus: drpAssignCampus.Selected,
+        CampusCode: Switch(
+            drpAssignCampus.Selected.Value,
+            "Pullman", "PUL",
+            "Everett", "EVE",
+            "Bremerton", "BRE",
+            ""
+        ),
+        FormStatus: drpAssignStatus.Selected,
+        FormToken: Coalesce(varSelectedAssignmentAdmin.FormToken, GUID())
+    }
+);
+Notify("Teaching assignment saved.", NotificationType.Success)
+```
+
+> New assignment button (`btnNewAssignmentAdmin.OnSelect`):
+```powerfx
+Set(varSelectedAssignmentAdmin, Blank());
+Reset(drpAssignCourse); Reset(txtAssignSection); Reset(txtAssignInstructorName); Reset(txtAssignInstructorEmail); Reset(drpAssignCampus); Reset(drpAssignStatus)
+```
+
+### A15) Upload `SemesterAssignments.xlsx` from Admin app
+> Add a Power Automate flow connection named `ImportSemesterAssignmentsFlow` (Power Apps trigger), with parameters:
+> 1) `semesterId` (Number), 2) `fileName` (Text), 3) `fileContent` (File content from Add Picture / Attachment control).
+
+```powerfx
+// btnImportAssignments.OnSelect (example using an Attachments control named attAssignmentsImport)
+If(
+    IsBlank(drpSemester.Selected) || CountRows(attAssignmentsImport.Attachments) = 0,
+    Notify("Select semester and choose an .xlsx file first.", NotificationType.Error),
+    ImportSemesterAssignmentsFlow.Run(
+        drpSemester.Selected.ID,
+        First(attAssignmentsImport.Attachments).Name,
+        First(attAssignmentsImport.Attachments).Value
+    );
+    Notify("Import started. Refresh the gallery in a few moments.", NotificationType.Success)
+)
 ```

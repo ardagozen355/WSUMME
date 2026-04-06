@@ -23,18 +23,23 @@ Semesters,TermName,Single line of text,Yes,Example: Fall 2026
 Semesters,StartDate,Date and Time,Yes,
 Semesters,EndDate,Date and Time,Yes,
 Semesters,Status,Choice,Yes,Choices: Draft|Active|Closed
+Semesters,RemindersEnabled,Yes/No,Yes,Default Yes; admin can toggle periodic reminders from semester dashboard
+Semesters,ReminderCadenceDays,Number,Yes,Default 7
 Faculty,FirstName,Single line of text,Yes,
 Faculty,LastName,Single line of text,Yes,
 Faculty,Email,Single line of text,Yes,Enforce unique values
 Faculty,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
 TeachingAssignments,Semester,Lookup (Semesters),Yes,
 TeachingAssignments,Course,Lookup (Courses),Yes,
+TeachingAssignments,Section,Single line of text,No,Optional section from import or manual admin entry
 TeachingAssignments,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
 TeachingAssignments,CampusCode,Single line of text,Yes,Values: PUL|EVE|BRE
 TeachingAssignments,InstructorName,Single line of text,Yes,
 TeachingAssignments,InstructorEmail,Single line of text,Yes,
 TeachingAssignments,FormStatus,Choice,Yes,Choices: NotSent|Sent|InProgress|Submitted
 TeachingAssignments,FormToken,Single line of text,Yes,GUID
+TeachingAssignments,LastReminderSentAt,Date and Time,No,
+TeachingAssignments,ReminderCount,Number,No,Default 0
 Questions,QuestionText,Multiple lines of text,Yes,
 Questions,QuestionType,Choice,Yes,Choices: LongText|SingleChoice
 Questions,IsRequired,Yes/No,Yes,Default Yes; if No, instructors may skip the question

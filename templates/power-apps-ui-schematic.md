@@ -380,22 +380,25 @@ Purpose: Manage Student Outcomes and Performance Indicators with cascading delet
 ---
 
 ## Screen AD-4: `scrSemesterDashboard`
-Purpose: Track completion and send reminders.
+Purpose: Import/manage `TeachingAssignments`, track completion, and control reminders.
 
 ### Layout (wireframe)
 ```text
 +--------------------------------------------------------------------------------+
 | Semester Dashboard                                                              |
 +--------------------------------------------------------------------------------+
-| Semester [drpSemester]   [btnSendReminderNow]                                  |
+| Semester [drpSemester] [tglSemesterReminders] [txtReminderCadenceDays] [btnSaveReminderCadence] [btnSendReminderNow] |
+| [attAssignmentsImport] [btnImportAssignments]                                  |
 |--------------------------------------------------------------------------------|
 | Card: Pending Count                                                            |
 | Card: Submitted Count                                                          |
 |--------------------------------------------------------------------------------|
-| Gallery [galAssignmentsBySemester]                                             |
-|  - Instructor                                                                  |
-|  - Course                                                                      |
-|  - FormStatus                                                                  |
+| Gallery [galAssignmentsBySemester] (left)                                      |
+|  - Instructor  - Course  - Section  - FormStatus  - ResponseCount             |
+| Assignment editor (right):                                                     |
+|  [drpAssignCourse] [txtAssignSection] [txtAssignInstructorName]               |
+|  [txtAssignInstructorEmail] [drpAssignCampus] [drpAssignStatus]               |
+|  [btnNewAssignmentAdmin] [btnSaveAssignmentAdmin]                              |
 +--------------------------------------------------------------------------------+
 ```
 
@@ -408,18 +411,30 @@ SortByColumns(Semesters, "StartDate", Descending)
 - `drpSemester.DefaultSelectedItems` (recommended):
 ```powerfx
 If(
-    CountRows(Filter(Semesters, IsActive = true)) > 0,
-    [First(SortByColumns(Filter(Semesters, IsActive = true), "StartDate", Descending))],
+    CountRows(Filter(Semesters, Status.Value = "Active")) > 0,
+    [First(SortByColumns(Filter(Semesters, Status.Value = "Active"), "StartDate", Descending))],
     [First(SortByColumns(Semesters, "StartDate", Descending))]
 )
 ```
 
+- `tglSemesterReminders.Default` -> formula **A12**
+- `tglSemesterReminders.OnChange` -> formula **A12**
+- `btnSaveReminderCadence.OnSelect` -> formula **A12**
+- `btnImportAssignments.OnSelect` -> formula **A15**
 - Pending card text -> formula **A10** (pending)
 - Submitted card text -> formula **A10** (submitted)
 - `btnSendReminderNow.OnSelect` -> formula **A11**
+- `galAssignmentsBySemester.Items` -> formula **A13**
+- `galAssignmentsBySemester.OnSelect` -> formula **A13**
+- `btnSaveAssignmentAdmin.OnSelect` -> formula **A14**
+- `btnNewAssignmentAdmin.OnSelect` -> formula **A14**
 - `galAssignmentsBySemester.Items` example:
 ```powerfx
-Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
+AddColumns(
+    Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID),
+    ResponseCount,
+    CountRows(Filter(Responses, Assignment.Id = ID))
+)
 ```
 
 ---
@@ -428,15 +443,16 @@ Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID)
 
 To avoid broken formulas, keep these names exactly:
 
-- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`
-- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`
-- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`
+- Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
+- Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtAssignInstructorName`, `txtAssignInstructorEmail`
+- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
+- Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
-- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`, `varOutcomeCodeLocal`, `varOutcomeDescriptionLocal`, `varPIIndicatorCodeLocal`, `varPIIndicatorDescriptionLocal`
+- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`, `varOutcomeCodeLocal`, `varOutcomeDescriptionLocal`, `varPIIndicatorCodeLocal`, `varPIIndicatorDescriptionLocal`, `varSelectedAssignmentAdmin`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`
 
 If you prefer different control names, update the formula references consistently.
