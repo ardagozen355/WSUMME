@@ -111,7 +111,7 @@ Use SharePoint lists as the primary source of truth:
    - `Section` (Text)
    - `Instructor` (Lookup → Faculty)
    - `Campus` (Choice: Pullman / Everett / Bremerton)
-   - `CampusCode` (Text: PUL / EVE / BRE)
+   - `CampusCode` (Choice: PUL / EVE / BRE)
    - `FormStatus` (NotSent / Sent / InProgress / Submitted)
    - `FormToken` (GUID)
    - `LastReminderSentAt` (DateTime)

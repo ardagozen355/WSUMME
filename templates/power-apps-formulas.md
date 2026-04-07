@@ -1524,13 +1524,15 @@ Patch(
         Section: Trim(txtAssignSection.Text),
         Instructor: LookUp(Faculty, ID = drpAssignInstructor.Selected.ID),
         Campus: drpAssignCampus.Selected,
-        CampusCode: Switch(
-            drpAssignCampus.Selected.Value,
-            "Pullman", "PUL",
-            "Everett", "EVE",
-            "Bremerton", "BRE",
-            ""
-        ),
+        CampusCode: {
+            Value: Switch(
+                drpAssignCampus.Selected.Value,
+                "Pullman", "PUL",
+                "Everett", "EVE",
+                "Bremerton", "BRE",
+                ""
+            )
+        },
         FormStatus: drpAssignStatus.Selected,
         FormToken: Coalesce(varSelectedAssignmentAdmin.FormToken, GUID())
     }

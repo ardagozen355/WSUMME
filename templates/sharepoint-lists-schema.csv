@@ -33,7 +33,7 @@ TeachingAssignments,Semester,Lookup (Semesters),Yes,
 TeachingAssignments,Course,Lookup (Courses),Yes,
 TeachingAssignments,Section,Single line of text,No,Optional section from import or manual admin entry
 TeachingAssignments,Campus,Choice,Yes,Choices: Pullman|Everett|Bremerton
-TeachingAssignments,CampusCode,Single line of text,Yes,Values: PUL|EVE|BRE
+TeachingAssignments,CampusCode,Choice,Yes,Choices: PUL|EVE|BRE
 TeachingAssignments,Instructor,Lookup (Faculty),Yes,Use Faculty lookup; include Email as additional lookup column for filtering/mail merge
 TeachingAssignments,FormStatus,Choice,Yes,Choices: NotSent|Sent|InProgress|Submitted
 TeachingAssignments,FormToken,Single line of text,Yes,GUID
