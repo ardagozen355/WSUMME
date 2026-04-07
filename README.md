@@ -174,7 +174,7 @@ Use SharePoint lists as the primary source of truth:
 - Create new semesters directly in the Semester Dashboard (term + dates + status)
 - Manually create/edit/delete `TeachingAssignments` in the same dashboard gallery
 - Toggle periodic reminders on/off by semester and adjust cadence
-- Monitor assignment status plus submitted response count per assignment
+- Monitor assignment rows in a label-based gallery (Instructor name, Course, Section, Form Status)
 - Trigger resend reminders manually
 
 ### 2) Instructor App (Power Apps)

@@ -394,8 +394,8 @@ Purpose: Import/manage `TeachingAssignments`, track completion, and control remi
 | Card: Pending Count                                                            |
 | Card: Submitted Count                                                          |
 |--------------------------------------------------------------------------------|
-| Gallery [galAssignmentsBySemester] (left)                                      |
-|  - Instructor  - Course  - Section  - FormStatus  - ResponseCount             |
+| Gallery [galAssignmentsBySemester] (left; blank vertical gallery like Faculty) |
+|  - [lblAssignInstructor] [lblAssignCourse] [lblAssignSection] [lblAssignStatus] |
 | Assignment editor (right):                                                     |
 |  [drpAssignCourse] [txtAssignSection] [drpAssignInstructor]                   |
 |  [drpAssignCampus] [drpAssignStatus]                                           |
@@ -427,6 +427,10 @@ If(
 - Submitted card text -> formula **A10** (submitted)
 - `btnSendReminderNow.OnSelect` -> formula **A11**
 - `galAssignmentsBySemester.Items` -> formula **A13**
+- `lblAssignInstructor.Text` -> `ThisItem.InstructorDisplayName`
+- `lblAssignCourse.Text` -> `Coalesce(ThisItem.Course.Value, "")`
+- `lblAssignSection.Text` -> `Coalesce(ThisItem.Section, "")`
+- `lblAssignStatus.Text` -> `Coalesce(ThisItem.FormStatus.Value, "")`
 - `galAssignmentsBySemester.OnSelect` -> formula **A13**
 - `btnSaveAssignmentAdmin.OnSelect` -> formula **A14**
 - `btnNewAssignmentAdmin.OnSelect` -> formula **A14**
@@ -434,8 +438,11 @@ If(
 ```powerfx
 AddColumns(
     Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID),
-    ResponseCount,
-    CountRows(Filter(Responses, Assignment.Id = ID))
+    InstructorDisplayName,
+    Coalesce(
+        LookUp(Faculty, Lower(Email) = Lower(Instructor.Email), LastName & ", " & FirstName),
+        Coalesce(Instructor.Email, "(No instructor email)")
+    )
 )
 ```
 

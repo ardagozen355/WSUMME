@@ -1469,16 +1469,36 @@ Patch(
 Notify("Reminder cadence saved.", NotificationType.Success)
 ```
 
-### A13) Assignment gallery with response monitoring
+### A13) Assignment gallery (same pattern as `galFaculty`: embedded labels)
 > `galAssignmentsBySemester.Items`:
 ```powerfx
 AddColumns(
     Filter(TeachingAssignments, Semester.Id = drpSemester.Selected.ID),
-    ResponseCount,
-    CountRows(Filter(Responses, Assignment.Id = ID)),
-    IsSubmitted,
-    FormStatus.Value = "Submitted"
+    InstructorDisplayName,
+    Coalesce(
+        LookUp(
+            Faculty,
+            Lower(Email) = Lower(Instructor.Email),
+            LastName & ", " & FirstName
+        ),
+        Coalesce(Instructor.Email, "(No instructor email)")
+    )
 )
+```
+
+> Gallery labels (inside template):
+```powerfx
+// lblAssignInstructor.Text
+ThisItem.InstructorDisplayName
+
+// lblAssignCourse.Text
+Coalesce(ThisItem.Course.Value, "")
+
+// lblAssignSection.Text
+Coalesce(ThisItem.Section, "")
+
+// lblAssignStatus.Text
+Coalesce(ThisItem.FormStatus.Value, "")
 ```
 
 > `galAssignmentsBySemester.OnSelect`:
