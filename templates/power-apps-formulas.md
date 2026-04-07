@@ -1515,27 +1515,35 @@ SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
 ```
 
 ```powerfx
-Patch(
-    TeachingAssignments,
-    If(IsBlank(varSelectedAssignmentAdmin), Defaults(TeachingAssignments), varSelectedAssignmentAdmin),
+With(
     {
-        Semester: LookUp(Semesters, ID = drpSemester.Selected.ID),
-        Course: LookUp(Courses, ID = drpAssignCourse.Selected.ID),
-        Section: Trim(txtAssignSection.Text),
-        Instructor: LookUp(Faculty, ID = drpAssignInstructor.Selected.ID),
-        Campus: drpAssignCampus.Selected,
-        CampusCode: {
-            Value: Switch(
-                drpAssignCampus.Selected.Value,
-                "Pullman", "PUL",
-                "Everett", "EVE",
-                "Bremerton", "BRE",
-                ""
-            )
-        },
-        FormStatus: drpAssignStatus.Selected,
-        FormToken: Coalesce(varSelectedAssignmentAdmin.FormToken, GUID())
-    }
+        _semesterId: drpSemester.Selected.ID,
+        _courseId: drpAssignCourse.Selected.ID,
+        _instructorId: drpAssignInstructor.Selected.ID
+    },
+    Patch(
+        TeachingAssignments,
+        If(IsBlank(varSelectedAssignmentAdmin), Defaults(TeachingAssignments), varSelectedAssignmentAdmin),
+        {
+            // Use explicit SharePoint lookup-record schema (Id + Value)
+            Semester: { Id: _semesterId, Value: drpSemester.Selected.TermName },
+            Course: { Id: _courseId, Value: drpAssignCourse.Selected.CourseNumber },
+            Section: Trim(txtAssignSection.Text),
+            Instructor: { Id: _instructorId, Value: drpAssignInstructor.Selected.Email },
+            Campus: { Value: drpAssignCampus.Selected.Value },
+            CampusCode: {
+                Value: Switch(
+                    drpAssignCampus.Selected.Value,
+                    "Pullman", "PUL",
+                    "Everett", "EVE",
+                    "Bremerton", "BRE",
+                    ""
+                )
+            },
+            FormStatus: { Value: drpAssignStatus.Selected.Value },
+            FormToken: Coalesce(varSelectedAssignmentAdmin.FormToken, GUID())
+        }
+    )
 );
 Notify("Teaching assignment saved.", NotificationType.Success)
 ```
