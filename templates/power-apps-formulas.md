@@ -103,6 +103,9 @@ ClearCollect(
 
 > Build `galAssignments` as a **blank vertical gallery** with embedded row controls (same pattern as admin galleries):
 ```powerfx
+// galAssignments.Items
+colMyAssignments
+
 // lblAssignCourseTitle.Text
 Coalesce(ThisItem.Course.Value, "") & " - " & Coalesce(LookUp(Courses, ID = ThisItem.Course.Id, CourseTitle), "")
 
@@ -145,13 +148,27 @@ ClearCollect(
 );
 ```
 
-> Use this OnSelect formula on an embedded row button such as `btnOpenFormRow` inside `galAssignments`.
+> Use this exact formula on `btnOpenFormRow.OnSelect` (embedded inside `galAssignments`).
 
 ### 3) Control visibility for answer input
 > Build `galQuestions` as a **blank vertical gallery** with embedded controls in each row:
 - `lblQuestionText` (label)
 - `txtLongAnswer` (text input)
 - `drpSingleChoice` (dropdown)
+
+```powerfx
+// galQuestions.Items
+colResponses
+
+// lblQuestionText.Text
+ThisItem.QuestionText
+
+// txtLongAnswer.Default
+Coalesce(ThisItem.AnswerTextLocal, "")
+
+// drpSingleChoice.Default
+Coalesce(ThisItem.AnswerChoiceLocal, "")
+```
 
 #### Long text input control `Visible`
 ```powerfx
@@ -281,6 +298,20 @@ Collect(
 - `lblEvalCode.Text = ThisItem.EvalType & ": " & ThisItem.EvalCode`
 - `drpScore` (row dropdown)
 - `txtAssessmentTools` (row text input)
+
+```powerfx
+// galEvalItems.Items
+colEvalItems
+
+// lblEvalCode.Text
+ThisItem.EvalType & ": " & ThisItem.EvalCode
+
+// drpScore.Default
+Coalesce(ThisItem.ScoreLocal, "")
+
+// txtAssessmentTools.Default
+Coalesce(ThisItem.AssessmentToolsLocal, "")
+```
 
 > Rating dropdown `drpScore.Items`:
 ```powerfx
