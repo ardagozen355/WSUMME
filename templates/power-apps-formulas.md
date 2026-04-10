@@ -141,14 +141,15 @@ ClearCollect(
     colResponses,
     AddColumns(
         colQuestions,
-        "AnswerTextLocal", Blank(),
-        "AnswerChoiceLocal", Blank(),
-        "IsRequiredLocal", Coalesce(IsRequired, true)
+        AnswerTextLocal, Blank(),
+        AnswerChoiceLocal, Blank(),
+        IsRequiredLocal, Coalesce(IsRequired, true)
     )
 );
 ```
 
 > Use this exact formula on `btnOpenFormRow.OnSelect` (embedded inside `galAssignments`).
+> If your control is named `btnOpenForm`, use the same formula there.
 
 ### 3) Control visibility for answer input
 > Build `galQuestions` as a **blank vertical gallery** with embedded controls in each row:
