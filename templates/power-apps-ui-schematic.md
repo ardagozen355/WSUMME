@@ -433,10 +433,10 @@ If(
 - `lblAssignStatus.Text` -> `Coalesce(ThisItem.FormStatus.Value, "")`
 - `galAssignmentsBySemester.OnSelect` -> formula **A13**
 - `txtAssignSection.Default` -> `Coalesce(varSelectedAssignmentAdmin.Section, "")`
-- `drpAssignCourse.DefaultSelectedItems` -> `If(IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Course.Id), Blank(), [LookUp(Courses, ID = varSelectedAssignmentAdmin.Course.Id)])`
-- `drpAssignInstructor.DefaultSelectedItems` -> `If(IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Instructor.Id), Blank(), [LookUp(Faculty, ID = varSelectedAssignmentAdmin.Instructor.Id)])`
-- `drpAssignCampus.DefaultSelectedItems` -> `If(IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Campus.Value), Blank(), [varSelectedAssignmentAdmin.Campus])`
-- `drpAssignStatus.DefaultSelectedItems` -> `If(IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.FormStatus.Value), Blank(), [varSelectedAssignmentAdmin.FormStatus])`
+- `drpAssignCourse.Default` -> `Coalesce(varSelectedAssignmentAdmin.Course.Value, "")`
+- `drpAssignInstructor.Default` -> `Coalesce(varSelectedAssignmentAdmin.Instructor.Value, Coalesce(varSelectedAssignmentAdmin.Instructor.Email, ""))`
+- `drpAssignCampus.Default` -> `Coalesce(varSelectedAssignmentAdmin.Campus.Value, "")`
+- `drpAssignStatus.Default` -> `Coalesce(varSelectedAssignmentAdmin.FormStatus.Value, "")`
 - `btnSaveAssignmentAdmin.OnSelect` -> formula **A14**
 - `btnNewAssignmentAdmin.OnSelect` -> formula **A14**
 - `galAssignmentsBySemester.Items` example:
