@@ -399,7 +399,7 @@ Purpose: Import/manage `TeachingAssignments`, track completion, and control remi
 | Assignment editor (right):                                                     |
 |  [drpAssignCourse] [txtAssignSection] [drpAssignInstructor]                   |
 |  [drpAssignCampus] [drpAssignStatus]                                           |
-|  [btnNewAssignmentAdmin] [btnSaveAssignmentAdmin]                              |
+|  [btnNewAssignmentAdmin] [btnSaveAssignmentAdmin] [btnDeleteAssignmentAdmin]   |
 +--------------------------------------------------------------------------------+
 ```
 
@@ -439,6 +439,7 @@ If(
 - `drpAssignStatus.Default` -> `Coalesce(varSelectedAssignmentAdmin.FormStatus.Value, "")`
 - `btnSaveAssignmentAdmin.OnSelect` -> formula **A14**
 - `btnNewAssignmentAdmin.OnSelect` -> formula **A14**
+- `btnDeleteAssignmentAdmin.OnSelect` -> formula **A14**
 - `galAssignmentsBySemester.Items` example:
 ```powerfx
 AddColumns(
@@ -461,7 +462,7 @@ To avoid broken formulas, keep these names exactly:
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
-- Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
+- Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`

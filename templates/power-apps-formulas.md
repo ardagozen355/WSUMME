@@ -1577,6 +1577,18 @@ Set(varSelectedAssignmentAdmin, Blank());
 Reset(drpAssignCourse); Reset(txtAssignSection); Reset(drpAssignInstructor); Reset(drpAssignCampus); Reset(drpAssignStatus)
 ```
 
+> Delete assignment button (`btnDeleteAssignmentAdmin.OnSelect`):
+```powerfx
+If(
+    IsBlank(varSelectedAssignmentAdmin),
+    Notify("Select an assignment to delete.", NotificationType.Warning),
+    Remove(TeachingAssignments, LookUp(TeachingAssignments, ID = varSelectedAssignmentAdmin.ID));
+    Set(varSelectedAssignmentAdmin, Blank());
+    Reset(drpAssignCourse); Reset(txtAssignSection); Reset(drpAssignInstructor); Reset(drpAssignCampus); Reset(drpAssignStatus);
+    Notify("Teaching assignment deleted.", NotificationType.Success)
+)
+```
+
 ### A15) Upload `SemesterAssignments.xlsx` from Admin app
 > Add a Power Automate flow connection named `ImportSemesterAssignmentsFlow` (Power Apps trigger), with parameters:
 > 1) `semesterId` (Number), 2) `fileName` (Text), 3) `fileContent` (File content from Add Picture / Attachment control).
