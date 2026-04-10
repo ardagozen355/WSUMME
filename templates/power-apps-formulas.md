@@ -151,6 +151,34 @@ ClearCollect(
 > Use this exact formula on `btnOpenFormRow.OnSelect` (embedded inside `galAssignments`).
 > If your control is named `btnOpenForm`, use the same formula there.
 
+### 2a) `scrAssessmentForm` top bar (selected course + semester)
+```powerfx
+// lblAssessmentCourse.Text
+"Course: " &
+Coalesce(
+    LookUp(
+        Courses,
+        ID = varCourseId,
+        CourseNumber & " - " & CourseTitle
+    ),
+    "(No course selected)"
+)
+
+// lblAssessmentSemester.Text
+"Semester: " &
+Coalesce(
+    LookUp(
+        TeachingAssignments,
+        ID = varAssignmentId,
+        Semester.Value
+    ),
+    "(No semester selected)"
+)
+
+// btnBackToAssignments.OnSelect (optional)
+Navigate(scrMyAssignments, ScreenTransition.Fade)
+```
+
 ### 3) Control visibility for answer input
 > Build `galQuestions` as a **blank vertical gallery** with embedded controls in each row:
 - `lblQuestionText` (label)

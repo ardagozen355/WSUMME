@@ -69,6 +69,9 @@ Purpose: Instructor answers global questions and completes PI/CSO evaluations wi
 ```
 
 ### Controls
+- `lblAssessmentCourse.Text` -> `"Course: " & Coalesce(LookUp(Courses, ID = varCourseId, CourseNumber & " - " & CourseTitle), "(No course selected)")`
+- `lblAssessmentSemester.Text` -> `"Semester: " & Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, Semester.Value), "(No semester selected)")`
+- `btnBackToAssignments.OnSelect` -> `Navigate(scrMyAssignments, ScreenTransition.Fade)` (optional)
 - `galQuestions.Items` -> `colResponses`
 - `lblQuestionText.Text` -> `ThisItem.QuestionText`
 - `txtLongAnswer.Visible` -> `ThisItem.QuestionType.Value = "LongText"`
@@ -464,7 +467,7 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
-- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `galQuestions`, `lblQuestionText`
+- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `galQuestions`, `lblQuestionText`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
