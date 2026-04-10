@@ -1503,7 +1503,12 @@ Coalesce(ThisItem.FormStatus.Value, "")
 
 > `galAssignmentsBySemester.OnSelect`:
 ```powerfx
-Set(varSelectedAssignmentAdmin, ThisItem)
+Set(varSelectedAssignmentAdmin, ThisItem);
+Reset(drpAssignCourse);
+Reset(txtAssignSection);
+Reset(drpAssignInstructor);
+Reset(drpAssignCampus);
+Reset(drpAssignStatus)
 ```
 
 ### A14) Manual create/edit assignment in dashboard
@@ -1512,6 +1517,40 @@ Set(varSelectedAssignmentAdmin, ThisItem)
 > `drpAssignInstructor.Items`:
 ```powerfx
 SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
+```
+
+> Assignment editor defaults (so selected gallery row values appear in inputs):
+```powerfx
+// txtAssignSection.Default
+Coalesce(varSelectedAssignmentAdmin.Section, "")
+
+// drpAssignCourse.DefaultSelectedItems
+If(
+    IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Course.Id),
+    Blank(),
+    [LookUp(Courses, ID = varSelectedAssignmentAdmin.Course.Id)]
+)
+
+// drpAssignInstructor.DefaultSelectedItems
+If(
+    IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Instructor.Id),
+    Blank(),
+    [LookUp(Faculty, ID = varSelectedAssignmentAdmin.Instructor.Id)]
+)
+
+// drpAssignCampus.DefaultSelectedItems
+If(
+    IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Campus.Value),
+    Blank(),
+    [varSelectedAssignmentAdmin.Campus]
+)
+
+// drpAssignStatus.DefaultSelectedItems
+If(
+    IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.FormStatus.Value),
+    Blank(),
+    [varSelectedAssignmentAdmin.FormStatus]
+)
 ```
 
 ```powerfx
