@@ -27,17 +27,18 @@ Purpose: Instructor sees pending forms.
 +--------------------------------------------------------------------------------+
 | Search (optional) [txtAssignmentSearch]                                        |
 |--------------------------------------------------------------------------------|
-| Gallery [galAssignments]                                                       |
-|  - CourseNumber - CourseTitle                                                  |
-|  - Semester                                                                     |
-|  - Status badge (Sent/InProgress)                                              |
-|  - Button: "Open Form"                                                        |
+| Gallery [galAssignments] (blank vertical; embedded controls)                   |
+|  - [lblAssignCourseTitle]                                                      |
+|  - [lblAssignSemester] [lblAssignStatus] [btnOpenFormRow]                      |
 +--------------------------------------------------------------------------------+
 ```
 
 ### Controls
 - `galAssignments.Items` -> `colMyAssignments`
-- Open button `OnSelect`:
+- `lblAssignCourseTitle.Text` -> `Coalesce(ThisItem.Course.Value, "") & " - " & Coalesce(LookUp(Courses, ID = ThisItem.Course.Id, CourseTitle), "")`
+- `lblAssignSemester.Text` -> `Coalesce(ThisItem.Semester.Value, "")`
+- `lblAssignStatus.Text` -> `Coalesce(ThisItem.FormStatus.Value, "")`
+- `btnOpenFormRow.OnSelect`:
   - set `varAssignmentId` and `varCourseId`
   - build `colQuestions` and `colResponses`
   - `Navigate(scrAssessmentForm, ScreenTransition.Fade)`
@@ -54,20 +55,22 @@ Purpose: Instructor answers global questions and completes PI/CSO evaluations wi
 +--------------------------------------------------------------------------------+
 | Back | Course: <selected course> | Semester: <selected semester>              |
 +--------------------------------------------------------------------------------+
-| Scrollable gallery [galQuestions]                                              |
-|  Q1. <QuestionText>                                                            |
-|      [txtLongAnswer]  (Visible when LongText)                                  |
-|      [drpSingleChoice] (Visible when SingleChoice)                             |
+| Scrollable gallery [galQuestions] (blank vertical; embedded controls)          |
+|  - [lblQuestionText]                                                           |
+|  - [txtLongAnswer]  (Visible when LongText)                                    |
+|  - [drpSingleChoice] (Visible when SingleChoice)                               |
 |--------------------------------------------------------------------------------|
-|  Q2. <QuestionText> ...                                                        |
+|  ...                                                                           |
 +--------------------------------------------------------------------------------+
-| Ratings [galEvalItems]: [lblEvalCode] [drpScore (PI options / CSO scale)] [txtAssessmentTools] |
+| Ratings [galEvalItems] (blank vertical; embedded controls):                    |
+|  - [lblEvalCode] [drpScore (PI options / CSO scale)] [txtAssessmentTools]      |
 | [btnSubmitAssessment]                                                          |
 +--------------------------------------------------------------------------------+
 ```
 
 ### Controls
 - `galQuestions.Items` -> `colResponses`
+- `lblQuestionText.Text` -> `ThisItem.QuestionText`
 - `txtLongAnswer.Visible` -> `ThisItem.QuestionType.Value = "LongText"`
 - `drpSingleChoice.Visible` -> `ThisItem.QuestionType.Value = "SingleChoice"`
 - `drpSingleChoice.Items` -> `Filter(QuestionChoices, Question.Id = ThisItem.ID)` sorted by `DisplayOrder`
@@ -461,6 +464,7 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
+- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `galQuestions`, `lblQuestionText`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`

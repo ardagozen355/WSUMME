@@ -101,6 +101,18 @@ ClearCollect(
 );
 ```
 
+> Build `galAssignments` as a **blank vertical gallery** with embedded row controls (same pattern as admin galleries):
+```powerfx
+// lblAssignCourseTitle.Text
+Coalesce(ThisItem.Course.Value, "") & " - " & Coalesce(LookUp(Courses, ID = ThisItem.Course.Id, CourseTitle), "")
+
+// lblAssignSemester.Text
+Coalesce(ThisItem.Semester.Value, "")
+
+// lblAssignStatus.Text
+Coalesce(ThisItem.FormStatus.Value, "")
+```
+
 ### 2) Build dynamic question set for selected assignment (OnSelect of assignment row)
 ```powerfx
 Set(varAssignmentId, ThisItem.ID);
@@ -133,7 +145,14 @@ ClearCollect(
 );
 ```
 
+> Use this OnSelect formula on an embedded row button such as `btnOpenFormRow` inside `galAssignments`.
+
 ### 3) Control visibility for answer input
+> Build `galQuestions` as a **blank vertical gallery** with embedded controls in each row:
+- `lblQuestionText` (label)
+- `txtLongAnswer` (text input)
+- `drpSingleChoice` (dropdown)
+
 #### Long text input control `Visible`
 ```powerfx
 ThisItem.QuestionType.Value = "LongText"
@@ -257,6 +276,11 @@ Collect(
     )
 )
 ```
+
+> Build `galEvalItems` as a **blank vertical gallery** with embedded controls:
+- `lblEvalCode.Text = ThisItem.EvalType & ": " & ThisItem.EvalCode`
+- `drpScore` (row dropdown)
+- `txtAssessmentTools` (row text input)
 
 > Rating dropdown `drpScore.Items`:
 ```powerfx
