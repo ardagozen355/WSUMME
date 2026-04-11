@@ -148,7 +148,7 @@ ClearCollect(
     )
 );
 
-// Grade distribution collection for step-2 screen (ratings/submit)
+// Grade distribution collection for step-3 screen (grade distribution/submit)
 ClearCollect(
     colGradeDistribution,
     Table(
@@ -171,7 +171,7 @@ ClearCollect(
 > Use this exact formula on `btnOpenFormRow.OnSelect` (embedded inside `galAssignments`).
 > If your control is named `btnOpenForm`, use the same formula there.
 
-### 2a) Assessment screens top bar (`scrAssessmentQuestions` + `scrAssessmentRatings`)
+### 2a) Assessment screens top bar (`scrAssessmentQuestions` + `scrAssessmentRatings` + `scrGradeDistribution`)
 ```powerfx
 // lblAssessmentCourse.Text
 "Course: " &
@@ -288,6 +288,20 @@ If(
 Navigate(scrAssessmentQuestions, ScreenTransition.None)
 ```
 
+> Step-2 next button (`btnGoToGradeDistribution.OnSelect`):
+```powerfx
+If(
+    CountRows(
+        Filter(
+            colEvalItems,
+            IsBlank(ScoreLocal) || IsBlank(AssessmentToolsLocal)
+        )
+    ) > 0,
+    Notify("Please complete ratings and assessment tools before continuing.", NotificationType.Error),
+    Navigate(scrGradeDistribution, ScreenTransition.Fade)
+)
+```
+
 ### 7) Instructor evaluations for PIs and CSOs (PI option-based rating + assessment tools)
 > Add list `OutcomeEvaluations` with fields:
 - `Assignment` (Lookup -> TeachingAssignments)
@@ -345,7 +359,7 @@ Coalesce(ThisItem.ScoreLocal, "")
 Coalesce(ThisItem.AssessmentToolsLocal, "")
 ```
 
-> Grade distribution gallery (`galGradeDistribution`) on step-2 screen:
+> Grade distribution gallery (`galGradeDistribution`) on step-3 screen:
 ```powerfx
 // galGradeDistribution.Items
 colGradeDistribution
@@ -387,7 +401,12 @@ Patch(
 )
 ```
 
-> Final submit button on step-2 screen (`btnSubmitAssessment.OnSelect`):
+> Step-3 back button (`btnBackToRatings.OnSelect`):
+```powerfx
+Navigate(scrAssessmentRatings, ScreenTransition.None)
+```
+
+> Final submit button on step-3 screen (`btnSubmitAssessment.OnSelect`):
 ```powerfx
 If(
     CountRows(

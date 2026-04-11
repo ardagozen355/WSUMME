@@ -185,11 +185,12 @@ Use SharePoint lists as the primary source of truth:
 
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms
-- Two sequential assessment screens:
+- Three sequential assessment screens:
   1. Questions screen (global required/optional questions)
-  2. Ratings screen (PI/CSO ratings + assessment tools + grade-distribution entry)
-- Users can move back/forth between question and ratings screens before final submit
-- Final submit on the ratings screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
+  2. Ratings screen (PI/CSO ratings + assessment tools)
+  3. Grade distribution screen (grade counts + final submit)
+- Users can move back/forth between all three screens before final submit
+- Final submit on the grade distribution screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
 
 ### 3) Automations (Power Automate)
 - On semester file upload: parse and create assignments
