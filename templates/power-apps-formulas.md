@@ -321,6 +321,7 @@ ClearCollect(
         "EvalType", "PI",
         "EvalId", Id,
         "EvalCode", Value,
+        "EvalDescription", Coalesce(LookUp(PerformanceIndicators, ID = Id, IndicatorDescription), Value),
         "ScoreLocal", Blank(),
         "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
         "AssessmentToolsLocal", Blank()
@@ -333,6 +334,7 @@ Collect(
         "EvalType", "CSO",
         "EvalId", ID,
         "EvalCode", CSOCode,
+        "EvalDescription", CSODescription,
         "ScoreLocal", Blank(),
         "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
         "AssessmentToolsLocal", Blank()
@@ -341,7 +343,7 @@ Collect(
 ```
 
 > Build `galEvalItems` as a **blank vertical gallery** with embedded controls:
-- `lblEvalCode.Text = ThisItem.EvalType & ": " & ThisItem.EvalCode`
+- `lblEvalCode.Text = ThisItem.EvalType & ": " & Coalesce(ThisItem.EvalDescription, ThisItem.EvalCode)`
 - `drpScore` (row dropdown)
 - `txtAssessmentTools` (row text input)
 
@@ -350,7 +352,7 @@ Collect(
 colEvalItems
 
 // lblEvalCode.Text
-ThisItem.EvalType & ": " & ThisItem.EvalCode
+ThisItem.EvalType & ": " & Coalesce(ThisItem.EvalDescription, ThisItem.EvalCode)
 
 // drpScore.Default
 Coalesce(ThisItem.ScoreLocal, "")

@@ -96,6 +96,7 @@ Purpose: Instructor completes PI/CSO ratings (step 2 of 3).
 
 ### Controls
 - `galEvalItems.Items` -> `colEvalItems` (PI + CSO items)
+- `lblEvalCode.Text` -> `ThisItem.EvalType & ": " & Coalesce(ThisItem.EvalDescription, ThisItem.EvalCode)` (shows description with code fallback)
 - `drpScore.OnChange` -> updates `ScoreLocal`
 - `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
 - `drpScore.Items` -> formula **7** (`ThisItem.OptionItems`, PI-specific when `EvalType="PI"`)
