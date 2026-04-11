@@ -141,8 +141,9 @@ ClearCollect(
     colResponses,
     AddColumns(
         colQuestions,
-        AnswerTextLocal, Blank(),
-        AnswerChoiceLocal, Blank(),
+        // Use empty text defaults so OnChange patches with Self.Text / selected text type safely
+        AnswerTextLocal, "",
+        AnswerChoiceLocal, "",
         IsRequiredLocal, Coalesce(IsRequired, true)
     )
 );
@@ -226,6 +227,7 @@ Patch(
     { AnswerTextLocal: Self.Text }
 )
 ```
+> If your control is named `txtLongText` (instead of `txtLongAnswer`), use the same `OnChange` formula.
 
 ### 5) Save draft answer (Dropdown OnChange)
 ```powerfx
