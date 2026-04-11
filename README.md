@@ -161,6 +161,12 @@ Use SharePoint lists as the primary source of truth:
    - `DisplayOrder` (Number; 1..5 per PI)
    - `IsActive` (Yes/No)
 
+12. **GradeDistributions**
+   - `Assignment` (Lookup → TeachingAssignments)
+   - `Grade` (Choice: `A`, `A-`, `B+`, `B`, `B-`, `C+`, `C`, `C-`, `D+`, `D`, `F`, `I`)
+   - `StudentCount` (Number)
+   - `SubmittedAt` (DateTime, optional)
+
 ---
 
 ## App Modules
@@ -179,9 +185,11 @@ Use SharePoint lists as the primary source of truth:
 
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms
-- Dynamic rendering of active global questions
-- Evaluate each PI/CSO with a rating option (PI-specific five-option scheme for PIs) and a long-text assessment-tools rationale
-- Save draft + final submit
+- Two sequential assessment screens:
+  1. Questions screen (global required/optional questions)
+  2. Ratings screen (PI/CSO ratings + assessment tools + grade-distribution entry)
+- Users can move back/forth between question and ratings screens before final submit
+- Final submit on the ratings screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
 
 ### 3) Automations (Power Automate)
 - On semester file upload: parse and create assignments

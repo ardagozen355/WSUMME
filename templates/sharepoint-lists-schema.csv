@@ -59,3 +59,7 @@ OutcomeEvaluations,ReferenceCode,Single line of text,Yes,PI code or CSO code
 OutcomeEvaluations,Score,Single line of text,Yes,For PI evaluations store selected PI grading option label; for CSO keep numeric/text scheme
 OutcomeEvaluations,AssessmentTools,Multiple lines of text,Yes,Instructor rationale describing assessment tools used for the score
 OutcomeEvaluations,SubmittedAt,Date and Time,Yes,
+GradeDistributions,Assignment,Lookup (TeachingAssignments),Yes,
+GradeDistributions,Grade,Choice,Yes,Choices: A|A-|B+|B|B-|C+|C|C-|D+|D|F|I
+GradeDistributions,StudentCount,Number,Yes,Non-negative integer student count per grade option
+GradeDistributions,SubmittedAt,Date and Time,No,Optional audit timestamp

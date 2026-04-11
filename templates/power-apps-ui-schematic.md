@@ -41,14 +41,14 @@ Purpose: Instructor sees pending forms.
 - `btnOpenFormRow.OnSelect`:
   - set `varAssignmentId` and `varCourseId`
   - build `colQuestions` and `colResponses`
-  - `Navigate(scrAssessmentForm, ScreenTransition.Fade)`
+  - `Navigate(scrAssessmentQuestions, ScreenTransition.Fade)`
 
 (Uses formulas from section **Instructor 1 & 2**.)
 
 ---
 
-## Screen IA-2: `scrAssessmentForm`
-Purpose: Instructor answers global questions and completes PI/CSO evaluations with PI-specific option ratings (configured by admins) plus assessment-tools rationale.
+## Screen IA-2: `scrAssessmentQuestions`
+Purpose: Instructor answers global questions (step 1 of 2).
 
 ### Layout (wireframe)
 ```text
@@ -62,9 +62,7 @@ Purpose: Instructor answers global questions and completes PI/CSO evaluations wi
 |--------------------------------------------------------------------------------|
 |  ...                                                                           |
 +--------------------------------------------------------------------------------+
-| Ratings [galEvalItems] (blank vertical; embedded controls):                    |
-|  - [lblEvalCode] [drpScore (PI options / CSO scale)] [txtAssessmentTools]      |
-| [btnSubmitAssessment]                                                          |
+| [btnBackToAssignments] [btnGoToRatings]                                        |
 +--------------------------------------------------------------------------------+
 ```
 
@@ -78,11 +76,39 @@ Purpose: Instructor answers global questions and completes PI/CSO evaluations wi
 - `drpSingleChoice.Visible` -> `ThisItem.QuestionType.Value = "SingleChoice"`
 - `drpSingleChoice.Items` -> `Filter(QuestionChoices, Question.Id = ThisItem.ID)` sorted by `DisplayOrder`
 - `txtLongAnswer.OnChange` and `drpSingleChoice.OnChange` patch `colResponses`
+- `btnGoToRatings.OnSelect` -> formula **6** (validates required questions, then navigates)
+
+---
+
+## Screen IA-3: `scrAssessmentRatings`
+Purpose: Instructor completes PI/CSO ratings and grade distribution (step 2 of 2), then submits.
+
+### Layout (wireframe)
+```text
++--------------------------------------------------------------------------------+
+| Back to Questions [btnBackToQuestions] | Course / Semester context             |
++--------------------------------------------------------------------------------+
+| Ratings [galEvalItems] (blank vertical; embedded controls):                    |
+|  - [lblEvalCode] [drpScore (PI options / CSO scale)] [txtAssessmentTools]      |
+|--------------------------------------------------------------------------------|
+| Grade Distribution [galGradeDistribution] (blank vertical; embedded controls): |
+|  - [lblGradeLabel] [txtGradeCount]                                             |
+|--------------------------------------------------------------------------------|
+| [btnSubmitAssessment]                                                           |
++--------------------------------------------------------------------------------+
+```
+
+### Controls
 - `galEvalItems.Items` -> `colEvalItems` (PI + CSO items)
 - `drpScore.OnChange` -> updates `ScoreLocal`
 - `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
 - `drpScore.Items` -> formula **7** (`ThisItem.OptionItems`, PI-specific when `EvalType="PI"`)
-- `btnSubmitAssessment.OnSelect` uses submit formula + saves `OutcomeEvaluations`.
+- `galGradeDistribution.Items` -> `colGradeDistribution`
+- `lblGradeLabel.Text` -> `ThisItem.Grade`
+- `txtGradeCount.Default` -> `Text(ThisItem.StudentCount)`
+- `txtGradeCount.OnChange` -> patches `colGradeDistribution.StudentCount`
+- `btnBackToQuestions.OnSelect` -> `Navigate(scrAssessmentQuestions, ScreenTransition.None)`
+- `btnSubmitAssessment.OnSelect` uses final submit formula (responses + ratings + grade distribution).
 
 (Uses formulas from section **Instructor 3–7**.)
 
@@ -467,7 +493,7 @@ To avoid broken formulas, keep these names exactly:
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
-- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `galQuestions`, `lblQuestionText`
+- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnGoToRatings`, `btnBackToQuestions`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
@@ -475,6 +501,6 @@ To avoid broken formulas, keep these names exactly:
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`, `varOutcomeCodeLocal`, `varOutcomeDescriptionLocal`, `varPIIndicatorCodeLocal`, `varPIIndicatorDescriptionLocal`, `varSelectedAssignmentAdmin`
-- Collections: `colMyAssignments`, `colQuestions`, `colResponses`
+- Collections: `colMyAssignments`, `colQuestions`, `colResponses`, `colEvalItems`, `colGradeDistribution`
 
 If you prefer different control names, update the formula references consistently.

@@ -147,12 +147,31 @@ ClearCollect(
         IsRequiredLocal, Coalesce(IsRequired, true)
     )
 );
+
+// Grade distribution collection for step-2 screen (ratings/submit)
+ClearCollect(
+    colGradeDistribution,
+    Table(
+        { Grade: "A", StudentCount: 0 },
+        { Grade: "A-", StudentCount: 0 },
+        { Grade: "B+", StudentCount: 0 },
+        { Grade: "B", StudentCount: 0 },
+        { Grade: "B-", StudentCount: 0 },
+        { Grade: "C+", StudentCount: 0 },
+        { Grade: "C", StudentCount: 0 },
+        { Grade: "C-", StudentCount: 0 },
+        { Grade: "D+", StudentCount: 0 },
+        { Grade: "D", StudentCount: 0 },
+        { Grade: "F", StudentCount: 0 },
+        { Grade: "I", StudentCount: 0 }
+    )
+);
 ```
 
 > Use this exact formula on `btnOpenFormRow.OnSelect` (embedded inside `galAssignments`).
 > If your control is named `btnOpenForm`, use the same formula there.
 
-### 2a) `scrAssessmentForm` top bar (selected course + semester)
+### 2a) Assessment screens top bar (`scrAssessmentQuestions` + `scrAssessmentRatings`)
 ```powerfx
 // lblAssessmentCourse.Text
 "Course: " &
@@ -238,7 +257,7 @@ Patch(
 )
 ```
 
-### 6) Submit button (OnSelect)
+### 6) Step-1 Next button (`btnGoToRatings.OnSelect`)
 > `Responses` should include both:
 > - `Assignment` (Lookup -> TeachingAssignments)
 > - `Course` (Lookup -> Courses)
@@ -259,32 +278,14 @@ If(
             )
         )
     ) > 0,
-    Notify("Please answer all required questions before submitting.", NotificationType.Error),
-
-    ForAll(
-        colResponses,
-        Patch(
-            Responses,
-            Defaults(Responses),
-            {
-                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-                Course: LookUp(Courses, ID = varCourseId),
-                Question: LookUp(Questions, ID = ThisRecord.ID),
-                AnswerText: ThisRecord.AnswerTextLocal,
-                AnswerChoice: ThisRecord.AnswerChoiceLocal,
-                SubmittedAt: Now()
-            }
-        )
-    );
-
-    Patch(
-        TeachingAssignments,
-        LookUp(TeachingAssignments, ID = varAssignmentId),
-        { FormStatus: { Value: "Submitted" } }
-    );
-
-    Notify("Assessment submitted successfully.", NotificationType.Success)
+    Notify("Please answer all required questions before continuing.", NotificationType.Error),
+    Navigate(scrAssessmentRatings, ScreenTransition.Fade)
 )
+```
+
+> Step-2 back button (`btnBackToQuestions.OnSelect`):
+```powerfx
+Navigate(scrAssessmentQuestions, ScreenTransition.None)
 ```
 
 ### 7) Instructor evaluations for PIs and CSOs (PI option-based rating + assessment tools)
@@ -344,6 +345,25 @@ Coalesce(ThisItem.ScoreLocal, "")
 Coalesce(ThisItem.AssessmentToolsLocal, "")
 ```
 
+> Grade distribution gallery (`galGradeDistribution`) on step-2 screen:
+```powerfx
+// galGradeDistribution.Items
+colGradeDistribution
+
+// lblGradeLabel.Text
+ThisItem.Grade
+
+// txtGradeCount.Default
+Text(ThisItem.StudentCount)
+
+// txtGradeCount.OnChange
+Patch(
+    colGradeDistribution,
+    ThisItem,
+    { StudentCount: Max(0, Value(Self.Text)) }
+)
+```
+
 > Rating dropdown `drpScore.Items`:
 ```powerfx
 ThisItem.OptionItems
@@ -367,7 +387,7 @@ Patch(
 )
 ```
 
-> Save ratings on submit (append to existing submit logic):
+> Final submit button on step-2 screen (`btnSubmitAssessment.OnSelect`):
 ```powerfx
 If(
     CountRows(
@@ -377,22 +397,65 @@ If(
         )
     ) > 0,
     Notify("Please select a rating option and enter assessment tools for each PI/CSO.", NotificationType.Error),
+    If(
+        CountRows(Filter(colGradeDistribution, IsBlank(StudentCount))) > 0,
+        Notify("Please enter student counts for all grade options.", NotificationType.Error),
 
-    ForAll(
-        colEvalItems,
+        ForAll(
+            colResponses,
+            Patch(
+                Responses,
+                Defaults(Responses),
+                {
+                    Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                    Course: LookUp(Courses, ID = varCourseId),
+                    Question: LookUp(Questions, ID = ThisRecord.ID),
+                    AnswerText: ThisRecord.AnswerTextLocal,
+                    AnswerChoice: ThisRecord.AnswerChoiceLocal,
+                    SubmittedAt: Now()
+                }
+            )
+        );
+
+        ForAll(
+            colEvalItems,
+            Patch(
+                OutcomeEvaluations,
+                Defaults(OutcomeEvaluations),
+                {
+                    Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                    EvaluationType: { Value: EvalType },
+                    ReferenceId: EvalId,
+                    ReferenceCode: EvalCode,
+                    Score: ScoreLocal,
+                    AssessmentTools: AssessmentToolsLocal,
+                    SubmittedAt: Now()
+                }
+            )
+        );
+
+        // Optional list: GradeDistributions (Assignment, Grade, StudentCount)
+        ForAll(
+            colGradeDistribution,
+            Patch(
+                GradeDistributions,
+                Defaults(GradeDistributions),
+                {
+                    Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                    Grade: Grade,
+                    StudentCount: StudentCount
+                }
+            )
+        );
+
         Patch(
-            OutcomeEvaluations,
-            Defaults(OutcomeEvaluations),
-            {
-                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-                EvaluationType: { Value: EvalType },
-                ReferenceId: EvalId,
-                ReferenceCode: EvalCode,
-                Score: ScoreLocal,
-                AssessmentTools: AssessmentToolsLocal,
-                SubmittedAt: Now()
-            }
-        )
+            TeachingAssignments,
+            LookUp(TeachingAssignments, ID = varAssignmentId),
+            { FormStatus: { Value: "Submitted" } }
+        );
+
+        Notify("Assessment submitted successfully.", NotificationType.Success);
+        Navigate(scrMyAssignments, ScreenTransition.Fade)
     )
 )
 ```
