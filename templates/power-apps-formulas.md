@@ -322,9 +322,9 @@ ClearCollect(
         "EvalId", Id,
         "EvalCode", Value,
         "EvalDescription", Coalesce(LookUp(PerformanceIndicators, ID = Id, IndicatorDescription), Value),
-        "ScoreLocal", Blank(),
+        "ScoreLocal", "",
         "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
-        "AssessmentToolsLocal", Blank()
+        "AssessmentToolsLocal", ""
     )
 );
 Collect(
@@ -335,9 +335,9 @@ Collect(
         "EvalId", ID,
         "EvalCode", CSOCode,
         "EvalDescription", CSODescription,
-        "ScoreLocal", Blank(),
+        "ScoreLocal", "",
         "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
-        "AssessmentToolsLocal", Blank()
+        "AssessmentToolsLocal", ""
     )
 )
 ```
