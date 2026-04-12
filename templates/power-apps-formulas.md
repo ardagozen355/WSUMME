@@ -152,18 +152,18 @@ ClearCollect(
 ClearCollect(
     colGradeDistribution,
     Table(
-        { Grade: "A", StudentCount: 0 },
-        { Grade: "A-", StudentCount: 0 },
-        { Grade: "B+", StudentCount: 0 },
-        { Grade: "B", StudentCount: 0 },
-        { Grade: "B-", StudentCount: 0 },
-        { Grade: "C+", StudentCount: 0 },
-        { Grade: "C", StudentCount: 0 },
-        { Grade: "C-", StudentCount: 0 },
-        { Grade: "D+", StudentCount: 0 },
-        { Grade: "D", StudentCount: 0 },
-        { Grade: "F", StudentCount: 0 },
-        { Grade: "I", StudentCount: 0 }
+        { Grade: "A", StudentCountLocal: "" },
+        { Grade: "A-", StudentCountLocal: "" },
+        { Grade: "B+", StudentCountLocal: "" },
+        { Grade: "B", StudentCountLocal: "" },
+        { Grade: "B-", StudentCountLocal: "" },
+        { Grade: "C+", StudentCountLocal: "" },
+        { Grade: "C", StudentCountLocal: "" },
+        { Grade: "C-", StudentCountLocal: "" },
+        { Grade: "D+", StudentCountLocal: "" },
+        { Grade: "D", StudentCountLocal: "" },
+        { Grade: "F", StudentCountLocal: "" },
+        { Grade: "I", StudentCountLocal: "" }
     )
 );
 ```
@@ -370,13 +370,13 @@ colGradeDistribution
 ThisItem.Grade
 
 // txtGradeCount.Default
-Text(ThisItem.StudentCount)
+ThisItem.StudentCountLocal
 
 // txtGradeCount.OnChange
 Patch(
     colGradeDistribution,
     ThisItem,
-    { StudentCount: Max(0, Value(Self.Text)) }
+    { StudentCountLocal: Trim(Self.Text) }
 )
 ```
 
@@ -419,66 +419,61 @@ If(
         )
     ) > 0,
     Notify("Please select a rating option and enter assessment tools for each PI/CSO.", NotificationType.Error),
-    If(
-        CountRows(Filter(colGradeDistribution, IsBlank(StudentCount))) > 0,
-        Notify("Please enter student counts for all grade options.", NotificationType.Error),
-
-        ForAll(
-            colResponses,
-            Patch(
-                Responses,
-                Defaults(Responses),
-                {
-                    Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-                    Course: LookUp(Courses, ID = varCourseId),
-                    Question: LookUp(Questions, ID = ThisRecord.ID),
-                    AnswerText: ThisRecord.AnswerTextLocal,
-                    AnswerChoice: ThisRecord.AnswerChoiceLocal,
-                    SubmittedAt: Now()
-                }
-            )
-        );
-
-        ForAll(
-            colEvalItems,
-            Patch(
-                OutcomeEvaluations,
-                Defaults(OutcomeEvaluations),
-                {
-                    Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-                    EvaluationType: { Value: EvalType },
-                    ReferenceId: EvalId,
-                    ReferenceCode: EvalCode,
-                    Score: ScoreLocal,
-                    AssessmentTools: AssessmentToolsLocal,
-                    SubmittedAt: Now()
-                }
-            )
-        );
-
-        // Optional list: GradeDistributions (Assignment, Grade, StudentCount)
-        ForAll(
-            colGradeDistribution,
-            Patch(
-                GradeDistributions,
-                Defaults(GradeDistributions),
-                {
-                    Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-                    Grade: Grade,
-                    StudentCount: StudentCount
-                }
-            )
-        );
-
+    ForAll(
+        colResponses,
         Patch(
-            TeachingAssignments,
-            LookUp(TeachingAssignments, ID = varAssignmentId),
-            { FormStatus: { Value: "Submitted" } }
-        );
+            Responses,
+            Defaults(Responses),
+            {
+                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                Course: LookUp(Courses, ID = varCourseId),
+                Question: LookUp(Questions, ID = ThisRecord.ID),
+                AnswerText: ThisRecord.AnswerTextLocal,
+                AnswerChoice: ThisRecord.AnswerChoiceLocal,
+                SubmittedAt: Now()
+            }
+        )
+    );
 
-        Notify("Assessment submitted successfully.", NotificationType.Success);
-        Navigate(scrMyAssignments, ScreenTransition.Fade)
-    )
+    ForAll(
+        colEvalItems,
+        Patch(
+            OutcomeEvaluations,
+            Defaults(OutcomeEvaluations),
+            {
+                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                EvaluationType: { Value: EvalType },
+                ReferenceId: EvalId,
+                ReferenceCode: EvalCode,
+                Score: ScoreLocal,
+                AssessmentTools: AssessmentToolsLocal,
+                SubmittedAt: Now()
+            }
+        )
+    );
+
+    // Optional list: GradeDistributions (save only grades where count was entered)
+    ForAll(
+        Filter(colGradeDistribution, !IsBlank(StudentCountLocal)),
+        Patch(
+            GradeDistributions,
+            Defaults(GradeDistributions),
+            {
+                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                Grade: Grade,
+                StudentCount: Value(StudentCountLocal)
+            }
+        )
+    );
+
+    Patch(
+        TeachingAssignments,
+        LookUp(TeachingAssignments, ID = varAssignmentId),
+        { FormStatus: { Value: "Submitted" } }
+    );
+
+    Notify("Assessment submitted successfully.", NotificationType.Success);
+    Navigate(scrMyAssignments, ScreenTransition.Fade)
 )
 ```
 

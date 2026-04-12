@@ -123,8 +123,8 @@ Purpose: Instructor enters grade counts and submits final assessment (step 3 of 
 ### Controls
 - `galGradeDistribution.Items` -> `colGradeDistribution`
 - `lblGradeLabel.Text` -> `ThisItem.Grade`
-- `txtGradeCount.Default` -> `Text(ThisItem.StudentCount)`
-- `txtGradeCount.OnChange` -> patches `colGradeDistribution.StudentCount`
+- `txtGradeCount.Default` -> `ThisItem.StudentCountLocal` (blank by default)
+- `txtGradeCount.OnChange` -> patches `colGradeDistribution.StudentCountLocal`
 - `btnBackToRatings.OnSelect` -> `Navigate(scrAssessmentRatings, ScreenTransition.None)`
 - `btnSubmitAssessment.OnSelect` uses final submit formula (responses + ratings + grade distribution).
 

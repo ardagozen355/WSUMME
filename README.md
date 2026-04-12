@@ -190,6 +190,7 @@ Use SharePoint lists as the primary source of truth:
   2. Ratings screen (PI/CSO ratings + assessment tools)
   3. Grade distribution screen (grade counts + final submit)
 - Users can move back/forth between all three screens before final submit
+- Grade distribution counts default to blank; instructors may enter only applicable grade categories
 - Final submit on the grade distribution screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
 
 ### 3) Automations (Power Automate)
