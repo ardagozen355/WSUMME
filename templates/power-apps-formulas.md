@@ -390,9 +390,10 @@ ThisItem.OptionItems
 Patch(
     colEvalItems,
     ThisItem,
-    { ScoreLocal: Coalesce(Self.Selected.OptionLabel, Self.Selected.Value) }
+    { ScoreLocal: Self.Selected.OptionLabel }
 )
 ```
+> If you wire this on `drpScore.OnSelect` instead of `OnChange`, use the same formula.
 
 > Assessment tools text input `OnChange`:
 ```powerfx
