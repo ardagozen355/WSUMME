@@ -262,7 +262,7 @@ Patch(
 > - `Assignment` (Lookup -> TeachingAssignments)
 > - `Course` (Lookup -> Courses)
 >
-> `Assignment` points to the TeachingAssignments list item (source row ID). In Patch, use the full record from `LookUp(TeachingAssignments, ID = varAssignmentId)`.
+> `Assignment` points to the TeachingAssignments list item (source row ID). In Patch, use explicit lookup-record schema: `{ Id: ..., Value: ... }`.
 >
 > Keep `Course` as a direct lookup column on `Responses` (instead of trying to include `TeachingAssignments.Course` as an extra lookup column on `Assignment`).
 
@@ -425,9 +425,19 @@ If(
             Responses,
             Defaults(Responses),
             {
-                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
-                Course: LookUp(Courses, ID = varCourseId),
-                Question: LookUp(Questions, ID = ThisRecord.ID),
+                // Use explicit SharePoint lookup-record schema (Id + Value)
+                Assignment: {
+                    Id: varAssignmentId,
+                    Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
+                },
+                Course: {
+                    Id: varCourseId,
+                    Value: Coalesce(LookUp(Courses, ID = varCourseId, CourseNumber), Text(varCourseId))
+                },
+                Question: {
+                    Id: ThisRecord.ID,
+                    Value: Coalesce(LookUp(Questions, ID = ThisRecord.ID, Left(QuestionText, 100)), Text(ThisRecord.ID))
+                },
                 AnswerText: ThisRecord.AnswerTextLocal,
                 AnswerChoice: ThisRecord.AnswerChoiceLocal,
                 SubmittedAt: Now()
@@ -441,7 +451,10 @@ If(
             OutcomeEvaluations,
             Defaults(OutcomeEvaluations),
             {
-                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                Assignment: {
+                    Id: varAssignmentId,
+                    Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
+                },
                 EvaluationType: { Value: EvalType },
                 ReferenceId: EvalId,
                 ReferenceCode: EvalCode,
@@ -459,7 +472,10 @@ If(
             GradeDistributions,
             Defaults(GradeDistributions),
             {
-                Assignment: LookUp(TeachingAssignments, ID = varAssignmentId),
+                Assignment: {
+                    Id: varAssignmentId,
+                    Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
+                },
                 Grade: Grade,
                 StudentCount: Value(StudentCountLocal)
             }
