@@ -1694,14 +1694,26 @@ Reset(drpAssignStatus)
 ```
 
 ### A14) Manual create/edit assignment in dashboard
-> Save button (`btnSaveAssignmentAdmin.OnSelect`) with controls: `drpAssignCourse`, `txtAssignSection`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`.
+> Save button (`btnSaveAssignmentAdmin.OnSelect`) with controls: `drpAssignCourse`, `txtAssignSection`, `drpAssignInstructor` (**Combo box, searchable**), `drpAssignCampus`, `drpAssignStatus`.
 >
 > `drpAssignInstructor.Items`:
 ```powerfx
 SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
 ```
 
-> Assignment editor defaults for **Dropdown** controls (so selected gallery row values appear in inputs):
+> `drpAssignInstructor` (Combo box) recommended properties:
+```powerfx
+// drpAssignInstructor.DisplayFields
+["LastName", "FirstName", "Email"]
+
+// drpAssignInstructor.SearchFields
+["LastName", "FirstName", "Email"]
+
+// drpAssignInstructor.IsSearchable
+true
+```
+
+> Assignment editor defaults (dropdowns + searchable instructor combo box):
 ```powerfx
 // txtAssignSection.Default
 Coalesce(varSelectedAssignmentAdmin.Section, "")
@@ -1709,8 +1721,12 @@ Coalesce(varSelectedAssignmentAdmin.Section, "")
 // drpAssignCourse.Default
 Coalesce(varSelectedAssignmentAdmin.Course.Value, "")
 
-// drpAssignInstructor.Default
-Coalesce(varSelectedAssignmentAdmin.Instructor.Value, Coalesce(varSelectedAssignmentAdmin.Instructor.Email, ""))
+// drpAssignInstructor.DefaultSelectedItems (Combo box)
+If(
+    IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Instructor.Id),
+    Blank(),
+    [LookUp(Faculty, ID = varSelectedAssignmentAdmin.Instructor.Id)]
+)
 
 // drpAssignCampus.Default
 Coalesce(varSelectedAssignmentAdmin.Campus.Value, "")

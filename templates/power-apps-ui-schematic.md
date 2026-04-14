@@ -484,7 +484,10 @@ If(
 - `galAssignmentsBySemester.OnSelect` -> formula **A13**
 - `txtAssignSection.Default` -> `Coalesce(varSelectedAssignmentAdmin.Section, "")`
 - `drpAssignCourse.Default` -> `Coalesce(varSelectedAssignmentAdmin.Course.Value, "")`
-- `drpAssignInstructor.Default` -> `Coalesce(varSelectedAssignmentAdmin.Instructor.Value, Coalesce(varSelectedAssignmentAdmin.Instructor.Email, ""))`
+- `drpAssignInstructor.Items` -> `SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)`
+- `drpAssignInstructor.DisplayFields` -> `["LastName", "FirstName", "Email"]` (combo box)
+- `drpAssignInstructor.SearchFields` -> `["LastName", "FirstName", "Email"]` (combo box searchable)
+- `drpAssignInstructor.DefaultSelectedItems` -> `If(IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Instructor.Id), Blank(), [LookUp(Faculty, ID = varSelectedAssignmentAdmin.Instructor.Id)])`
 - `drpAssignCampus.Default` -> `Coalesce(varSelectedAssignmentAdmin.Campus.Value, "")`
 - `drpAssignStatus.Default` -> `Coalesce(varSelectedAssignmentAdmin.FormStatus.Value, "")`
 - `btnSaveAssignmentAdmin.OnSelect` -> formula **A14**
@@ -510,7 +513,8 @@ To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
-- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignInstructor`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
+- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
+- Combo boxes: `drpAssignInstructor` (searchable by `LastName`, `FirstName`, `Email`)
 - Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnGoToRatings`, `btnBackToQuestions`, `btnGoToGradeDistribution`, `btnBackToRatings`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
