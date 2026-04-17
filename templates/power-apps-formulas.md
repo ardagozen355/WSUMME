@@ -1698,16 +1698,26 @@ Reset(drpAssignStatus)
 >
 > `drpAssignInstructor.Items`:
 ```powerfx
-SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)
+SortByColumns(
+    AddColumns(
+        Faculty,
+        DisplayName,
+        LastName & ", " & FirstName & " (" & Email & ")"
+    ),
+    "LastName",
+    Ascending,
+    "FirstName",
+    Ascending
+)
 ```
 
 > `drpAssignInstructor` (Combo box) recommended properties:
 ```powerfx
 // drpAssignInstructor.DisplayFields
-["LastName", "FirstName", "Email"]
+["DisplayName"]
 
 // drpAssignInstructor.SearchFields
-["LastName", "FirstName", "Email"]
+["DisplayName", "LastName", "FirstName", "Email"]
 
 // drpAssignInstructor.IsSearchable
 true

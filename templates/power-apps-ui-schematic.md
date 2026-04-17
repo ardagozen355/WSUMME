@@ -484,9 +484,9 @@ If(
 - `galAssignmentsBySemester.OnSelect` -> formula **A13**
 - `txtAssignSection.Default` -> `Coalesce(varSelectedAssignmentAdmin.Section, "")`
 - `drpAssignCourse.Default` -> `Coalesce(varSelectedAssignmentAdmin.Course.Value, "")`
-- `drpAssignInstructor.Items` -> `SortByColumns(Faculty, "LastName", Ascending, "FirstName", Ascending)`
-- `drpAssignInstructor.DisplayFields` -> `["LastName", "FirstName", "Email"]` (combo box)
-- `drpAssignInstructor.SearchFields` -> `["LastName", "FirstName", "Email"]` (combo box searchable)
+- `drpAssignInstructor.Items` -> `SortByColumns(AddColumns(Faculty, DisplayName, LastName & ", " & FirstName & " (" & Email & ")"), "LastName", Ascending, "FirstName", Ascending)`
+- `drpAssignInstructor.DisplayFields` -> `["DisplayName"]` (combo box)
+- `drpAssignInstructor.SearchFields` -> `["DisplayName", "LastName", "FirstName", "Email"]` (combo box searchable)
 - `drpAssignInstructor.DefaultSelectedItems` -> `If(IsBlank(varSelectedAssignmentAdmin) || IsBlank(varSelectedAssignmentAdmin.Instructor.Id), Blank(), [LookUp(Faculty, ID = varSelectedAssignmentAdmin.Instructor.Id)])`
 - `drpAssignCampus.Default` -> `Coalesce(varSelectedAssignmentAdmin.Campus.Value, "")`
 - `drpAssignStatus.Default` -> `Coalesce(varSelectedAssignmentAdmin.FormStatus.Value, "")`
