@@ -139,10 +139,8 @@ ClearCollect(
 // Prepare a response working collection
 With(
     {
-        _savedResponses: IfError(
-            Filter(Responses, Assignment.Id = varAssignmentId),
-            Filter(Responses, Assignment.ID = varAssignmentId)
-        )
+        // Prefer underlying lookup-id columns for maximum tenant compatibility
+        _savedResponses: Filter(Responses, AssignmentId = varAssignmentId)
     },
     ClearCollect(
         colResponses,
@@ -151,14 +149,12 @@ With(
             // Load saved draft values when present
             AnswerTextLocal,
             Coalesce(
-                LookUp(_savedResponses, Question.Id = ID, AnswerText),
-                LookUp(_savedResponses, Question.ID = ID, AnswerText),
+                LookUp(_savedResponses, QuestionId = ID, AnswerText),
                 ""
             ),
             AnswerChoiceLocal,
             Coalesce(
-                LookUp(_savedResponses, Question.Id = ID, AnswerChoice),
-                LookUp(_savedResponses, Question.ID = ID, AnswerChoice),
+                LookUp(_savedResponses, QuestionId = ID, AnswerChoice),
                 ""
             ),
             IsRequiredLocal, Coalesce(IsRequired, true)
@@ -280,6 +276,7 @@ ForAll(
     )
 );
 ```
+> Note: using `AssignmentId` / `QuestionId` is more reliable than expanded lookup records for draft reload in some tenants.
 
 > Use this exact formula on `btnOpenFormRow.OnSelect` (embedded inside `galAssignments`).
 > If your control is named `btnOpenForm`, use the same formula there.
@@ -386,7 +383,7 @@ With(
             Coalesce(
                 LookUp(
                     Responses,
-                    Assignment.Id = _assignmentId && Question.Id = r.ID
+                    AssignmentId = _assignmentId && QuestionId = r.ID
                 ),
                 Defaults(Responses)
             ),
@@ -719,7 +716,7 @@ If(
         Patch(
             Responses,
             Coalesce(
-                LookUp(Responses, Assignment.Id = varAssignmentId && Question.Id = ThisRecord.ID),
+                LookUp(Responses, AssignmentId = varAssignmentId && QuestionId = ThisRecord.ID),
                 Defaults(Responses)
             ),
             {
