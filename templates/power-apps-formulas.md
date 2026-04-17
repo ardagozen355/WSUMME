@@ -216,7 +216,7 @@ ThisItem.QuestionText
 Coalesce(ThisItem.AnswerTextLocal, "")
 
 // drpSingleChoice.Default
-Coalesce(ThisItem.AnswerChoiceLocal, "")
+If(IsBlank(ThisItem.AnswerChoiceLocal), Blank(), ThisItem.AnswerChoiceLocal)
 ```
 
 #### Long text input control `Visible`
@@ -267,20 +267,7 @@ Patch(
 > Keep `Course` as a direct lookup column on `Responses` (instead of trying to include `TeachingAssignments.Course` as an extra lookup column on `Assignment`).
 
 ```powerfx
-If(
-    CountRows(
-        Filter(
-            colResponses,
-            IsRequiredLocal &&
-            (
-                (QuestionType.Value = "LongText" && IsBlank(AnswerTextLocal)) ||
-                (QuestionType.Value = "SingleChoice" && IsBlank(AnswerChoiceLocal))
-            )
-        )
-    ) > 0,
-    Notify("Please answer all required questions before continuing.", NotificationType.Error),
-    Navigate(scrAssessmentRatings, ScreenTransition.Fade)
-)
+Navigate(scrAssessmentRatings, ScreenTransition.Fade)
 ```
 
 > Step-2 back button (`btnBackToQuestions.OnSelect`):
@@ -290,16 +277,7 @@ Navigate(scrAssessmentQuestions, ScreenTransition.None)
 
 > Step-2 next button (`btnGoToGradeDistribution.OnSelect`):
 ```powerfx
-If(
-    CountRows(
-        Filter(
-            colEvalItems,
-            IsBlank(ScoreLocal) || IsBlank(AssessmentToolsLocal)
-        )
-    ) > 0,
-    Notify("Please complete ratings and assessment tools before continuing.", NotificationType.Error),
-    Navigate(scrGradeDistribution, ScreenTransition.Fade)
-)
+Navigate(scrGradeDistribution, ScreenTransition.Fade)
 ```
 
 ### 7) Instructor evaluations for PIs and CSOs (PI option-based rating + assessment tools)
@@ -355,7 +333,7 @@ colEvalItems
 ThisItem.EvalType & ": " & Coalesce(ThisItem.EvalDescription, ThisItem.EvalCode)
 
 // drpScore.Default
-Coalesce(ThisItem.ScoreLocal, "")
+If(IsBlank(ThisItem.ScoreLocal), Blank(), ThisItem.ScoreLocal)
 
 // txtAssessmentTools.Default
 Coalesce(ThisItem.AssessmentToolsLocal, "")
@@ -412,6 +390,18 @@ Navigate(scrAssessmentRatings, ScreenTransition.None)
 > Final submit button on step-3 screen (`btnSubmitAssessment.OnSelect`):
 ```powerfx
 If(
+    CountRows(
+        Filter(
+            colResponses,
+            IsRequiredLocal &&
+            (
+                (QuestionType.Value = "LongText" && IsBlank(AnswerTextLocal)) ||
+                (QuestionType.Value = "SingleChoice" && IsBlank(AnswerChoiceLocal))
+            )
+        )
+    ) > 0,
+    Notify("Please answer all required questions before submitting.", NotificationType.Error),
+    If(
     CountRows(
         Filter(
             colEvalItems,
@@ -490,6 +480,7 @@ If(
 
     Notify("Assessment submitted successfully.", NotificationType.Success);
     Navigate(scrMyAssignments, ScreenTransition.Fade)
+    )
 )
 ```
 

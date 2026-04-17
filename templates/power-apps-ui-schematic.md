@@ -75,8 +75,9 @@ Purpose: Instructor answers global questions (step 1 of 2).
 - `txtLongAnswer.Visible` -> `ThisItem.QuestionType.Value = "LongText"`
 - `drpSingleChoice.Visible` -> `ThisItem.QuestionType.Value = "SingleChoice"`
 - `drpSingleChoice.Items` -> `Filter(QuestionChoices, Question.Id = ThisItem.ID)` sorted by `DisplayOrder`
+- `drpSingleChoice.Default` -> `If(IsBlank(ThisItem.AnswerChoiceLocal), Blank(), ThisItem.AnswerChoiceLocal)` (blank by default)
 - `txtLongAnswer.OnChange` and `drpSingleChoice.OnChange` patch `colResponses`
-- `btnGoToRatings.OnSelect` -> formula **6** (validates required questions, then navigates)
+- `btnGoToRatings.OnSelect` -> formula **6** (navigation only; no required-field gate)
 
 ---
 
@@ -100,8 +101,9 @@ Purpose: Instructor completes PI/CSO ratings (step 2 of 3).
 - `drpScore.OnChange` -> updates `ScoreLocal`
 - `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
 - `drpScore.Items` -> formula **7** (`ThisItem.OptionItems`, PI-specific when `EvalType="PI"`)
+- `drpScore.Default` -> `If(IsBlank(ThisItem.ScoreLocal), Blank(), ThisItem.ScoreLocal)` (blank by default)
 - `btnBackToQuestions.OnSelect` -> `Navigate(scrAssessmentQuestions, ScreenTransition.None)`
-- `btnGoToGradeDistribution.OnSelect` -> formula **7** (optional validation then navigate)
+- `btnGoToGradeDistribution.OnSelect` -> formula **7** (navigation only; no required-field gate)
 
 ---
 
