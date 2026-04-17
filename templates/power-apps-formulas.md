@@ -141,9 +141,9 @@ ClearCollect(
     colResponses,
     AddColumns(
         colQuestions,
-        // Use empty text defaults so OnChange patches with Self.Text / selected text type safely
-        AnswerTextLocal, "",
-        AnswerChoiceLocal, "",
+        // Load saved draft values when present
+        AnswerTextLocal, Coalesce(LookUp(Responses, Assignment.Id = varAssignmentId && Question.Id = ID, AnswerText), ""),
+        AnswerChoiceLocal, Coalesce(LookUp(Responses, Assignment.Id = varAssignmentId && Question.Id = ID, AnswerChoice), ""),
         IsRequiredLocal, Coalesce(IsRequired, true)
     )
 );
@@ -164,6 +164,27 @@ ClearCollect(
         { Grade: "D", StudentCountLocal: "" },
         { Grade: "F", StudentCountLocal: "" },
         { Grade: "I", StudentCountLocal: "" }
+    )
+);
+
+// Overlay any previously saved grade-distribution values for this assignment
+ForAll(
+    colGradeDistribution As g,
+    Patch(
+        colGradeDistribution,
+        g,
+        {
+            StudentCountLocal: Coalesce(
+                Text(
+                    LookUp(
+                        GradeDistributions,
+                        Assignment.Id = varAssignmentId && Grade = g.Grade,
+                        StudentCount
+                    )
+                ),
+                ""
+            )
+        }
     )
 );
 ```
@@ -307,11 +328,77 @@ Notify("Draft responses saved.", NotificationType.Success)
 
 // btnSaveRatings.OnSelect (scrAssessmentRatings)
 Select(btnPersistResponseDraft);
-Notify("Draft responses saved.", NotificationType.Success)
+Select(btnPersistOutcomeEvaluationsDraft);
+Notify("Draft responses and ratings saved.", NotificationType.Success)
 
 // btnSaveGradeDistribution.OnSelect (scrGradeDistribution)
 Select(btnPersistResponseDraft);
-Notify("Draft responses saved.", NotificationType.Success)
+Select(btnPersistGradeDistributionDraft);
+Notify("Draft responses and grade distribution saved.", NotificationType.Success)
+```
+
+### 5b) Helper action for saving ratings (`btnPersistOutcomeEvaluationsDraft.OnSelect`)
+```powerfx
+ForAll(
+    colEvalItems As e,
+    Patch(
+        OutcomeEvaluations,
+        Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = e.EvalType &&
+                ReferenceId = e.EvalId
+            ),
+            Defaults(OutcomeEvaluations)
+        ),
+        {
+            Assignment: {
+                Id: varAssignmentId,
+                Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
+            },
+            EvaluationType: { Value: e.EvalType },
+            ReferenceId: e.EvalId,
+            ReferenceCode: e.EvalCode,
+            Score: e.ScoreLocal,
+            AssessmentTools: e.AssessmentToolsLocal,
+            SubmittedAt: Now()
+        }
+    )
+)
+```
+
+### 5c) Helper action for saving grade distribution (`btnPersistGradeDistributionDraft.OnSelect`)
+```powerfx
+ForAll(
+    colGradeDistribution As g,
+    If(
+        IsBlank(g.StudentCountLocal),
+        RemoveIf(
+            GradeDistributions,
+            Assignment.Id = varAssignmentId && Grade = g.Grade
+        ),
+        Patch(
+            GradeDistributions,
+            Coalesce(
+                LookUp(
+                    GradeDistributions,
+                    Assignment.Id = varAssignmentId && Grade = g.Grade
+                ),
+                Defaults(GradeDistributions)
+            ),
+            {
+                Assignment: {
+                    Id: varAssignmentId,
+                    Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
+                },
+                Grade: g.Grade,
+                StudentCount: Value(g.StudentCountLocal),
+                SubmittedAt: Now()
+            }
+        )
+    )
+)
 ```
 
 ### 6) Step-1 Next button (`btnGoToRatings.OnSelect`)
@@ -331,12 +418,14 @@ Navigate(scrAssessmentRatings, ScreenTransition.Fade)
 > Step-2 back button (`btnBackToQuestions.OnSelect`):
 ```powerfx
 Select(btnPersistResponseDraft);
+Select(btnPersistOutcomeEvaluationsDraft);
 Navigate(scrAssessmentQuestions, ScreenTransition.None)
 ```
 
 > Step-2 next button (`btnGoToGradeDistribution.OnSelect`):
 ```powerfx
 Select(btnPersistResponseDraft);
+Select(btnPersistOutcomeEvaluationsDraft);
 Navigate(scrGradeDistribution, ScreenTransition.Fade)
 ```
 
@@ -360,9 +449,27 @@ ClearCollect(
         "EvalId", Id,
         "EvalCode", Value,
         "EvalDescription", Coalesce(LookUp(PerformanceIndicators, ID = Id, IndicatorDescription), Value),
-        "ScoreLocal", "",
+        "ScoreLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "PI" &&
+                ReferenceId = Id,
+                Score
+            ),
+            ""
+        ),
         "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
-        "AssessmentToolsLocal", ""
+        "AssessmentToolsLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "PI" &&
+                ReferenceId = Id,
+                AssessmentTools
+            ),
+            ""
+        )
     )
 );
 Collect(
@@ -373,9 +480,27 @@ Collect(
         "EvalId", ID,
         "EvalCode", CSOCode,
         "EvalDescription", CSODescription,
-        "ScoreLocal", "",
+        "ScoreLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "CSO" &&
+                ReferenceId = ID,
+                Score
+            ),
+            ""
+        ),
         "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
-        "AssessmentToolsLocal", ""
+        "AssessmentToolsLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "CSO" &&
+                ReferenceId = ID,
+                AssessmentTools
+            ),
+            ""
+        )
     )
 )
 ```
@@ -445,6 +570,7 @@ Patch(
 > Step-3 back button (`btnBackToRatings.OnSelect`):
 ```powerfx
 Select(btnPersistResponseDraft);
+Select(btnPersistGradeDistributionDraft);
 Navigate(scrAssessmentRatings, ScreenTransition.None)
 ```
 
@@ -503,7 +629,15 @@ If(
         colEvalItems,
         Patch(
             OutcomeEvaluations,
-            Defaults(OutcomeEvaluations),
+            Coalesce(
+                LookUp(
+                    OutcomeEvaluations,
+                    Assignment.Id = varAssignmentId &&
+                    EvaluationType.Value = EvalType &&
+                    ReferenceId = EvalId
+                ),
+                Defaults(OutcomeEvaluations)
+            ),
             {
                 Assignment: {
                     Id: varAssignmentId,
@@ -524,7 +658,14 @@ If(
         Filter(colGradeDistribution, !IsBlank(StudentCountLocal)),
         Patch(
             GradeDistributions,
-            Defaults(GradeDistributions),
+            Coalesce(
+                LookUp(
+                    GradeDistributions,
+                    Assignment.Id = varAssignmentId &&
+                    Grade = ThisRecord.Grade
+                ),
+                Defaults(GradeDistributions)
+            ),
             {
                 Assignment: {
                     Id: varAssignmentId,

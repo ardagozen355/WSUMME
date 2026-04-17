@@ -104,7 +104,7 @@ Purpose: Instructor completes PI/CSO ratings (step 2 of 3).
 - `drpScore.Items` -> formula **7** (`ThisItem.OptionItems`, PI-specific when `EvalType="PI"`)
 - `drpScore.Default` -> `If(IsBlank(ThisItem.ScoreLocal), Blank(), ThisItem.ScoreLocal)` (blank by default)
 - `btnBackToQuestions.OnSelect` -> `Navigate(scrAssessmentQuestions, ScreenTransition.None)`
-- `btnSaveRatings.OnSelect` -> formula **5a** (save draft responses)
+- `btnSaveRatings.OnSelect` -> formulas **5a + 5b** (save draft responses + ratings)
 - `btnGoToGradeDistribution.OnSelect` -> formula **7** (navigation only; no required-field gate)
 
 ---
@@ -130,7 +130,7 @@ Purpose: Instructor enters grade counts and submits final assessment (step 3 of 
 - `txtGradeCount.Default` -> `ThisItem.StudentCountLocal` (blank by default)
 - `txtGradeCount.OnChange` -> patches `colGradeDistribution.StudentCountLocal`
 - `btnBackToRatings.OnSelect` -> `Navigate(scrAssessmentRatings, ScreenTransition.None)`
-- `btnSaveGradeDistribution.OnSelect` -> formula **5a** (save draft responses)
+- `btnSaveGradeDistribution.OnSelect` -> formulas **5a + 5c** (save draft responses + grade distribution)
 - `btnSubmitAssessment.OnSelect` uses final submit formula (responses + ratings + grade distribution).
 
 (Uses formulas from section **Instructor 3–7**.)
@@ -520,7 +520,7 @@ To avoid broken formulas, keep these names exactly:
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
 - Combo boxes: `drpAssignInstructor` (searchable by `LastName`, `FirstName`, `Email`)
-- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnPersistResponseDraft`, `btnSaveQuestions`, `btnGoToRatings`, `btnBackToQuestions`, `btnSaveRatings`, `btnGoToGradeDistribution`, `btnBackToRatings`, `btnSaveGradeDistribution`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`
+- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnPersistResponseDraft`, `btnPersistOutcomeEvaluationsDraft`, `btnPersistGradeDistributionDraft`, `btnSaveQuestions`, `btnGoToRatings`, `btnBackToQuestions`, `btnSaveRatings`, `btnGoToGradeDistribution`, `btnBackToRatings`, `btnSaveGradeDistribution`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`

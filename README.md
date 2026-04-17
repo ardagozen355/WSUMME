@@ -193,6 +193,8 @@ Use SharePoint lists as the primary source of truth:
 - Navigation between screens does not force completion; validation warnings occur only on final submit
 - Each screen includes a Save button that writes current question responses to `Responses`
 - Screen-change buttons also auto-save current responses to `Responses` before navigating
+- Save on ratings screen also upserts `OutcomeEvaluations` (no duplicate rows for same assignment + eval item)
+- Save on grade-distribution screen also upserts `GradeDistributions` (no duplicate rows for same assignment + grade)
 - Grade distribution counts default to blank; instructors may enter only applicable grade categories
 - Final submit on the grade distribution screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
 
