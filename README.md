@@ -150,7 +150,7 @@ Use SharePoint lists as the primary source of truth:
    - `EvaluationType` (Choice: `PI`, `CSO`)
    - `ReferenceId` (Number)
    - `ReferenceCode` (Text)
-   - `Score` (Text; for PI rows store selected PI-specific option label configured by admins)
+   - `Score` (Text; store numeric score `1..5` for PI/CSO rows)
    - `AssessmentTools` (Multiple lines; instructor rationale on tools/evidence used)
    - `SubmittedAt` (DateTime)
    - Notes: instructors provide two responses per PI/CSO item (`Score` + `AssessmentTools`)

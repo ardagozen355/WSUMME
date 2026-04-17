@@ -56,7 +56,7 @@ OutcomeEvaluations,Assignment,Lookup (TeachingAssignments),Yes,
 OutcomeEvaluations,EvaluationType,Choice,Yes,Choices: PI|CSO
 OutcomeEvaluations,ReferenceId,Number,Yes,ID from PI or CSO source row
 OutcomeEvaluations,ReferenceCode,Single line of text,Yes,PI code or CSO code
-OutcomeEvaluations,Score,Single line of text,Yes,For PI evaluations store selected PI grading option label; for CSO keep numeric/text scheme
+OutcomeEvaluations,Score,Single line of text,Yes,Store numeric score 1..5 as text for PI/CSO rows
 OutcomeEvaluations,AssessmentTools,Multiple lines of text,Yes,Instructor rationale describing assessment tools used for the score
 OutcomeEvaluations,SubmittedAt,Date and Time,Yes,
 GradeDistributions,Assignment,Lookup (TeachingAssignments),Yes,

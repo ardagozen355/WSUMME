@@ -137,14 +137,32 @@ ClearCollect(
 );
 
 // Prepare a response working collection
-ClearCollect(
-    colResponses,
-    AddColumns(
-        colQuestions,
-        // Load saved draft values when present
-        AnswerTextLocal, Coalesce(LookUp(Responses, Assignment.Id = varAssignmentId && Question.Id = ID, AnswerText), ""),
-        AnswerChoiceLocal, Coalesce(LookUp(Responses, Assignment.Id = varAssignmentId && Question.Id = ID, AnswerChoice), ""),
-        IsRequiredLocal, Coalesce(IsRequired, true)
+With(
+    {
+        _savedResponses: IfError(
+            Filter(Responses, Assignment.Id = varAssignmentId),
+            Filter(Responses, Assignment.ID = varAssignmentId)
+        )
+    },
+    ClearCollect(
+        colResponses,
+        AddColumns(
+            colQuestions,
+            // Load saved draft values when present
+            AnswerTextLocal,
+            Coalesce(
+                LookUp(_savedResponses, Question.Id = ID, AnswerText),
+                LookUp(_savedResponses, Question.ID = ID, AnswerText),
+                ""
+            ),
+            AnswerChoiceLocal,
+            Coalesce(
+                LookUp(_savedResponses, Question.Id = ID, AnswerChoice),
+                LookUp(_savedResponses, Question.ID = ID, AnswerChoice),
+                ""
+            ),
+            IsRequiredLocal, Coalesce(IsRequired, true)
+        )
     )
 );
 
@@ -167,7 +185,11 @@ ClearCollect(
             ),
             ""
         ),
-        "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
+        "OptionItems", AddColumns(
+            SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
+            "NumericScore", DisplayOrder,
+            "DisplayText", Text(DisplayOrder) & " - " & OptionLabel
+        ),
         "AssessmentToolsLocal", Coalesce(
             LookUp(
                 OutcomeEvaluations,
@@ -198,7 +220,13 @@ Collect(
             ),
             ""
         ),
-        "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
+        "OptionItems", Table(
+            { OptionLabel: "1", NumericScore: 1, DisplayText: "1 - Beginning" },
+            { OptionLabel: "2", NumericScore: 2, DisplayText: "2 - Developing" },
+            { OptionLabel: "3", NumericScore: 3, DisplayText: "3 - Satisfactory" },
+            { OptionLabel: "4", NumericScore: 4, DisplayText: "4 - Proficient" },
+            { OptionLabel: "5", NumericScore: 5, DisplayText: "5 - Advanced" }
+        ),
         "AssessmentToolsLocal", Coalesce(
             LookUp(
                 OutcomeEvaluations,
@@ -499,7 +527,7 @@ Navigate(scrGradeDistribution, ScreenTransition.Fade)
 - `EvaluationType` (Choice: PI, CSO)
 - `ReferenceId` (Number)
 - `ReferenceCode` (Text)
-- `Score` (Text: for PI rows this is selected option label from `PIGradingOptions`; CSO can still use numeric/text scheme)
+- `Score` (Text: save the numeric score `1..5` for PI/CSO rows)
 - `AssessmentTools` (Multiple lines of text)
 - `SubmittedAt` (DateTime)
 
@@ -523,7 +551,11 @@ ClearCollect(
             ),
             ""
         ),
-        "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
+        "OptionItems", AddColumns(
+            SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
+            "NumericScore", DisplayOrder,
+            "DisplayText", Text(DisplayOrder) & " - " & OptionLabel
+        ),
         "AssessmentToolsLocal", Coalesce(
             LookUp(
                 OutcomeEvaluations,
@@ -554,7 +586,13 @@ Collect(
             ),
             ""
         ),
-        "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
+        "OptionItems", Table(
+            { OptionLabel: "1", NumericScore: 1, DisplayText: "1 - Beginning" },
+            { OptionLabel: "2", NumericScore: 2, DisplayText: "2 - Developing" },
+            { OptionLabel: "3", NumericScore: 3, DisplayText: "3 - Satisfactory" },
+            { OptionLabel: "4", NumericScore: 4, DisplayText: "4 - Proficient" },
+            { OptionLabel: "5", NumericScore: 5, DisplayText: "5 - Advanced" }
+        ),
         "AssessmentToolsLocal", Coalesce(
             LookUp(
                 OutcomeEvaluations,
@@ -582,7 +620,14 @@ colEvalItems
 ThisItem.EvalType & ": " & Coalesce(ThisItem.EvalDescription, ThisItem.EvalCode)
 
 // drpScore.Default
-If(IsBlank(ThisItem.ScoreLocal), Blank(), ThisItem.ScoreLocal)
+If(
+    IsBlank(ThisItem.ScoreLocal),
+    Blank(),
+    Coalesce(
+        LookUp(ThisItem.OptionItems, Text(NumericScore) = Text(ThisItem.ScoreLocal), DisplayText),
+        ThisItem.ScoreLocal
+    )
+)
 
 // txtAssessmentTools.Default
 Coalesce(ThisItem.AssessmentToolsLocal, "")
@@ -612,12 +657,21 @@ Patch(
 ThisItem.OptionItems
 ```
 
+> Rating dropdown display configuration (so users see `score - description`):
+```powerfx
+// drpScore.DisplayFields
+["DisplayText"]
+
+// drpScore.SearchFields
+["DisplayText", "OptionLabel"]
+```
+
 > Rating dropdown `OnChange`:
 ```powerfx
 Patch(
     colEvalItems,
     ThisItem,
-    { ScoreLocal: Self.Selected.OptionLabel }
+    { ScoreLocal: Text(Coalesce(Self.Selected.NumericScore, Value(Self.Selected.OptionLabel))) }
 )
 ```
 > If you wire this on `drpScore.OnSelect` instead of `OnChange`, use the same formula.

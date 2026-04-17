@@ -102,7 +102,8 @@ Purpose: Instructor completes PI/CSO ratings (step 2 of 3).
 - `drpScore.OnChange` -> updates `ScoreLocal`
 - `txtAssessmentTools.OnChange` -> updates `AssessmentToolsLocal`
 - `drpScore.Items` -> formula **7** (`ThisItem.OptionItems`, PI-specific when `EvalType="PI"`)
-- `drpScore.Default` -> `If(IsBlank(ThisItem.ScoreLocal), Blank(), ThisItem.ScoreLocal)` (blank by default)
+- `drpScore.DisplayFields` -> `["DisplayText"]` (show numeric score + PI option description)
+- `drpScore.Default` -> `If(IsBlank(ThisItem.ScoreLocal), Blank(), Coalesce(LookUp(ThisItem.OptionItems, Text(NumericScore) = Text(ThisItem.ScoreLocal), DisplayText), ThisItem.ScoreLocal))` (blank by default)
 - `btnBackToQuestions.OnSelect` -> `Navigate(scrAssessmentQuestions, ScreenTransition.None)`
 - `btnSaveRatings.OnSelect` -> formulas **5a + 5b** (save draft responses + ratings)
 - `btnGoToGradeDistribution.OnSelect` -> formula **7** (navigation only; no required-field gate)
