@@ -191,6 +191,8 @@ Use SharePoint lists as the primary source of truth:
   3. Grade distribution screen (grade counts + final submit)
 - Users can move back/forth between all three screens before final submit
 - Navigation between screens does not force completion; validation warnings occur only on final submit
+- Each screen includes a Save button that writes current question responses to `Responses`
+- Screen-change buttons also auto-save current responses to `Responses` before navigating
 - Grade distribution counts default to blank; instructors may enter only applicable grade categories
 - Final submit on the grade distribution screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
 

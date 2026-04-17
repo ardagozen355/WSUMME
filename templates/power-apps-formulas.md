@@ -196,6 +196,7 @@ Coalesce(
 )
 
 // btnBackToAssignments.OnSelect (optional)
+Select(btnPersistResponseDraft);
 Navigate(scrMyAssignments, ScreenTransition.Fade)
 ```
 
@@ -257,6 +258,62 @@ Patch(
 )
 ```
 
+### 5a) Helper action for saving draft responses (`btnPersistResponseDraft.OnSelect`)
+> Add a hidden helper button named `btnPersistResponseDraft` and put this in its `OnSelect`.
+```powerfx
+With(
+    {
+        _assignmentId: varAssignmentId,
+        _courseId: varCourseId
+    },
+    ForAll(
+        colResponses As r,
+        Patch(
+            Responses,
+            Coalesce(
+                LookUp(
+                    Responses,
+                    Assignment.Id = _assignmentId && Question.Id = r.ID
+                ),
+                Defaults(Responses)
+            ),
+            {
+                Assignment: {
+                    Id: _assignmentId,
+                    Value: Coalesce(LookUp(TeachingAssignments, ID = _assignmentId, FormToken), Text(_assignmentId))
+                },
+                Course: {
+                    Id: _courseId,
+                    Value: Coalesce(LookUp(Courses, ID = _courseId, CourseNumber), Text(_courseId))
+                },
+                Question: {
+                    Id: r.ID,
+                    Value: Coalesce(LookUp(Questions, ID = r.ID, Left(QuestionText, 100)), Text(r.ID))
+                },
+                AnswerText: r.AnswerTextLocal,
+                AnswerChoice: r.AnswerChoiceLocal,
+                SubmittedAt: Now()
+            }
+        )
+    )
+)
+```
+
+> Screen save buttons:
+```powerfx
+// btnSaveQuestions.OnSelect (scrAssessmentQuestions)
+Select(btnPersistResponseDraft);
+Notify("Draft responses saved.", NotificationType.Success)
+
+// btnSaveRatings.OnSelect (scrAssessmentRatings)
+Select(btnPersistResponseDraft);
+Notify("Draft responses saved.", NotificationType.Success)
+
+// btnSaveGradeDistribution.OnSelect (scrGradeDistribution)
+Select(btnPersistResponseDraft);
+Notify("Draft responses saved.", NotificationType.Success)
+```
+
 ### 6) Step-1 Next button (`btnGoToRatings.OnSelect`)
 > `Responses` should include both:
 > - `Assignment` (Lookup -> TeachingAssignments)
@@ -267,16 +324,19 @@ Patch(
 > Keep `Course` as a direct lookup column on `Responses` (instead of trying to include `TeachingAssignments.Course` as an extra lookup column on `Assignment`).
 
 ```powerfx
+Select(btnPersistResponseDraft);
 Navigate(scrAssessmentRatings, ScreenTransition.Fade)
 ```
 
 > Step-2 back button (`btnBackToQuestions.OnSelect`):
 ```powerfx
+Select(btnPersistResponseDraft);
 Navigate(scrAssessmentQuestions, ScreenTransition.None)
 ```
 
 > Step-2 next button (`btnGoToGradeDistribution.OnSelect`):
 ```powerfx
+Select(btnPersistResponseDraft);
 Navigate(scrGradeDistribution, ScreenTransition.Fade)
 ```
 
@@ -384,6 +444,7 @@ Patch(
 
 > Step-3 back button (`btnBackToRatings.OnSelect`):
 ```powerfx
+Select(btnPersistResponseDraft);
 Navigate(scrAssessmentRatings, ScreenTransition.None)
 ```
 
@@ -413,7 +474,10 @@ If(
         colResponses,
         Patch(
             Responses,
-            Defaults(Responses),
+            Coalesce(
+                LookUp(Responses, Assignment.Id = varAssignmentId && Question.Id = ThisRecord.ID),
+                Defaults(Responses)
+            ),
             {
                 // Use explicit SharePoint lookup-record schema (Id + Value)
                 Assignment: {
