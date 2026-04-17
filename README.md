@@ -195,6 +195,7 @@ Use SharePoint lists as the primary source of truth:
 - Screen-change buttons also auto-save current responses to `Responses` before navigating
 - Save on ratings screen also upserts `OutcomeEvaluations` (no duplicate rows for same assignment + eval item)
 - Save on grade-distribution screen also upserts `GradeDistributions` (no duplicate rows for same assignment + grade)
+- Reopening a partially saved assignment reloads saved question answers and saved PI/CSO ratings into the corresponding controls
 - Grade distribution counts default to blank; instructors may enter only applicable grade categories
 - Final submit on the grade distribution screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
 

@@ -40,7 +40,7 @@ Purpose: Instructor sees pending forms.
 - `lblAssignStatus.Text` -> `Coalesce(ThisItem.FormStatus.Value, "")`
 - `btnOpenFormRow.OnSelect`:
   - set `varAssignmentId` and `varCourseId`
-  - build `colQuestions` and `colResponses`
+  - build `colQuestions`, `colResponses`, and `colEvalItems` (preloading previously saved drafts)
   - `Navigate(scrAssessmentQuestions, ScreenTransition.Fade)`
 
 (Uses formulas from section **Instructor 1 & 2**.)

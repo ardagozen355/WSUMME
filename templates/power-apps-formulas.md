@@ -148,6 +148,70 @@ ClearCollect(
     )
 );
 
+// Build evaluation items and preload any saved ratings/assessment-tools values
+ClearCollect(
+    colEvalItems,
+    AddColumns(
+        LookUp(Courses, ID = varCourseId).SupportedPIs,
+        "EvalType", "PI",
+        "EvalId", Id,
+        "EvalCode", Value,
+        "EvalDescription", Coalesce(LookUp(PerformanceIndicators, ID = Id, IndicatorDescription), Value),
+        "ScoreLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "PI" &&
+                ReferenceId = Id,
+                Score
+            ),
+            ""
+        ),
+        "OptionItems", SortByColumns(Filter(PIGradingOptions, PerformanceIndicator.Id = Id && IsActive = true), "DisplayOrder", Ascending),
+        "AssessmentToolsLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "PI" &&
+                ReferenceId = Id,
+                AssessmentTools
+            ),
+            ""
+        )
+    )
+);
+Collect(
+    colEvalItems,
+    AddColumns(
+        Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true),
+        "EvalType", "CSO",
+        "EvalId", ID,
+        "EvalCode", CSOCode,
+        "EvalDescription", CSODescription,
+        "ScoreLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "CSO" &&
+                ReferenceId = ID,
+                Score
+            ),
+            ""
+        ),
+        "OptionItems", Table({ OptionLabel: "1" }, { OptionLabel: "2" }, { OptionLabel: "3" }, { OptionLabel: "4" }, { OptionLabel: "5" }),
+        "AssessmentToolsLocal", Coalesce(
+            LookUp(
+                OutcomeEvaluations,
+                Assignment.Id = varAssignmentId &&
+                EvaluationType.Value = "CSO" &&
+                ReferenceId = ID,
+                AssessmentTools
+            ),
+            ""
+        )
+    )
+);
+
 // Grade distribution collection for step-3 screen (grade distribution/submit)
 ClearCollect(
     colGradeDistribution,
@@ -439,7 +503,7 @@ Navigate(scrGradeDistribution, ScreenTransition.Fade)
 - `AssessmentTools` (Multiple lines of text)
 - `SubmittedAt` (DateTime)
 
-> Build evaluation items when opening an assignment:
+> Build evaluation items when opening an assignment (this should run in `btnOpenFormRow/btnOpenForm.OnSelect`; section **2** already includes this block):
 ```powerfx
 ClearCollect(
     colEvalItems,
