@@ -897,6 +897,11 @@ Navigate(scrImports, ScreenTransition.Fade)
 ```
 
 ```powerfx
+// btnAnalytics.OnSelect
+Navigate(scrAnalytics, ScreenTransition.Fade)
+```
+
+```powerfx
 // Any admin nav button DisplayMode
 If(varIsAdmin, DisplayMode.Edit, DisplayMode.Disabled)
 ```
@@ -2149,4 +2154,194 @@ If(
     Notify("Semester created.", NotificationType.Success);
     Refresh(Semesters)
 )
+```
+
+
+### A17) Analytics screen (`scrAnalytics`) — PI/SO averages, standard deviation, and semester trends
+> Controls used below: `drpAnalyticsSemester`, `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`, `galPISemesterStats`, `galSOSemesterStats`, `chtPITrend`, `chtSOTrend`, `chtCourseTrend`.
+
+```powerfx
+// scrAnalytics.OnVisible (or btnRefreshAnalytics.OnSelect)
+ClearCollect(
+    colAnalyticsSemesters,
+    SortByColumns(Semesters, "StartDate", Descending)
+);
+
+Set(
+    varAnalyticsSemester,
+    If(
+        CountRows(colAnalyticsSemesters) = 0,
+        Blank(),
+        Coalesce(
+            drpAnalyticsSemester.Selected,
+            First(Filter(colAnalyticsSemesters, Status.Value = "Active")),
+            First(colAnalyticsSemesters)
+        )
+    )
+);
+
+// Base records with numeric score coercion for reliable statistics
+ClearCollect(
+    colOutcomeEvaluationsScored,
+    AddColumns(
+        Filter(
+            OutcomeEvaluations,
+            !IsBlank(Score) &&
+            !IsBlank(Assignment) &&
+            !IsBlank(Assignment.Id)
+        ),
+        ScoreNumeric,
+        Value(Score),
+        SemesterId,
+        Assignment.Semester.Id,
+        SemesterTerm,
+        Assignment.Semester.Value,
+        CourseId,
+        Assignment.Course.Id,
+        CourseCode,
+        Assignment.Course.Value,
+        EvalCode,
+        Coalesce(ReferenceCode, ""),
+        EvalTypeLocal,
+        Coalesce(EvaluationType.Value, EvaluationType)
+    )
+);
+
+// A17-1: PI average + standard deviation in selected semester
+ClearCollect(
+    colPISemesterStats,
+    AddColumns(
+        GroupBy(
+            Filter(colOutcomeEvaluationsScored, EvalTypeLocal = "PI" && SemesterId = varAnalyticsSemester.ID),
+            EvalCode,
+            RowsByPI
+        ),
+        AvgScore,
+        Round(Average(RowsByPI, ScoreNumeric), 3),
+        StdDevScore,
+        Round(StdevP(RowsByPI, ScoreNumeric), 3),
+        SampleSize,
+        CountRows(RowsByPI)
+    )
+);
+
+// A17-2: SO average + standard deviation in selected semester
+ClearCollect(
+    colSOSemesterStats,
+    AddColumns(
+        GroupBy(
+            Filter(colOutcomeEvaluationsScored, EvalTypeLocal in ["SO", "CSO"] && SemesterId = varAnalyticsSemester.ID),
+            EvalCode,
+            RowsBySO
+        ),
+        AvgScore,
+        Round(Average(RowsBySO, ScoreNumeric), 3),
+        StdDevScore,
+        Round(StdevP(RowsBySO, ScoreNumeric), 3),
+        SampleSize,
+        CountRows(RowsBySO)
+    )
+);
+
+// A17-3: Trend of selected PI average across semesters
+ClearCollect(
+    colPITrend,
+    AddColumns(
+        GroupBy(
+            Filter(colOutcomeEvaluationsScored, EvalTypeLocal = "PI" && EvalCode = drpTrendPI.Selected.Result),
+            SemesterTerm,
+            RowsBySemester
+        ),
+        AvgScore,
+        Round(Average(RowsBySemester, ScoreNumeric), 3),
+        StdDevScore,
+        Round(StdevP(RowsBySemester, ScoreNumeric), 3)
+    )
+);
+
+// A17-4: Trend of selected SO average across semesters
+ClearCollect(
+    colSOTrend,
+    AddColumns(
+        GroupBy(
+            Filter(colOutcomeEvaluationsScored, EvalTypeLocal in ["SO", "CSO"] && EvalCode = drpTrendOutcome.Selected.Result),
+            SemesterTerm,
+            RowsBySemester
+        ),
+        AvgScore,
+        Round(Average(RowsBySemester, ScoreNumeric), 3),
+        StdDevScore,
+        Round(StdevP(RowsBySemester, ScoreNumeric), 3)
+    )
+);
+
+// A17-5: Trend of all PIs + SOs for selected course across semesters
+ClearCollect(
+    colCourseEvalTrend,
+    AddColumns(
+        GroupBy(
+            Filter(
+                colOutcomeEvaluationsScored,
+                CourseId = drpTrendCourse.Selected.ID
+            ),
+            SemesterTerm,
+            EvalTypeLocal,
+            EvalCode,
+            RowsByKey
+        ),
+        AvgScore,
+        Round(Average(RowsByKey, ScoreNumeric), 3),
+        StdDevScore,
+        Round(StdevP(RowsByKey, ScoreNumeric), 3),
+        SampleSize,
+        CountRows(RowsByKey)
+    )
+)
+```
+
+> Control bindings:
+
+```powerfx
+// drpAnalyticsSemester.Items
+colAnalyticsSemesters
+```
+
+```powerfx
+// drpTrendPI.Items
+Sort(Distinct(Filter(colOutcomeEvaluationsScored, EvalTypeLocal = "PI"), EvalCode), Result)
+```
+
+```powerfx
+// drpTrendOutcome.Items
+Sort(Distinct(Filter(colOutcomeEvaluationsScored, EvalTypeLocal in ["SO", "CSO"]), EvalCode), Result)
+```
+
+```powerfx
+// drpTrendCourse.Items
+SortByColumns(Courses, "CourseNumber", Ascending)
+```
+
+```powerfx
+// galPISemesterStats.Items
+SortByColumns(colPISemesterStats, "EvalCode", Ascending)
+```
+
+```powerfx
+// galSOSemesterStats.Items
+SortByColumns(colSOSemesterStats, "EvalCode", Ascending)
+```
+
+```powerfx
+// chtPITrend.Items
+SortByColumns(colPITrend, "SemesterTerm", Ascending)
+```
+
+```powerfx
+// chtSOTrend.Items
+SortByColumns(colSOTrend, "SemesterTerm", Ascending)
+```
+
+```powerfx
+// chtCourseTrend.Items
+SortByColumns(colCourseEvalTrend, "SemesterTerm", Ascending)
 ```

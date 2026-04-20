@@ -182,6 +182,7 @@ Use SharePoint lists as the primary source of truth:
 - Toggle periodic reminders on/off by semester and adjust cadence
 - Monitor assignment rows in a label-based gallery (Instructor name, Course, Section, Form Status)
 - Trigger resend reminders manually
+- Analyze PI/SO performance with semester-level averages + standard deviation and trend charts across semesters
 
 ### 2) Instructor App (Power Apps)
 - Authenticated landing page listing pending forms

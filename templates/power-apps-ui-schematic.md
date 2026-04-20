@@ -149,7 +149,7 @@ Purpose: Navigation hub and admin guard.
 | Header: "Assessment Admin"                                                    |
 | Admin: <varDisplayName>                                                         |
 +--------------------------------------------------------------------------------+
-| [btnCourses] [btnFaculty] [btnOutcomesPIs] [btnQuestions] [btnSemesterDashboard] [btnImports] |
+| [btnCourses] [btnFaculty] [btnOutcomesPIs] [btnQuestions] [btnSemesterDashboard] [btnImports] [btnAnalytics] |
 +--------------------------------------------------------------------------------+
 | Info card: role status (varIsAdmin)                                            |
 +--------------------------------------------------------------------------------+
@@ -166,7 +166,7 @@ Purpose: Navigation hub and admin guard.
   "Admin: " & varDisplayName
   ```
 - **Navigation controls**: Insert > **Button**
-  - `btnCourses`, `btnFaculty`, `btnOutcomesPIs`, `btnQuestions`, `btnSemesterDashboard`, `btnImports`
+  - `btnCourses`, `btnFaculty`, `btnOutcomesPIs`, `btnQuestions`, `btnSemesterDashboard`, `btnImports`, `btnAnalytics`
 - **Info card**: easiest approach is Insert > **Container** (`conRoleCard`) with two labels inside:
   - `lblRoleTitle.Text`:
   ```powerfx
@@ -223,6 +223,11 @@ Navigate(scrSemesterDashboard, ScreenTransition.Fade)
 ```powerfx
 // btnImports (if you create this screen)
 Navigate(scrImports, ScreenTransition.Fade)
+```
+
+```powerfx
+// btnAnalytics
+Navigate(scrAnalytics, ScreenTransition.Fade)
 ```
 
 ### Guarding buttons for non-admin users
@@ -513,22 +518,68 @@ AddColumns(
 
 ---
 
+## Screen AD-5: `scrAnalytics`
+Purpose: Provide semester statistics and cross-semester trends for PI/SO performance.
+
+### Layout (wireframe)
+```text
++--------------------------------------------------------------------------------+
+| Analytics Dashboard                                                            |
++--------------------------------------------------------------------------------+
+| Semester [drpAnalyticsSemester] [btnRefreshAnalytics]                          |
+|--------------------------------------------------------------------------------|
+| PI stats (selected semester)                                                   |
+| [galPISemesterStats] -> PI Code | Avg | StdDev | N                             |
+|--------------------------------------------------------------------------------|
+| SO stats (selected semester)                                                   |
+| [galSOSemesterStats] -> SO Code | Avg | StdDev | N                             |
+|--------------------------------------------------------------------------------|
+| PI trend: [drpTrendPI] [chtPITrend] (Avg by semester)                          |
+| SO trend: [drpTrendOutcome] [chtSOTrend] (Avg by semester)                      |
+| Course trend: [drpTrendCourse] [chtCourseTrend] (all PI + SO by semester)      |
++--------------------------------------------------------------------------------+
+```
+
+### Controls & bindings
+- `scrAnalytics.OnVisible` -> formula **A17** (load analytics collections)
+- `btnRefreshAnalytics.OnSelect` -> formula **A17**
+- `drpAnalyticsSemester.Items` -> formula **A17** (`colAnalyticsSemesters`)
+- `drpAnalyticsSemester.OnChange` -> formula **A17** (rebuild semester stats)
+- `galPISemesterStats.Items` -> formula **A17** (`colPISemesterStats`)
+- `galSOSemesterStats.Items` -> formula **A17** (`colSOSemesterStats`)
+- `drpTrendPI.Items` -> formula **A17**
+- `drpTrendPI.OnChange` -> formula **A17** (rebuild `colPITrend`)
+- `chtPITrend.Items` -> formula **A17** (`colPITrend`)
+- `drpTrendOutcome.Items` -> formula **A17**
+- `drpTrendOutcome.OnChange` -> formula **A17** (rebuild `colSOTrend`)
+- `chtSOTrend.Items` -> formula **A17** (`colSOTrend`)
+- `drpTrendCourse.Items` -> formula **A17**
+- `drpTrendCourse.OnChange` -> formula **A17** (rebuild `colCourseEvalTrend`)
+- `chtCourseTrend.Items` -> formula **A17** (`colCourseEvalTrend`)
+
+> Recommended chart fields:
+- `chtPITrend.Labels` -> `SemesterTerm`; `chtPITrend.Series` -> `AvgScore`
+- `chtSOTrend.Labels` -> `SemesterTerm`; `chtSOTrend.Series` -> `AvgScore`
+- `chtCourseTrend.Labels` -> `SemesterTerm`; series by `EvalTypeLocal & "-" & EvalCode` with value `AvgScore`
+
+
 ## 3) Naming Consistency Checklist
 
 To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
-- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`
+- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`, `drpAnalyticsSemester`, `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`
 - Combo boxes: `drpAssignInstructor` (searchable by `LastName`, `FirstName`, `Email`)
 - Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnPersistResponseDraft`, `btnPersistOutcomeEvaluationsDraft`, `btnPersistGradeDistributionDraft`, `btnSaveQuestions`, `btnGoToRatings`, `btnBackToQuestions`, `btnSaveRatings`, `btnGoToGradeDistribution`, `btnBackToRatings`, `btnSaveGradeDistribution`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
-- Semester dashboard controls: `galAssignmentsBySemester`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
+- Semester dashboard controls: `galAssignmentsBySemester`, `galPISemesterStats`, `galSOSemesterStats`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
-- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`, `varOutcomeCodeLocal`, `varOutcomeDescriptionLocal`, `varPIIndicatorCodeLocal`, `varPIIndicatorDescriptionLocal`, `varSelectedAssignmentAdmin`
-- Collections: `colMyAssignments`, `colQuestions`, `colResponses`, `colEvalItems`, `colGradeDistribution`
+- Analytics controls: `btnAnalytics`, `btnRefreshAnalytics`, `chtPITrend`, `chtSOTrend`, `chtCourseTrend`
+- Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`, `varOutcomeCodeLocal`, `varOutcomeDescriptionLocal`, `varPIIndicatorCodeLocal`, `varPIIndicatorDescriptionLocal`, `varSelectedAssignmentAdmin`, `varAnalyticsSemester`
+- Collections: `colMyAssignments`, `colQuestions`, `colResponses`, `colEvalItems`, `colGradeDistribution`, `colAnalyticsSemesters`, `colOutcomeEvaluationsScored`, `colPISemesterStats`, `colSOSemesterStats`, `colPITrend`, `colSOTrend`, `colCourseEvalTrend`
 
 If you prefer different control names, update the formula references consistently.
