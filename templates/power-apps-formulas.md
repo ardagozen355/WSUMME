@@ -163,10 +163,12 @@ With(
 );
 
 // Build evaluation items and preload any saved ratings/assessment-tools values
-ClearCollect(
+// IMPORTANT: clear first to prevent cross-form carryover in the same app session.
+Clear(colEvalItems);
+Collect(
     colEvalItems,
     AddColumns(
-        LookUp(Courses, ID = varCourseId).SupportedPIs,
+        Coalesce(LookUp(Courses, ID = varCourseId).SupportedPIs, Table()),
         "EvalType", "PI",
         "EvalId", Id,
         "EvalCode", Value,
@@ -428,31 +430,54 @@ Notify("Draft responses and grade distribution saved.", NotificationType.Success
 
 ### 5b) Helper action for saving ratings (`btnPersistOutcomeEvaluationsDraft.OnSelect`)
 ```powerfx
-ForAll(
-    colEvalItems As e,
-    Patch(
+With(
+    {
+        _validPIIds: ShowColumns(Coalesce(LookUp(Courses, ID = varCourseId).SupportedPIs, Table()), "Id"),
+        _validCSOIds: ShowColumns(Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true), "ID")
+    },
+    // Remove stale rows from this assignment that no longer belong to the opened course.
+    RemoveIf(
         OutcomeEvaluations,
-        Coalesce(
-            LookUp(
-                OutcomeEvaluations,
-                Assignment.Id = varAssignmentId &&
-                EvaluationType.Value = e.EvalType &&
-                ReferenceId = e.EvalId
+        Assignment.Id = varAssignmentId &&
+        (
+            (EvaluationType.Value = "PI" && IsBlank(LookUp(_validPIIds, Id = ReferenceId, Id))) ||
+            (EvaluationType.Value = "CSO" && IsBlank(LookUp(_validCSOIds, ID = ReferenceId, ID)))
+        )
+    );
+
+    ForAll(
+        Filter(
+            colEvalItems,
+            !IsBlank(EvalId) &&
+            (
+                (EvalType = "PI" && !IsBlank(LookUp(_validPIIds, Id = EvalId, Id))) ||
+                (EvalType = "CSO" && !IsBlank(LookUp(_validCSOIds, ID = EvalId, ID)))
+            )
+        ) As e,
+        Patch(
+            OutcomeEvaluations,
+            Coalesce(
+                LookUp(
+                    OutcomeEvaluations,
+                    Assignment.Id = varAssignmentId &&
+                    EvaluationType.Value = e.EvalType &&
+                    ReferenceId = e.EvalId
+                ),
+                Defaults(OutcomeEvaluations)
             ),
-            Defaults(OutcomeEvaluations)
-        ),
-        {
-            Assignment: {
-                Id: varAssignmentId,
-                Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
-            },
-            EvaluationType: { Value: e.EvalType },
-            ReferenceId: e.EvalId,
-            ReferenceCode: e.EvalCode,
-            Score: e.ScoreLocal,
-            AssessmentTools: e.AssessmentToolsLocal,
-            SubmittedAt: Now()
-        }
+            {
+                Assignment: {
+                    Id: varAssignmentId,
+                    Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
+                },
+                EvaluationType: { Value: e.EvalType },
+                ReferenceId: e.EvalId,
+                ReferenceCode: e.EvalCode,
+                Score: e.ScoreLocal,
+                AssessmentTools: e.AssessmentToolsLocal,
+                SubmittedAt: Now()
+            }
+        )
     )
 )
 ```
@@ -530,10 +555,12 @@ Navigate(scrGradeDistribution, ScreenTransition.Fade)
 
 > Build evaluation items when opening an assignment (this should run in `btnOpenFormRow/btnOpenForm.OnSelect`; section **2** already includes this block):
 ```powerfx
-ClearCollect(
+// IMPORTANT: clear first to prevent cross-form carryover in the same app session.
+Clear(colEvalItems);
+Collect(
     colEvalItems,
     AddColumns(
-        LookUp(Courses, ID = varCourseId).SupportedPIs,
+        Coalesce(LookUp(Courses, ID = varCourseId).SupportedPIs, Table()),
         "EvalType", "PI",
         "EvalId", Id,
         "EvalCode", Value,
@@ -740,33 +767,8 @@ If(
         )
     );
 
-    ForAll(
-        colEvalItems,
-        Patch(
-            OutcomeEvaluations,
-            Coalesce(
-                LookUp(
-                    OutcomeEvaluations,
-                    Assignment.Id = varAssignmentId &&
-                    EvaluationType.Value = EvalType &&
-                    ReferenceId = EvalId
-                ),
-                Defaults(OutcomeEvaluations)
-            ),
-            {
-                Assignment: {
-                    Id: varAssignmentId,
-                    Value: Coalesce(LookUp(TeachingAssignments, ID = varAssignmentId, FormToken), Text(varAssignmentId))
-                },
-                EvaluationType: { Value: EvalType },
-                ReferenceId: EvalId,
-                ReferenceCode: EvalCode,
-                Score: ScoreLocal,
-                AssessmentTools: AssessmentToolsLocal,
-                SubmittedAt: Now()
-            }
-        )
-    );
+    // Reuse helper logic to avoid stale-course rows in long sessions.
+    Select(btnPersistOutcomeEvaluationsDraft);
 
     // Optional list: GradeDistributions (save only grades where count was entered)
     ForAll(
