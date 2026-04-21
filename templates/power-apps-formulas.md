@@ -2203,7 +2203,12 @@ ClearCollect(
         EvalCode,
         Coalesce(ReferenceCode, ""),
         EvalTypeLocal,
-        Coalesce(EvaluationType.Value, EvaluationType)
+        Coalesce(EvaluationType.Value, EvaluationType),
+        SOCodeMapped,
+        Coalesce(
+            LookUp(PerformanceIndicators, ID = Value(ReferenceId), SOCode),
+            LookUp(PerformanceIndicators, IndicatorCode = Coalesce(ReferenceCode, ""), SOCode)
+        )
     )
 );
 
@@ -2225,15 +2230,23 @@ ClearCollect(
     )
 );
 
-// A17-2: SO average + standard deviation in selected semester
+// A17-2: Student Outcome average + standard deviation in selected semester
+// SO values are calculated from PI ratings via PerformanceIndicators.SOCode.
 ClearCollect(
     colSOSemesterStats,
     AddColumns(
         GroupBy(
-            Filter(colOutcomeEvaluationsScored, EvalTypeLocal in ["SO", "CSO"] && SemesterId = varAnalyticsSemester.ID),
-            EvalCode,
+            Filter(
+                colOutcomeEvaluationsScored,
+                EvalTypeLocal = "PI" &&
+                SemesterId = varAnalyticsSemester.ID &&
+                !IsBlank(SOCodeMapped)
+            ),
+            SOCodeMapped,
             RowsBySO
         ),
+        EvalCode,
+        SOCodeMapped,
         AvgScore,
         Round(Average(RowsBySO, ScoreNumeric), 3),
         StdDevScore,
@@ -2260,11 +2273,17 @@ ClearCollect(
 );
 
 // A17-4: Trend of selected SO average across semesters
+// SO trend is computed by grouping PI ratings using PI.SOCode.
 ClearCollect(
     colSOTrend,
     AddColumns(
         GroupBy(
-            Filter(colOutcomeEvaluationsScored, EvalTypeLocal in ["SO", "CSO"] && EvalCode = drpTrendOutcome.Selected.Result),
+            Filter(
+                colOutcomeEvaluationsScored,
+                EvalTypeLocal = "PI" &&
+                SOCodeMapped = drpTrendOutcome.Selected.Result &&
+                !IsBlank(SOCodeMapped)
+            ),
             SemesterTerm,
             RowsBySemester
         ),
@@ -2276,25 +2295,53 @@ ClearCollect(
 );
 
 // A17-5: Trend of all PIs + SOs for selected course across semesters
+// SO trend rows are derived from PI ratings grouped by SOCodeMapped.
 ClearCollect(
     colCourseEvalTrend,
     AddColumns(
         GroupBy(
             Filter(
                 colOutcomeEvaluationsScored,
-                CourseId = drpTrendCourse.Selected.ID
+                CourseId = drpTrendCourse.Selected.ID && EvalTypeLocal = "PI"
             ),
             SemesterTerm,
-            EvalTypeLocal,
             EvalCode,
-            RowsByKey
+            RowsByPI
         ),
+        EvalTypeLocal,
+        "PI",
         AvgScore,
-        Round(Average(RowsByKey, ScoreNumeric), 3),
+        Round(Average(RowsByPI, ScoreNumeric), 3),
         StdDevScore,
-        Round(StdevP(RowsByKey, ScoreNumeric), 3),
+        Round(StdevP(RowsByPI, ScoreNumeric), 3),
         SampleSize,
-        CountRows(RowsByKey)
+        CountRows(RowsByPI)
+    )
+);
+Collect(
+    colCourseEvalTrend,
+    AddColumns(
+        GroupBy(
+            Filter(
+                colOutcomeEvaluationsScored,
+                CourseId = drpTrendCourse.Selected.ID &&
+                EvalTypeLocal = "PI" &&
+                !IsBlank(SOCodeMapped)
+            ),
+            SemesterTerm,
+            SOCodeMapped,
+            RowsBySO
+        ),
+        EvalTypeLocal,
+        "SO",
+        EvalCode,
+        SOCodeMapped,
+        AvgScore,
+        Round(Average(RowsBySO, ScoreNumeric), 3),
+        StdDevScore,
+        Round(StdevP(RowsBySO, ScoreNumeric), 3),
+        SampleSize,
+        CountRows(RowsBySO)
     )
 )
 ```
@@ -2313,7 +2360,7 @@ Sort(Distinct(Filter(colOutcomeEvaluationsScored, EvalTypeLocal = "PI"), EvalCod
 
 ```powerfx
 // drpTrendOutcome.Items
-Sort(Distinct(Filter(colOutcomeEvaluationsScored, EvalTypeLocal in ["SO", "CSO"]), EvalCode), Result)
+Sort(Distinct(Filter(colOutcomeEvaluationsScored, EvalTypeLocal = "PI" && !IsBlank(SOCodeMapped)), SOCodeMapped), Result)
 ```
 
 ```powerfx

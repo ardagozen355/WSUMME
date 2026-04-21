@@ -519,7 +519,7 @@ AddColumns(
 ---
 
 ## Screen AD-5: `scrAnalytics`
-Purpose: Provide semester statistics and cross-semester trends for PI/SO performance.
+Purpose: Provide semester statistics and cross-semester trends for PI performance and SO rollups (SO derived from PI -> PerformanceIndicators.SOCode).
 
 ### Layout (wireframe)
 ```text
@@ -531,12 +531,12 @@ Purpose: Provide semester statistics and cross-semester trends for PI/SO perform
 | PI stats (selected semester)                                                   |
 | [galPISemesterStats] -> PI Code | Avg | StdDev | N                             |
 |--------------------------------------------------------------------------------|
-| SO stats (selected semester)                                                   |
+| SO stats (selected semester, derived from PI->SOCode)                          |
 | [galSOSemesterStats] -> SO Code | Avg | StdDev | N                             |
 |--------------------------------------------------------------------------------|
 | PI trend: [drpTrendPI] [chtPITrend] (Avg by semester)                          |
-| SO trend: [drpTrendOutcome] [chtSOTrend] (Avg by semester)                      |
-| Course trend: [drpTrendCourse] [chtCourseTrend] (all PI + SO by semester)      |
+| SO trend: [drpTrendOutcome] [chtSOTrend] (Avg by semester from PI->SOCode)      |
+| Course trend: [drpTrendCourse] [chtCourseTrend] (all PI + derived SO by semester)|
 +--------------------------------------------------------------------------------+
 ```
 
@@ -561,6 +561,7 @@ Purpose: Provide semester statistics and cross-semester trends for PI/SO perform
 - `chtPITrend.Labels` -> `SemesterTerm`; `chtPITrend.Series` -> `AvgScore`
 - `chtSOTrend.Labels` -> `SemesterTerm`; `chtSOTrend.Series` -> `AvgScore`
 - `chtCourseTrend.Labels` -> `SemesterTerm`; series by `EvalTypeLocal & "-" & EvalCode` with value `AvgScore`
+- SO values above are not read from OutcomeEvaluations SO rows; they are computed from PI rows grouped by `PerformanceIndicators.SOCode`.
 
 
 ## 3) Naming Consistency Checklist
