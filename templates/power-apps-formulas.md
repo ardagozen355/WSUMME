@@ -432,16 +432,16 @@ Notify("Draft responses and grade distribution saved.", NotificationType.Success
 ```powerfx
 With(
     {
-        validPIIds: ShowColumns(Coalesce(LookUp(Courses, ID = varCourseId).SupportedPIs, Table()), "Id"),
-        validCSOIds: ShowColumns(Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true), "ID")
+        validPIs: Coalesce(LookUp(Courses, ID = varCourseId).SupportedPIs, Table()),
+        validCSOs: Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true)
     },
     // Remove stale rows from this assignment that no longer belong to the opened course.
     RemoveIf(
         OutcomeEvaluations,
         Assignment.Id = varAssignmentId &&
         (
-            (EvaluationType.Value = "PI" && IsBlank(LookUp(validPIIds, Id = ReferenceId, Id))) ||
-            (EvaluationType.Value = "CSO" && IsBlank(LookUp(validCSOIds, ID = ReferenceId, ID)))
+            (EvaluationType.Value = "PI" && IsBlank(LookUp(validPIs, Id = ReferenceId))) ||
+            (EvaluationType.Value = "CSO" && IsBlank(LookUp(validCSOs, ID = ReferenceId)))
         )
     );
 
@@ -450,8 +450,8 @@ With(
             colEvalItems,
             !IsBlank(EvalId) &&
             (
-                (EvalType = "PI" && !IsBlank(LookUp(validPIIds, Id = EvalId, Id))) ||
-                (EvalType = "CSO" && !IsBlank(LookUp(validCSOIds, ID = EvalId, ID)))
+                (EvalType = "PI" && !IsBlank(LookUp(validPIs, Id = EvalId))) ||
+                (EvalType = "CSO" && !IsBlank(LookUp(validCSOs, ID = EvalId)))
             )
         ) As e,
         Patch(
