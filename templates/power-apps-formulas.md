@@ -86,7 +86,7 @@ ClearCollect(
 
 ## Instructor App Formulas
 
-### 1) Load instructor's pending assignments (App OnStart)
+### 1) Load instructor's assignments (App OnStart)
 > `TeachingAssignments.Instructor` is a lookup to `Faculty`. Include Faculty `Email` as an additional lookup column so `Instructor.Email` is available in Power Apps filters.
 
 ```powerfx
@@ -94,9 +94,13 @@ Set(varUserEmail, Lower(User().Email));
 Set(varDisplayName, Coalesce(User().FullName, User().Email));
 ClearCollect(
     colMyAssignments,
-    Filter(
-        TeachingAssignments,
-        Lower(Instructor.Email) = varUserEmail && FormStatus <> "Submitted"
+    SortByColumns(
+        Filter(
+            TeachingAssignments,
+            Lower(Instructor.Email) = varUserEmail
+        ),
+        "Modified",
+        Descending
     )
 );
 ```
@@ -114,6 +118,24 @@ Coalesce(ThisItem.Semester.Value, "")
 
 // lblAssignStatus.Text
 Coalesce(ThisItem.FormStatus.Value, "")
+```
+
+### 1a) Email Word summary for submitted report (from `scrMyAssignments`)
+> Add a Power Automate connection named `RequestAssessmentSummaryFlow` (Power Apps trigger) with inputs:
+> 1) `assignmentId` (Number)
+> 2) `requestorEmail` (Text)
+
+```powerfx
+// btnRequestSummaryRow.Visible
+Coalesce(ThisItem.FormStatus.Value, "") = "Submitted"
+
+// btnRequestSummaryRow.OnSelect
+If(
+    Coalesce(ThisItem.FormStatus.Value, "") <> "Submitted",
+    Notify("Summary is available only for submitted forms.", NotificationType.Warning),
+    RequestAssessmentSummaryFlow.Run(ThisItem.ID, varUserEmail);
+    Notify("Summary request submitted. Check your email in a moment.", NotificationType.Success)
+)
 ```
 
 ### 2) Build dynamic question set for selected assignment (OnSelect of assignment row)

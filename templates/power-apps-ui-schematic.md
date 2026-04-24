@@ -17,7 +17,7 @@ If(varIsAdmin, scrAdminHome, scrMyAssignments)
 ## 1) Instructor App UI (Canvas)
 
 ## Screen IA-1: `scrMyAssignments`
-Purpose: Instructor sees pending forms.
+Purpose: Instructor sees assigned forms (including submitted ones for summary requests).
 
 ### Layout (wireframe)
 ```text
@@ -29,7 +29,7 @@ Purpose: Instructor sees pending forms.
 |--------------------------------------------------------------------------------|
 | Gallery [galAssignments] (blank vertical; embedded controls)                   |
 |  - [lblAssignCourseTitle]                                                      |
-|  - [lblAssignSemester] [lblAssignStatus] [btnOpenFormRow]                      |
+|  - [lblAssignSemester] [lblAssignStatus] [btnOpenFormRow] [btnRequestSummaryRow] |
 +--------------------------------------------------------------------------------+
 ```
 
@@ -42,8 +42,10 @@ Purpose: Instructor sees pending forms.
   - set `varAssignmentId` and `varCourseId`
   - build `colQuestions`, `colResponses`, and `colEvalItems` (preloading previously saved drafts)
   - `Navigate(scrAssessmentQuestions, ScreenTransition.Fade)`
+- `btnRequestSummaryRow.Visible` -> formula **1a** (only when status is Submitted)
+- `btnRequestSummaryRow.OnSelect` -> formula **1a** (calls `RequestAssessmentSummaryFlow`)
 
-(Uses formulas from section **Instructor 1 & 2**.)
+(Uses formulas from section **Instructor 1, 1a & 2**.)
 
 ---
 
@@ -572,7 +574,7 @@ To avoid broken formulas, keep these names exactly:
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
 - Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`, `drpAnalyticsSemester`, `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`
 - Combo boxes: `drpAssignInstructor` (searchable by `LastName`, `FirstName`, `Email`)
-- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnPersistResponseDraft`, `btnPersistOutcomeEvaluationsDraft`, `btnPersistGradeDistributionDraft`, `btnSaveQuestions`, `btnGoToRatings`, `btnBackToQuestions`, `btnSaveRatings`, `btnGoToGradeDistribution`, `btnBackToRatings`, `btnSaveGradeDistribution`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`
+- Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnPersistResponseDraft`, `btnPersistOutcomeEvaluationsDraft`, `btnPersistGradeDistributionDraft`, `btnSaveQuestions`, `btnGoToRatings`, `btnBackToQuestions`, `btnSaveRatings`, `btnGoToGradeDistribution`, `btnBackToRatings`, `btnSaveGradeDistribution`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`, `btnRequestSummaryRow`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
 - Semester dashboard controls: `galAssignmentsBySemester`, `galPISemesterStats`, `galSOSemesterStats`, `btnImportAssignments`, `attAssignmentsImport`, `btnNewAssignmentAdmin`, `btnSaveAssignmentAdmin`, `btnDeleteAssignmentAdmin`, `btnSaveReminderCadence`, `btnSendReminderNow`, `btnCreateSemester`, `dtNewSemesterStart`, `dtNewSemesterEnd`
 - Course controls: `btnNewCourse`, `btnSaveCourse`, `btnDeleteCourse`

@@ -133,3 +133,30 @@ Additional recommendations:
 - Keep header names exactly as above.
 - Avoid formulas in key fields (`Semester`, `CourseNumber`, `Section`, `InstructorName`); paste values.
 - Save as `.xlsx` before uploading to `/SemesterImports`.
+
+
+---
+
+## Flow E: Generate and email submitted report summary (Word)
+1. **Trigger**: **Power Apps (V2)**.
+   - Inputs:
+     - `assignmentId` (Number)
+     - `requestorEmail` (Text)
+2. **SharePoint — Get item** from `TeachingAssignments` for `assignmentId`.
+3. **SharePoint — Get items** from `Responses` with filter: `AssignmentId eq <assignmentId>`.
+4. **SharePoint — Get items** from `OutcomeEvaluations` with filter: `AssignmentId eq <assignmentId>`.
+5. **SharePoint — Get items** from `GradeDistributions` with filter: `AssignmentId eq <assignmentId>`.
+6. **Compose** rich text sections for the report:
+   - Questions + submitted responses
+   - PI/CSO rows with `ReferenceCode`, `Score`, `AssessmentTools`
+   - Grade distribution (grade + student count)
+7. **Word Online (Business) — Populate a Microsoft Word template**
+   - Store a template (`AssessmentSummaryTemplate.docx`) in SharePoint/OneDrive.
+   - Map placeholders/content controls for assignment metadata and the three sections above.
+8. **Create file** (SharePoint/OneDrive) with generated `.docx`.
+   - Suggested file name: `AssessmentSummary-{assignmentId}-{utcNow('yyyyMMdd-HHmmss')}.docx`
+9. **Outlook — Send an email (V2)** to `requestorEmail`.
+   - Subject: `Assessment Summary - <Course> - <Semester>`
+   - Body: confirmation text + assignment details.
+   - Attachment: generated Word file content.
+10. **Respond to Power Apps** (optional) with status text: `Summary queued`.

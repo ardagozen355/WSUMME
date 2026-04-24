@@ -199,6 +199,7 @@ Use SharePoint lists as the primary source of truth:
 - Reopening a partially saved assignment reloads saved question answers and saved PI/CSO ratings into the corresponding controls
 - Grade distribution counts default to blank; instructors may enter only applicable grade categories
 - Final submit on the grade distribution screen writes `Responses`, `OutcomeEvaluations`, and `GradeDistributions`
+- From the assignment list, instructors can request an emailed Word summary for submitted forms (questions/responses, PI+CSO ratings/tools, and grade distribution)
 
 ### 3) Automations (Power Automate)
 - On semester file upload: parse and create assignments
