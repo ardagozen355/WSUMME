@@ -213,7 +213,7 @@ Collect(
                 OutcomeEvaluations,
                 Assignment.Id = varAssignmentId &&
                 EvaluationType.Value = "CSO" &&
-                ReferenceId = ID,
+                ReferenceId = ThisRecord.ID,
                 Score
             ),
             ""
@@ -230,7 +230,7 @@ Collect(
                 OutcomeEvaluations,
                 Assignment.Id = varAssignmentId &&
                 EvaluationType.Value = "CSO" &&
-                ReferenceId = ID,
+                ReferenceId = ThisRecord.ID,
                 AssessmentTools
             ),
             ""
@@ -605,7 +605,7 @@ Collect(
                 OutcomeEvaluations,
                 Assignment.Id = varAssignmentId &&
                 EvaluationType.Value = "CSO" &&
-                ReferenceId = ID,
+                ReferenceId = ThisRecord.ID,
                 Score
             ),
             ""
@@ -622,7 +622,7 @@ Collect(
                 OutcomeEvaluations,
                 Assignment.Id = varAssignmentId &&
                 EvaluationType.Value = "CSO" &&
-                ReferenceId = ID,
+                ReferenceId = ThisRecord.ID,
                 AssessmentTools
             ),
             ""
