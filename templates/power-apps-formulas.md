@@ -457,16 +457,10 @@ With(
         validPIs: Coalesce(LookUp(Courses, ID = varCourseId).SupportedPIs, Table()),
         validCSOs: Filter(CourseSpecificOutcomes, Course.Id = varCourseId && IsActive = true)
     },
-    // Remove stale rows from this assignment that no longer belong to the opened course.
-    RemoveIf(
-        OutcomeEvaluations,
-        Assignment.Id = varAssignmentId &&
-        (
-            (EvaluationType.Value = "PI" && IsBlank(LookUp(validPIs, Id = ReferenceId))) ||
-            (EvaluationType.Value = "CSO" && IsBlank(LookUp(validCSOs, ID = ReferenceId)))
-        )
-    );
-
+    // IMPORTANT:
+    // Do not hard-delete rows here. Some tenants expose lookup keys as Id/ID inconsistently,
+    // which can make membership checks evaluate as blank and accidentally remove valid rows.
+    // This helper only upserts current `colEvalItems` rows for the active assignment.
     ForAll(
         Filter(
             colEvalItems,
