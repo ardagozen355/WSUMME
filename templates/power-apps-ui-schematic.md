@@ -229,7 +229,7 @@ Navigate(scrImports, ScreenTransition.Fade)
 
 ```powerfx
 // btnAnalytics
-Navigate(scrAnalytics, ScreenTransition.Fade)
+Navigate(scrSemesterAnalytics, ScreenTransition.Fade)
 ```
 
 ### Guarding buttons for non-admin users
@@ -520,8 +520,8 @@ AddColumns(
 
 ---
 
-## Screen AD-5: `scrAnalytics`
-Purpose: Provide semester statistics and cross-semester trends for PI performance and SO rollups (SO derived from PI -> PerformanceIndicators.SOCode).
+## Screen AD-5: `scrSemesterAnalytics`
+Purpose: Provide selected-semester PI/SO statistics and a selected-SO chart (SO average from associated PIs).
 
 ### Layout (wireframe)
 ```text
@@ -536,34 +536,25 @@ Purpose: Provide semester statistics and cross-semester trends for PI performanc
 | SO stats (selected semester, derived from PI->SOCode)                          |
 | [galSOSemesterStats] -> SO Code | Avg | StdDev | N                             |
 |--------------------------------------------------------------------------------|
-| PI trend: [drpTrendPI] [chtPITrend] (Avg by semester)                          |
-| SO trend: [drpTrendOutcome] [chtSOTrend] (Avg by semester from PI->SOCode)      |
-| Course trend: [drpTrendCourse] [chtCourseTrend] (all PI + derived SO by semester)|
+| Selected SO [drpSemesterSO] [chtSelectedSOSemester] (selected semester SO average)|
+| [btnGoToTrendAnalytics]                                                          |
 +--------------------------------------------------------------------------------+
 ```
 
 ### Controls & bindings
-- `scrAnalytics.OnVisible` -> formula **A17** (load analytics collections)
+- `scrSemesterAnalytics.OnVisible` -> formula **A17** (load semester analytics collections)
 - `btnRefreshAnalytics.OnSelect` -> formula **A17**
 - `drpAnalyticsSemester.Items` -> formula **A17** (`colAnalyticsSemesters`)
 - `drpAnalyticsSemester.OnChange` -> formula **A17** (rebuild semester stats)
 - `galPISemesterStats.Items` -> formula **A17** (`colPISemesterStats`)
 - `galSOSemesterStats.Items` -> formula **A17** (`colSOSemesterStats`)
-- `drpTrendPI.Items` -> formula **A17**
-- `drpTrendPI.OnChange` -> formula **A17** (rebuild `colPITrend`)
-- `chtPITrend.Items` -> formula **A17** (`colPITrend`)
-- `drpTrendOutcome.Items` -> formula **A17**
-- `drpTrendOutcome.OnChange` -> formula **A17** (rebuild `colSOTrend`)
-- `chtSOTrend.Items` -> formula **A17** (`colSOTrend`)
-- `drpTrendCourse.Items` -> formula **A17**
-- `drpTrendCourse.OnChange` -> formula **A17** (rebuild `colCourseEvalTrend`)
-- `chtCourseTrend.Items` -> formula **A17** (`colCourseEvalTrend`)
+- `drpSemesterSO.Items` -> formula **A17** (`StudentOutcomes`)
+- `chtSelectedSOSemester.Items` -> formula **A17** (SO average for selected semester)
+- `btnGoToTrendAnalytics.OnSelect` -> `Navigate(scrTrendAnalytics, ScreenTransition.Fade)`
 
 > Recommended chart fields:
-- `chtPITrend.Labels` -> `SemesterTerm`; `chtPITrend.Series` -> `AvgScore`
-- `chtSOTrend.Labels` -> `SemesterTerm`; `chtSOTrend.Series` -> `AvgScore`
-- `chtCourseTrend.Labels` -> `SemesterTerm`; series by `EvalTypeLocal & "-" & EvalCode` with value `AvgScore`
-- SO values above are not read from OutcomeEvaluations SO rows; they are computed from PI rows grouped by `PerformanceIndicators.SOCode`.
+- `chtSelectedSOSemester.Labels` -> `ChartLabel`; `chtSelectedSOSemester.Series` -> `ChartValue`
+- SO values are computed from PI rows grouped by `PerformanceIndicators.SOCode`.
 
 
 ## 3) Naming Consistency Checklist
@@ -572,7 +563,7 @@ To avoid broken formulas, keep these names exactly:
 
 - Toggles: `tglShowActiveOnly`, `tglCourseActive`, `tglQuestionRequired`, `tglSemesterReminders`
 - Text inputs: `txtCourseNumber`, `txtCourseTitle`, `txtFacultyFirstName`, `txtFacultyLastName`, `txtFacultyEmail`, `txtQuestionText`, `txtDisplayOrder`, `txtChoiceOrderRow`, `txtChoiceLabelRow`, `txtOutcomeCode`, `txtOutcomeDescription`, `txtNewPIIndicatorCode`, `txtNewPIIndicatorDescription`, `txtReminderCadenceDays`, `txtAssignSection`, `txtNewSemesterTermName`
-- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`, `drpAnalyticsSemester`, `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`
+- Dropdowns: `drpFacultyCampus`, `drpQuestionType`, `drpSemester`, `drpAssignCourse`, `drpAssignCampus`, `drpAssignStatus`, `drpNewSemesterStatus`, `drpAnalyticsSemester`, `drpSemesterSO`, `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`
 - Combo boxes: `drpAssignInstructor` (searchable by `LastName`, `FirstName`, `Email`)
 - Instructor controls: `galAssignments`, `lblAssignCourseTitle`, `lblAssignSemester`, `lblAssignStatus`, `btnOpenFormRow`, `lblAssessmentCourse`, `lblAssessmentSemester`, `btnBackToAssignments`, `btnPersistResponseDraft`, `btnPersistOutcomeEvaluationsDraft`, `btnPersistGradeDistributionDraft`, `btnSaveQuestions`, `btnGoToRatings`, `btnBackToQuestions`, `btnSaveRatings`, `btnGoToGradeDistribution`, `btnBackToRatings`, `btnSaveGradeDistribution`, `galQuestions`, `lblQuestionText`, `galGradeDistribution`, `lblGradeLabel`, `txtGradeCount`, `btnSubmitAssessment`, `btnRequestSummaryRow`
 - PI/CSO controls: `galSupportedPIs`, `galAvailablePIs`, `btnAddPI`, `btnRemovePI`, `galCSOs`, `btnNewCSO`, `btnAddCSO`, `btnRemoveCSO`, `galEvalItems`, `drpScore`, `galPIGradeOptions`, `btnNewPIOption`, `btnSavePIOptionRow`, `btnDeletePIOptionRow`
@@ -581,8 +572,22 @@ To avoid broken formulas, keep these names exactly:
 - Faculty controls: `galFaculty`, `btnNewFaculty`, `btnSaveFaculty`, `btnDeleteFaculty`
 - Question controls: `galQuestionsAdmin`, `btnNewQuestion`, `btnSaveQuestion`, `btnDeleteQuestion`, `galChoices`, `btnNewChoice`, `btnSaveChoiceRow`, `btnDeleteChoiceRow`
 - Outcome/PI controls: `galStudentOutcomesAdmin`, `galPIsByOutcome`, `btnNewOutcome`, `btnMoveUpOutcome`, `btnDeleteOutcomeRow`, `btnNewPIForOutcome`, `btnMoveUpPI`, `btnDeletePIFromOutcome`
-- Analytics controls: `btnAnalytics`, `btnRefreshAnalytics`, `chtPITrend`, `chtSOTrend`, `chtCourseTrend`
+- Analytics controls: `btnAnalytics`, `btnRefreshAnalytics`, `btnRefreshTrendAnalytics`, `btnGoToTrendAnalytics`, `chtSelectedSOSemester`, `chtPITrend`, `chtSOTrend`, `chtCourseTrend`
 - Variables: `varIsAdmin`, `varUserEmail`, `varSelectedCourse`, `varSelectedFaculty`, `varSelectedQuestion`, `varSelectedOutcome`, `varSelectedPIAdmin`, `varAssignmentId`, `varCourseId`, `varQuestionTextLocal`, `varQuestionTypeLocal`, `varQuestionRequiredLocal`, `varQuestionOrderLocal`, `varFacultyFirstNameLocal`, `varFacultyLastNameLocal`, `varFacultyEmailLocal`, `varFacultyCampusLocal`, `varSelectedCSO`, `varCSOCodeLocal`, `varCSODescriptionLocal`, `varOutcomeCodeLocal`, `varOutcomeDescriptionLocal`, `varPIIndicatorCodeLocal`, `varPIIndicatorDescriptionLocal`, `varSelectedAssignmentAdmin`, `varAnalyticsSemester`
 - Collections: `colMyAssignments`, `colQuestions`, `colResponses`, `colEvalItems`, `colGradeDistribution`, `colAnalyticsSemesters`, `colOutcomeEvaluationsScored`, `colPISemesterStats`, `colSOSemesterStats`, `colPITrend`, `colSOTrend`, `colCourseEvalTrend`
 
 If you prefer different control names, update the formula references consistently.
+
+
+## Screen AD-6: `scrTrendAnalytics`
+Purpose: Show semester-by-semester trends (PI, SO, and course-wide PI+SO trends).
+
+### Controls & bindings
+- `scrTrendAnalytics.OnVisible` -> formula **A18**
+- `btnRefreshTrendAnalytics.OnSelect` -> formula **A18**
+- `drpTrendPI.Items` -> formula **A18**
+- `chtPITrend.Items` -> formula **A18**
+- `drpTrendOutcome.Items` -> formula **A18**
+- `chtSOTrend.Items` -> formula **A18**
+- `drpTrendCourse.Items` -> formula **A18**
+- `chtCourseTrend.Items` -> formula **A18**

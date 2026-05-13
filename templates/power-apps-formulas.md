@@ -916,7 +916,7 @@ Navigate(scrImports, ScreenTransition.Fade)
 
 ```powerfx
 // btnAnalytics.OnSelect
-Navigate(scrAnalytics, ScreenTransition.Fade)
+Navigate(scrSemesterAnalytics, ScreenTransition.Fade)
 ```
 
 ```powerfx
@@ -2175,11 +2175,11 @@ If(
 ```
 
 
-### A17) Analytics screen (`scrAnalytics`) — PI/SO averages, standard deviation, and semester trends
-> Controls used below: `drpAnalyticsSemester`, `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`, `galPISemesterStats`, `galSOSemesterStats`, `chtPITrend`, `chtSOTrend`, `chtCourseTrend`.
+### A17) Semester analytics screen (`scrSemesterAnalytics`) — selected semester stats + selected SO (PI-rollup) chart
+> Controls used below: `drpAnalyticsSemester`, `drpSemesterSO`, `galPISemesterStats`, `galSOSemesterStats`, `chtSelectedSOSemester`.
 
 ```powerfx
-// scrAnalytics.OnVisible (or btnRefreshAnalytics.OnSelect)
+// scrSemesterAnalytics.OnVisible (or btnRefreshAnalytics.OnSelect)
 ClearCollect(
     colAnalyticsSemesters,
     SortByColumns(Semesters, "StartDate", Descending)
@@ -2274,7 +2274,47 @@ ClearCollect(
     )
 );
 
-// A17-3: Trend of selected PI average across semesters
+> Control bindings:
+
+```powerfx
+// drpAnalyticsSemester.Items
+colAnalyticsSemesters
+```
+
+```powerfx
+// drpSemesterSO.Items (fixed 7 SO options)
+SortByColumns(StudentOutcomes, "DisplayOrder", Ascending)
+```
+
+```powerfx
+// galPISemesterStats.Items
+SortByColumns(colPISemesterStats, "EvalCode", Ascending)
+```
+
+```powerfx
+// galSOSemesterStats.Items
+SortByColumns(colSOSemesterStats, "EvalCode", Ascending)
+```
+
+```powerfx
+// chtSelectedSOSemester.Items (average of all PI ratings mapped to selected SO in selected semester)
+AddColumns(
+    Filter(
+        colSOSemesterStats,
+        EvalCode = drpSemesterSO.Selected.OutcomeCode
+    ),
+    ChartLabel,
+    Coalesce(drpSemesterSO.Selected.OutcomeCode, "SO"),
+    ChartValue,
+    AvgScore
+)
+```
+
+### A18) Trend analytics screen (`scrTrendAnalytics`) — semester-by-semester trends
+> Controls used below: `drpTrendPI`, `drpTrendOutcome`, `drpTrendCourse`, `chtPITrend`, `chtSOTrend`, `chtCourseTrend`.
+
+```powerfx
+// scrTrendAnalytics.OnVisible (or btnRefreshTrendAnalytics.OnSelect)
 ClearCollect(
     colPITrend,
     AddColumns(
@@ -2290,8 +2330,6 @@ ClearCollect(
     )
 );
 
-// A17-4: Trend of selected SO average across semesters
-// SO trend is computed by grouping PI ratings using PI.SOCode.
 ClearCollect(
     colSOTrend,
     AddColumns(
@@ -2312,8 +2350,6 @@ ClearCollect(
     )
 );
 
-// A17-5: Trend of all PIs + SOs for selected course across semesters
-// SO trend rows are derived from PI ratings grouped by SOCodeMapped.
 ClearCollect(
     colCourseEvalTrend,
     AddColumns(
@@ -2364,12 +2400,7 @@ Collect(
 )
 ```
 
-> Control bindings:
-
-```powerfx
-// drpAnalyticsSemester.Items
-colAnalyticsSemesters
-```
+> Trend control bindings:
 
 ```powerfx
 // drpTrendPI.Items
@@ -2387,16 +2418,6 @@ SortByColumns(Courses, "CourseNumber", Ascending)
 ```
 
 ```powerfx
-// galPISemesterStats.Items
-SortByColumns(colPISemesterStats, "EvalCode", Ascending)
-```
-
-```powerfx
-// galSOSemesterStats.Items
-SortByColumns(colSOSemesterStats, "EvalCode", Ascending)
-```
-
-```powerfx
 // chtPITrend.Items
 SortByColumns(colPITrend, "SemesterTerm", Ascending)
 ```
@@ -2410,3 +2431,11 @@ SortByColumns(colSOTrend, "SemesterTerm", Ascending)
 // chtCourseTrend.Items
 SortByColumns(colCourseEvalTrend, "SemesterTerm", Ascending)
 ```
+
+> Control bindings:
+
+```powerfx
+// drpAnalyticsSemester.Items
+colAnalyticsSemesters
+```
+
